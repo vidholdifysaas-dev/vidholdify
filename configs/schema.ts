@@ -15,12 +15,15 @@ export const Users = pgTable('users', {
   plan_tier: varchar('plan_tier').default('free'),
   current_period_start: timestamp('current_period_start'),
   current_period_end: timestamp('current_period_end'),
+  
+  // Legacy fields (kept for backward compatibility)
   credits_allowed: integer('credits_allowed').default(0),
   credits_used: integer('credits_used').default(0),
+  carryover: integer('carryover').default(0),
+  carryover_expiry: timestamp('carryover_expiry'),
+  // Credit reset tracking
   credit_reset_day: integer('credit_reset_day'),
   next_credit_reset: timestamp('next_credit_reset'), 
-  carryover: integer('carryover').default(0),
-  carryover_expiry: timestamp('carryover_expiry'), 
 });
 
 

@@ -1,11 +1,12 @@
 export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
-import { TopviewTasks } from "@/configs/schema";
+import { TopviewTasks, Users } from "@/configs/schema";
 import { eq } from "drizzle-orm";
 import axios, { AxiosError } from "axios";
+import { getAvailableCredits, deductCredits } from "@/utils/creditHelpers";
 
 const TOPVIEW_API_KEY = process.env.TOPVIEW_API_KEY!;
 const TOPVIEW_UID = process.env.TOPVIEW_UID!;
@@ -50,10 +51,38 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    if (!taskRecord.bgRemovedImageFileId) {
+    // Check credits - get user email and credit data
+    const clerk = await clerkClient();
+    const clerkUser = await clerk.users.getUser(userId);
+    const userEmail = clerkUser.emailAddresses.find(
+      (e: { id: string; emailAddress: string }) => 
+        e.id === clerkUser.primaryEmailAddressId
+    )?.emailAddress;
+
+    if (!userEmail) {
+      return NextResponse.json({ error: "User email not found" }, { status: 404 });
+    }
+
+    const [user] = await db
+      .select()
+      .from(Users)
+      .where(eq(Users.email, userEmail))
+      .limit(1);
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // Check if user has at least 1 UGC credit
+    const availableCredits = getAvailableCredits(user);
+    if (availableCredits.available < 1) {
       return NextResponse.json(
-        { error: "Background removal not completed yet" },
-        { status: 400 }
+        { 
+          error: "Insufficient credits. You need 1 credit to replace product image.",
+          required: 1,
+          available: availableCredits.available
+        },
+        { status: 402 }
       );
     }
 
@@ -187,6 +216,26 @@ export async function POST(req: NextRequest) {
     };
 
     console.log("✅ Image replacement task submitted:", result.taskId);
+
+    // Deduct 1 UGC credit after successful submission
+    try {
+      const deductedCredits = deductCredits(user, 1);
+      
+      await db
+        .update(Users)
+        .set({
+          credits_used: deductedCredits.credits_used,
+          carryover: deductedCredits.carryover,
+          updated_at: new Date(),
+        })
+        .where(eq(Users.email, userEmail));
+
+      console.log("💳 Deducted 1 UGC credit from user:", userEmail);
+    } catch (creditError: unknown) {
+      const err = creditError as Error;
+      console.error("❌ Failed to deduct credits:", err.message);
+      // Continue anyway since TopView task was submitted successfully
+    }
 
     // Update task record
     await db

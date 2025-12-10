@@ -4,7 +4,7 @@ import { Check, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { pricingData } from "@/constant/PricingData";
+import { pricingData } from "@/dataUtils/PricingData";
 import { useState } from "react";
 
 export default function PricingPage() {

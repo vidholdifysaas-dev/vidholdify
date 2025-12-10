@@ -1,7 +1,7 @@
 export const planLimits = {
   starter: {
     credits: 80,
-    maxDuration: 30, 
+    maxDuration: 30,
   },
   professional: {
     credits: 240,
@@ -18,5 +18,9 @@ export const planLimits = {
   free: {
     credits: 0,
     maxDuration: 15,
-  }
+  },
+  none: {
+    credits: 0,
+    maxDuration: 0,
+  },
 };

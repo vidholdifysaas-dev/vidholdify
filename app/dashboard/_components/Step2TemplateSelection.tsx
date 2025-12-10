@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { ChevronLeft, Loader2, ChevronRight } from "lucide-react";
+import { ChevronLeft, Loader2, ChevronRight, AlertCircle } from "lucide-react";
 import axios from "axios";
 import {
   Select,
@@ -102,6 +102,11 @@ export default function Step2TemplateSelection() {
   const [selectedResult, setSelectedResult] = useState<ReplaceProductResult | null>(null);
   const [manualTaskId, setManualTaskId] = useState("");
 
+  // Credit checking states
+  const [userCredits, setUserCredits] = useState<number | null>(null);
+  const [loadingCredits, setLoadingCredits] = useState(true);
+  const [hasInsufficientCredits, setHasInsufficientCredits] = useState(false);
+
   // Avatar fetching states
   const [avatars, setAvatars] = useState<Avatar[]>([]);
   const [filteredAvatars, setFilteredAvatars] = useState<Avatar[]>([]);
@@ -121,6 +126,25 @@ export default function Step2TemplateSelection() {
   const ITEMS_PER_PAGE = 15; // 5 cards x 3 rows
 
   const hasLoadedRef = useRef(false);
+
+  // Fetch user credits
+  useEffect(() => {
+    const fetchCredits = async () => {
+      try {
+        setLoadingCredits(true);
+        const response = await axios.get('/api/user/plan');
+        const available = (response.data.credits_allowed || 0) - (response.data.credits_used || 0);
+        setUserCredits(available);
+        setHasInsufficientCredits(available < 1);
+      } catch (error) {
+        console.error('Failed to fetch credits:', error);
+        setHasInsufficientCredits(true);
+      } finally {
+        setLoadingCredits(false);
+      }
+    };
+    fetchCredits();
+  }, []);
 
   // Load initial data and restore state from context
   useEffect(() => {
@@ -386,10 +410,10 @@ export default function Step2TemplateSelection() {
   return (
     <div className="bg-card border border-border rounded-xl p-4 sm:p-8">
       <div className="flex items-center gap-4 mb-6">
-        <div>
+        <div className="flex-1">
           <h2 className="text-2xl font-bold text-foreground">Choose Avatar</h2>
           <p className="text-muted-foreground">
-            Select an AI avatar to showcase your product
+            Select an AI avatar to showcase your product (1 credit)
           </p>
         </div>
       </div>
@@ -592,15 +616,15 @@ export default function Step2TemplateSelection() {
                       </div>
                     )
                     : currentAvatars.map((avatar) => (
-                      <AvatarCard
+                        <AvatarCard
                         key={avatar.avatarId}
-                        avatar={avatar}
-                        isSelected={selectedAvatar?.avatarId === avatar.avatarId}
-                        onSelect={(avatar) => {
-                          setSelectedAvatar(avatar);
-                          setWorkflowData({ selectedAvatarId: avatar.avatarId });
-                        }}
-                      />
+                          avatar={avatar}
+                          isSelected={selectedAvatar?.avatarId === avatar.avatarId}
+                          onSelect={(avatar) => {
+                              setSelectedAvatar(avatar);
+                              setWorkflowData({ selectedAvatarId: avatar.avatarId });
+                          }}
+                        />
                     ))}
               </div>
             </div >
@@ -650,18 +674,29 @@ export default function Step2TemplateSelection() {
             Back
           </button>
         )}
+        <div className="flex items-center gap-2">
+        {hasInsufficientCredits && (
+          <div className="text-sm text-red-500">Please upgrade your plan to generate images.</div>
+        )}
         <button
           onClick={results ? handleConfigureVideo : handleSubmit}
-          disabled={results ? !selectedResult : (!selectedAvatar || processing)}
+          disabled={results ? !selectedResult : (!selectedAvatar || processing || hasInsufficientCredits)}
           className={`px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base bg-brand-primary text-white rounded-lg font-semibold hover:bg-brand-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 sm:gap-2 ${loading ? 'ml-auto' : ''
             }`}
         >
           {processing && <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />}
-          {results
-            ? "Configure Video"
-            : (processing ? "Processing..." : "Generate Images")
-          }
+          {hasInsufficientCredits && !results ? (
+            <>
+              <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+              Insufficient Credits
+            </>
+          ) : results ? (
+            "Configure Video"
+          ) : (
+            processing ? "Processing..." : "Generate Images"
+          )}
         </button>
+      </div>
       </div>
 
       {/* Manual Task Recovery Section */}

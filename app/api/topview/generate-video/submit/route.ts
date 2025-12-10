@@ -1,11 +1,12 @@
 export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { auth,clerkClient } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { TopviewTasks, TopviewVideo, Users } from "@/configs/schema";
 import { eq } from "drizzle-orm";
 import axios, { AxiosError } from "axios";
+import { getAvailableCredits, deductCredits } from "@/utils/creditHelpers";
 
 const TOPVIEW_API_KEY = process.env.TOPVIEW_API_KEY!;
 const TOPVIEW_UID = process.env.TOPVIEW_UID!;
@@ -34,7 +35,7 @@ export async function POST(req: NextRequest) {
       taskRecordId,
       replaceProductTaskImageId,
       scriptMode = "text",
-      ttsText: scriptInput, // Rename incoming ttsText to scriptInput for processing
+      ttsText: scriptInput,
       voiceId,
       captionStyleId,
       mode = "pro",
@@ -43,7 +44,6 @@ export async function POST(req: NextRequest) {
       productName,
     } = body;
 
-    // Map the new payload key to the internal variable used for DB operations
     const selectedImageId = replaceProductTaskImageId;
 
     if (!taskRecordId || !selectedImageId || !voiceId) {
@@ -56,7 +56,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Use default script if not provided (for testing)
     const ttsText = scriptInput && scriptInput.trim()
       ? scriptInput.trim()
       : "Check out this amazing product! It's perfect for your needs and offers great value.";
@@ -98,12 +97,13 @@ export async function POST(req: NextRequest) {
       console.warn("⚠️ Image replacement not completed - continuing anyway for testing");
     }
 
-    // Check if user has enough credits
-    // First, get user email from Clerk
-    const { clerkClient } = await import('@clerk/nextjs/server');
+    // Check credits - get user email and credit data
     const clerk = await clerkClient();
     const clerkUser = await clerk.users.getUser(userId);
-    const userEmail = clerkUser.emailAddresses.find((e: { id: string; emailAddress: string; }) => e.id === clerkUser.primaryEmailAddressId)?.emailAddress;
+    const userEmail = clerkUser.emailAddresses.find(
+      (e: { id: string; emailAddress: string }) => 
+        e.id === clerkUser.primaryEmailAddressId
+    )?.emailAddress;
     
     console.log("👤 User lookup:", {
       clerkUserId: userId,
@@ -122,16 +122,22 @@ export async function POST(req: NextRequest) {
       .limit(1);
 
     if (!user) {
-      console.warn("⚠️ User not found in database - continuing for testing");
-    } else {
-      const creditsAvailable = (user.credits_allowed || 0) - (user.credits_used || 0);
-      if (creditsAvailable < 1) {
-        console.error("❌ Insufficient credits");
-        return NextResponse.json(
-          { error: "Insufficient credits. Please upgrade your plan." },
-          { status: 402 }
-        );
-      }
+      console.error("❌ User not found in database");
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // Check if user has at least 5 UGC credits
+    const availableCredits = getAvailableCredits(user);
+    if (availableCredits.available < 5) {
+      console.error("❌ Insufficient credits");
+      return NextResponse.json(
+        { 
+          error: "Insufficient credits. You need 5 credits to generate a video.",
+          required: 5,
+          available: availableCredits.available
+        },
+        { status: 402 }
+      );
     }
 
     console.log("🔄 Submitting video generation task to TopView...");
@@ -200,6 +206,26 @@ export async function POST(req: NextRequest) {
 
     console.log("💾 Updating database records...");
 
+    // Deduct 5 UGC credits after successful video generation submission
+    try {
+      const deductedCredits = deductCredits(user, 5);
+      
+      await db
+        .update(Users)
+        .set({
+          credits_used: deductedCredits.credits_used,
+          carryover: deductedCredits.carryover,
+          updated_at: new Date(),
+        })
+        .where(eq(Users.email, userEmail));
+
+      console.log("💳 Deducted 5 UGC credits from user:", userEmail);
+    } catch (creditError: unknown) {
+      const err = creditError as Error;
+      console.error("❌ Failed to deduct credits:", err.message);
+      // Continue anyway since TopView task was submitted successfully
+    }
+
     // Update task record
     await db
       .update(TopviewTasks)
@@ -217,7 +243,7 @@ export async function POST(req: NextRequest) {
 
     console.log("✅ Task record updated");
 
-    // Create video record (credits not deducted yet)
+    // Create video record
     const [videoRecord] = await db
       .insert(TopviewVideo)
       .values({
@@ -232,7 +258,7 @@ export async function POST(req: NextRequest) {
     console.log("✅ Video record created:", {
       videoRecordId: videoRecord.id,
       taskId: result.taskId,
-      creditsDeducted: false,
+      creditsDeducted: true,
     });
 
     console.log("🎉 Video generation submitted successfully!");
