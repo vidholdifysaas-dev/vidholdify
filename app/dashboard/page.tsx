@@ -91,7 +91,7 @@ export default async function DashboardPage() {
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-semibold text-foreground">Recent Videos</h3>
           <Link href="/dashboard/videos">
-            <button className="text-sm text-brand-primary hover:text-brand-primary-light font-medium">
+            <button className="text-sm text-brand-primary hover:text-brand-primary/90 font-medium">
               View All
             </button>
           </Link>
@@ -140,7 +140,7 @@ export default async function DashboardPage() {
                 {/* Actions */}
                 {item.status === 'completed' && item.videoUrl && (
                   <a href={item.videoUrl} target="_blank" rel="noopener noreferrer">
-                    <button className="px-4 py-2 rounded-lg bg-brand-primary text-white text-sm font-medium hover:bg-brand-primary-light transition-all flex items-center gap-2">
+                    <button className="px-4 py-2 rounded-lg bg-brand-primary text-white text-sm font-medium hover:bg-brand-primary/90 transition-all flex items-center gap-2">
                       Download
                     </button>
                   </a>

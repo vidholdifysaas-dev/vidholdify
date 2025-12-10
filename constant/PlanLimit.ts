@@ -1,19 +1,19 @@
 export const planLimits = {
   starter: {
-    credits: 5,
-    maxDuration: 15, 
+    credits: 80,
+    maxDuration: 30, 
   },
   professional: {
-    credits: 10,
-    maxDuration: 30,
+    credits: 240,
+    maxDuration: 60,
   },
   business: {
-    credits: 15,
-    maxDuration: 45,
+    credits: 480,
+    maxDuration: 90,
   },
   scale: {
-    credits: 20,
-    maxDuration: 60,
+    credits: 960,
+    maxDuration: 90,
   },
   free: {
     credits: 0,

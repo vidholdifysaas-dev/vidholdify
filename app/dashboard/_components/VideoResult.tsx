@@ -71,7 +71,7 @@ export default function VideoResult() {
         <button
           onClick={handleDownload}
           disabled={!videoUrl}
-          className="flex items-center justify-center gap-1 sm:gap-2 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base bg-brand-primary text-white rounded-lg font-semibold hover:bg-brand-primary-light transition-all disabled:opacity-50"
+          className="flex items-center justify-center gap-1 sm:gap-2 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base bg-brand-primary text-white rounded-lg font-semibold hover:bg-brand-primary/90 transition-all disabled:opacity-50"
         >
           <Download className="w-4 h-4 sm:w-5 sm:h-5" />
           Download

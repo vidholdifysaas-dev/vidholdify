@@ -584,7 +584,7 @@ export default function Step2TemplateSelection() {
                               setSelectedCategory("all");
                               fetchFilteredAvatars("all", "all", "all");
                             }}
-                            className="mt-4 px-4 py-2 text-sm bg-brand-primary text-white rounded-lg hover:bg-brand-primary-light transition"
+                            className="mt-4 px-4 py-2 text-sm bg-brand-primary text-white rounded-lg hover:bg-brand-primary/90 transition"
                           >
                             Clear Filters
                           </button>

@@ -6,6 +6,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ReactNode, useState } from "react";
 
+import CreditDisplay from "./_components/CreditDisplay";
+
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Create Video", href: "/dashboard/create", icon: Video },
@@ -125,14 +127,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
           {/* Credit Display & User Button */}
           <div className="flex items-center gap-2 md:gap-4">
-            <div className="px-3 md:px-4 py-2 rounded-lg bg-sidebar-accent border border-border">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-brand-primary" />
-                <span className="text-xs md:text-sm font-medium text-foreground">
-                  <span className="text-brand-primary">10</span> / <span className="hidden sm:inline">100 </span>Credits
-                </span>
-              </div>
-            </div>
+            <CreditDisplay />
+
+
 
             <UserButton
               appearance={{
