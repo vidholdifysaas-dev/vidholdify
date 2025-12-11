@@ -1,38 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import BeforeAfterSlider from "./BeforeAfterSlider";
 
 export default function HeroSection() {
     return (
         <div className="relative isolate overflow-hidden">
-
             {/* ✅ Premium Background Grid */}
             <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border))_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border))_1px,transparent_1px)] bg-[size:60px_60px] opacity-[0.15] -z-20" />
 
-            {/* ✅ Floating Gradient Orbs */}
-            <motion.div
-                animate={{ y: [0, -20, 0], x: [0, 10, 0] }}
-                transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute top-20 left-1/4 w-72 h-72 bg-brand-primary/30 rounded-full blur-[120px] -z-10"
-            />
-
-            <motion.div
-                animate={{ y: [0, 30, 0], x: [0, -10, 0] }}
-                transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute bottom-40 right-1/4 w-96 h-96 bg-purple-600/30 rounded-full blur-[140px] -z-10"
-            />
 
             {/* ✅ Premium Light Streak */}
             <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-brand-primary/60 to-transparent" />
 
-            <div className="py-24 sm:py-32 lg:pb-40">
+            <div className="py-20 sm:py-28 lg:pb-28">
                 <div className="mx-auto max-w-7xl px-6 lg:px-8">
 
                     {/* Two Column Layout */}
-                    <div className="grid lg:grid-cols-2 gap-16 lg:gap-20 items-center">
+                    <div className="grid lg:grid-cols-2 items-center justify-center">
 
                         {/* Left Column - Content */}
                         <motion.div
@@ -42,18 +29,24 @@ export default function HeroSection() {
                             className="text-center lg:text-left order-2 lg:order-1"
                         >
 
+                            {/* ✅ Premium Badge */}
+
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted/60 border border-border/50 text-muted-foreground text-sm font-medium mb-8 backdrop-blur-sm">
+                                <Sparkles className="w-4 h-4 text-brand-primary" />
+                                <span>AI-Powered Product Videos</span>
+                            </div>
                             {/* ✅ Animated Headline */}
                             <motion.h1
                                 initial={{ opacity: 0, y: 30 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.2, duration: 0.8 }}
-                                className="text-4xl font-bold tracking-tight text-foreground sm:text-6xl mb-6"
+                                className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter font-geist mt-2 mb-6"
+                                style={{
+                                    maskImage: 'linear-gradient(150deg, transparent, black 30%, black 30%, transparent)',
+                                    WebkitMaskImage: 'linear-gradient(150deg, transparent, black 30%, black 30%, transparent)'
+                                }}
                             >
-                                Product Avatars for <br className="hidden sm:block" />
-                                <span className="relative inline-block text-brand-primary">
-                                    AI UGC Videos
-                                    <span className="absolute inset-x-0 -bottom-1 h-[6px] bg-brand-primary/20 rounded-full blur-md" />
-                                </span>
+                                Product Avatars for AI UGC Videos
                             </motion.h1>
 
                             {/* ✅ Subtitle Fade-Up */}
@@ -61,7 +54,7 @@ export default function HeroSection() {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.4, duration: 0.8 }}
-                                className="mt-6 text-lg leading-8 text-muted-foreground mb-10"
+                                className="mt-6 text-lg leading-8 text-white/60 mb-10"
                             >
                                 Upload your product image and instantly create an AI avatar showcasing it.
                                 <br className="hidden sm:block" />
@@ -76,16 +69,8 @@ export default function HeroSection() {
                                 className="mt-10 flex items-center justify-center lg:justify-start gap-x-6"
                             >
                                 <Link href="/dashboard">
-                                    <button className="relative btn-primary px-10 py-4 rounded-2xl text-lg font-semibold flex items-center gap-3 group overflow-hidden shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
-
-                                        {/* ✅ Button Glow */}
-                                        <span className="absolute inset-0 bg-gradient-to-r from-brand-primary via-purple-500 to-brand-primary opacity-0 group-hover:opacity-40 blur-xl transition-all duration-500" />
-
-                                        <span className="relative flex items-center gap-2">
-                                            Create Now
-                                            <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-                                        </span>
-
+                                    <button className="shiny-cta focus:outline-none">
+                                        <span>Create Now</span>
                                     </button>
                                 </Link>
                             </motion.div>
@@ -97,7 +82,7 @@ export default function HeroSection() {
                             initial={{ opacity: 0, x: 40 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.4, duration: 0.9, ease: "easeOut" }}
-                            className="relative order-1 lg:order-2 flex items-center justify-center min-h-[550px]"
+                            className="relative order-1 lg:order-2 flex items-center justify-center lg:min-h-[550px]"
                         >
                             <BeforeAfterSlider />
                         </motion.div>

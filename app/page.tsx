@@ -14,9 +14,22 @@ import CTASection from "./_components/CTASection";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-background text-foreground selection:bg-brand-blue selection:text-white">
-      <Header />
-      <section className="hero-glow min-h-screen flex flex-col">
+    <>
+      {/* Fixed Spline Background - Visible across entire page */}
+      <div className="fixed top-0 left-0 w-full h-screen -z-50 sm:pt-0 pt-65">
+        <iframe
+          src="https://my.spline.design/aidatamodelinteraction-mdTL3FktFVHgDvFr5TKtnYDV"
+          frameBorder="0"
+          width="100%"
+          height="100vh"
+          className="w-full h-full"
+        ></iframe>
+      </div>
+
+      {/* Page Content */}
+      <main className="relative min-h-screen">
+        <Header />
+
         <HeroSection />
         <ShowcaseSection />
         <AnySizeSection />
@@ -28,8 +41,9 @@ export default function Home() {
         <PricingSection />
         <FAQSection />
         <CTASection />
-      </section>
-      <Footer />
-    </main>
+
+        <Footer />
+      </main>
+    </>
   );
 }

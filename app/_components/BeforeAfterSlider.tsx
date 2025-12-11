@@ -11,33 +11,31 @@ export default function BeforeAfterSlider() {
     };
 
     return (
-        <div className="relative w-full h-full flex items-center justify-center">
-            {/* Premium Background Blobs */}
-            <motion.div
-                animate={{ y: [0, -15, 0], x: [0, 15, 0], scale: [1, 1.1, 1] }}
-                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute top-1/4 -left-20 w-64 h-64 bg-brand-primary/20 rounded-full blur-[100px] -z-10"
-            />
-            <motion.div
-                animate={{ y: [0, 20, 0], x: [0, -20, 0], scale: [1, 1.15, 1] }}
-                transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute bottom-1/4 -right-20 w-80 h-80 bg-purple-500/20 rounded-full blur-[120px] -z-10"
-            />
-
-            {/* Container with rounded corners and shadow */}
-            <div className="relative overflow-hidden rounded-3xl shadow-2xl aspect-[9/16] max-h-[500px] w-full max-w-[320px] mx-auto">
+        <div className="relative w-full max-w-[320px] min-h-[300px] flex items-center justify-end">
+            {/* Main Slider Container with Premium Border */}
+            <div
+                className="relative w-full sm:aspect-[2/3] aspect-[9/12] justify-end rounded-xl overflow-hidden bg-background/50 backdrop-blur-sm border-2 border-brand-primary/30"
+                style={{
+                    boxShadow: `
+                        0 0 0 1px hsl(var(--brand-primary) / 0.1),
+                        0 0 20px hsl(var(--brand-primary) / 0.3),
+                        0 0 40px hsl(var(--brand-primary) / 0.2),
+                        0 20px 60px rgba(0, 0, 0, 0.4)
+                    `
+                }}
+            >
 
                 {/* Labels */}
-                <div className="absolute top-6 left-6 z-20 bg-background/90 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 shadow-lg">
+                <div className="absolute top-2 left-2 z-20 bg-background/50 backdrop-blur-md px-2 py-1 rounded-lg border border-white/10 shadow-lg">
                     <span className="text-sm font-semibold text-foreground">Before</span>
                 </div>
-                <div className="absolute top-6 right-6 z-20 bg-background/90 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 shadow-lg">
+                <div className="absolute top-2 right-2 z-20 bg-background/50 backdrop-blur-md px-2 py-1 rounded-lg border border-white/10 shadow-lg">
                     <span className="text-sm font-semibold text-foreground">After</span>
                 </div>
 
                 {/* Before Image (Static) */}
                 <div className="absolute inset-0">
-                     <video
+                    <video
                         src="https://d1735p3aqhycef.cloudfront.net/official-website/public/landing-page/home/result_5.mp4"
                         autoPlay
                         loop
@@ -52,7 +50,7 @@ export default function BeforeAfterSlider() {
                     className="absolute inset-0 transition-all duration-100 ease-out"
                     style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
                 >
-                      <img
+                    <img
                         src="https://d1735p3aqhycef.cloudfront.net/official-website/public/landing-page/home/init_5.webp"
                         alt="Before - Original Product"
                         className="w-full h-full object-cover"
