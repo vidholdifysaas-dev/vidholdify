@@ -39,7 +39,6 @@ export async function POST(req: NextRequest) {
       voiceId,
       captionStyleId,
       mode = "pro",
-      aspectRatio = "9:16",
       videoLengthType = 2,
       productName,
     } = body;
@@ -167,7 +166,6 @@ export async function POST(req: NextRequest) {
         ttsText: ttsText,
         voiceId,
         captionId: captionStyleId,
-        aspectRatio,
         videoLengthType,
       },
     };

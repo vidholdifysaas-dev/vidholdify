@@ -616,15 +616,15 @@ export default function Step2TemplateSelection() {
                       </div>
                     )
                     : currentAvatars.map((avatar) => (
-                        <AvatarCard
+                      <AvatarCard
                         key={avatar.avatarId}
-                          avatar={avatar}
-                          isSelected={selectedAvatar?.avatarId === avatar.avatarId}
-                          onSelect={(avatar) => {
-                              setSelectedAvatar(avatar);
-                              setWorkflowData({ selectedAvatarId: avatar.avatarId });
-                          }}
-                        />
+                        avatar={avatar}
+                        isSelected={selectedAvatar?.avatarId === avatar.avatarId}
+                        onSelect={(avatar) => {
+                          setSelectedAvatar(avatar);
+                          setWorkflowData({ selectedAvatarId: avatar.avatarId });
+                        }}
+                      />
                     ))}
               </div>
             </div >
@@ -675,28 +675,28 @@ export default function Step2TemplateSelection() {
           </button>
         )}
         <div className="flex items-center gap-2">
-        {hasInsufficientCredits && (
-          <div className="text-sm text-red-500">Please upgrade your plan to generate images.</div>
-        )}
-        <button
-          onClick={results ? handleConfigureVideo : handleSubmit}
-          disabled={results ? !selectedResult : (!selectedAvatar || processing || hasInsufficientCredits)}
-          className={`px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base bg-brand-primary text-white rounded-lg font-semibold hover:bg-brand-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 sm:gap-2 ${loading ? 'ml-auto' : ''
-            }`}
-        >
-          {processing && <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />}
-          {hasInsufficientCredits && !results ? (
-            <>
-              <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5" />
-              Insufficient Credits
-            </>
-          ) : results ? (
-            "Configure Video"
-          ) : (
-            processing ? "Processing..." : "Generate Images"
+          {hasInsufficientCredits && (
+            <div className="text-sm text-red-500">Please upgrade your plan to generate images.</div>
           )}
-        </button>
-      </div>
+          <button
+            onClick={results ? handleConfigureVideo : handleSubmit}
+            disabled={results ? !selectedResult : (!selectedAvatar || processing || hasInsufficientCredits)}
+            className={`px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base bg-brand-primary text-white rounded-lg font-semibold hover:bg-brand-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 sm:gap-2 ${loading ? 'ml-auto' : ''
+              }`}
+          >
+            {processing && <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />}
+            {hasInsufficientCredits && !results ? (
+              <>
+                <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+                Insufficient Credits
+              </>
+            ) : results ? (
+              "Configure Video"
+            ) : (
+              processing ? "Processing..." : "Generate Images"
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Manual Task Recovery Section */}

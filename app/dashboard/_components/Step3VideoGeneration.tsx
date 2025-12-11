@@ -84,7 +84,6 @@ export default function Step3VideoGeneration() {
   const language = workflowData.language || "";
   const voiceId = workflowData.voiceId || "";
   const captionStyleId = workflowData.captionStyleId || "";
-  const videoOrientation = workflowData.videoOrientation || "9:16";
   const videoLength = workflowData.videoLength || "15-30s";
   const mode = workflowData.mode || "pro";
 
@@ -329,7 +328,6 @@ export default function Step3VideoGeneration() {
           voiceId,
           mode,
           captionId: captionStyleId,
-          aspectRatio: videoOrientation,
           videoLengthType: convertVideoLength(videoLength),
           productName: workflowData.productName,
           productUrl: workflowData.productUrl,
@@ -498,56 +496,7 @@ export default function Step3VideoGeneration() {
 
           {/* Settings Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Video Orientation */}
-            <div className="space-y-2">
-              <label className="text-foreground text-sm font-medium mb-2 block">
-                Video Orientation
-              </label>
-              <Select
-                value={videoOrientation}
-                onValueChange={(value) =>
-                  setWorkflowData({
-                    videoOrientation: value as typeof videoOrientation,
-                  })
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select orientation" />
-                </SelectTrigger>
-                <SelectContent className="max-h-[300px] overflow-y-auto">
-                  <SelectItem value="9:16">Portrait (9:16)</SelectItem>
-                  <SelectItem value="16:9">Landscape (16:9)</SelectItem>
-                  <SelectItem value="1:1">Square (1:1)</SelectItem>
-                  <SelectItem value="4:3">Standard (4:3)</SelectItem>
-                  <SelectItem value="3:4">Vertical (3:4)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Video Length */}
-            <div className="space-y-2">
-              <label className="text-foreground text-sm font-medium mb-2 block">
-                Video Length
-              </label>
-              <Select
-                value={videoLength}
-                onValueChange={(value) => setWorkflowData({ videoLength: value })}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select length" />
-                </SelectTrigger>
-                <SelectContent className="max-h-[300px] overflow-y-auto">
-                  <SelectItem value="15-30s">Short (15–30s)</SelectItem>
-                  {maxDuration >= 60 && (
-                    <SelectItem value="30-60s">Medium (30–60s)</SelectItem>
-                  )}
-                  {maxDuration >= 90 && (
-                    <SelectItem value="60-90s">Long (60–90s)</SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-
+          
             {/* Language */}
             <div className="space-y-2">
               <label className="text-foreground text-sm font-medium mb-2 block">
@@ -598,6 +547,31 @@ export default function Step3VideoGeneration() {
                 </SelectContent>
               </Select>
             </div>
+
+              {/* Video Length */}
+            <div className="space-y-2">
+              <label className="text-foreground text-sm font-medium mb-2 block">
+                Video Length
+              </label>
+              <Select
+                value={videoLength}
+                onValueChange={(value) => setWorkflowData({ videoLength: value })}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select length" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[300px] overflow-y-auto">
+                  <SelectItem value="15-30s">Short (15–30s)</SelectItem>
+                  {maxDuration >= 60 && (
+                    <SelectItem value="30-60s">Medium (30–60s)</SelectItem>
+                  )}
+                  {maxDuration >= 90 && (
+                    <SelectItem value="60-90s">Long (60–90s)</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
           </div>
 
           {/* Caption Styles */}

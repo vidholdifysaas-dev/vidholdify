@@ -44,7 +44,6 @@ interface WorkflowData {
   language?: string;
   voiceId?: string;
   captionStyleId?: string;
-  videoOrientation?: "9:16" | "16:9" | "1:1" | "4:3" | "3:4";
   videoLength?: string;
   mode?: "pro" | "lite";
 
