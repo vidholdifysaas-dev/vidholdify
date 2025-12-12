@@ -1,16 +1,45 @@
 "use client";
 
 import Link from "next/link";
-import { Sparkles, Users, Video, Globe, Mic, Type, Palette } from "lucide-react";
-import { motion } from "framer-motion";
+import { Sparkles } from "lucide-react";
+import { motion, useMotionValue, useTransform, animate, useInView } from "framer-motion";
 import BeforeAfterSlider from "./BeforeAfterSlider";
+import { useEffect, useRef } from "react";
 
 const stats = [
-    { value: "450+", label: "Video Avatars", icon: Users },
-    { value: "15+", label: "Languages", icon: Globe },
-    { value: "50+", label: "Voices with Accents", icon: Mic },
-    { value: "10+", label: "Subtitle Styles", icon: Type },
+    { value: 450, suffix: "+", label: "Video Avatars" },
+    { value: 15, suffix: "+", label: "Languages" },
+    { value: 50, suffix: "+", label: "Voices with Accents" },
+    { value: 10, suffix: "+", label: "Subtitle Styles" },
 ];
+
+// Animated Counter Component
+function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: string }) {
+    const ref = useRef<HTMLSpanElement>(null);
+    const motionValue = useMotionValue(0);
+    const rounded = useTransform(motionValue, (latest) => Math.round(latest));
+    const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+    useEffect(() => {
+        if (isInView) {
+            animate(motionValue, value, {
+                duration: 2,
+                ease: "easeOut",
+            });
+        }
+    }, [isInView, motionValue, value]);
+
+    useEffect(() => {
+        const unsubscribe = rounded.on("change", (latest) => {
+            if (ref.current) {
+                ref.current.textContent = latest + suffix;
+            }
+        });
+        return unsubscribe;
+    }, [rounded, suffix]);
+
+    return <span ref={ref}>0{suffix}</span>;
+}
 
 export default function HeroSection() {
     return (
@@ -22,7 +51,7 @@ export default function HeroSection() {
             {/* ✅ Premium Light Streak */}
             <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-brand-primary/60 to-transparent" />
 
-            <div className="py-20 pt-32 lg:pb-28">
+            <div className="pt-38">
                 <div className="mx-auto max-w-7xl px-6 lg:px-8">
 
                     {/* Two Column Layout */}
@@ -49,7 +78,7 @@ export default function HeroSection() {
                                 transition={{ delay: 0.2, duration: 0.8 }}
                                 className="text-3xl md:text-5xl lg:text-6xl font-bold tracking-tighter font-geist mt-2 mb-6 text-white/95 leading-tight"
                             >
-                                Create Product-Holding{"  "}
+                                Product-Holding AI {"  "}
                                 <span
                                     className="relative inline-block px-3 py-1 bg-gradient-to-r from-brand-primary to-purple-600 text-white rounded-lg shadow-lg shadow-brand-primary/40 transform -rotate-3 hover:rotate-0 transition-transform duration-300"
                                     style={{
@@ -58,7 +87,7 @@ export default function HeroSection() {
                                 >
                                     UGC
                                 </span>{" "}
-                                Videos in a Few Clicks.
+                                Videos That Win
                             </motion.h1>
 
                             {/* ✅ Subtitle Fade-Up */}
@@ -101,46 +130,24 @@ export default function HeroSection() {
 
                     </div>
 
-                    {/* ✅ Stats Grid */}
+                    {/* ✅ Stats Bar */}
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.8, duration: 0.8 }}
-                        className="mt-10 sm:mt-36 flex flex-col items-center"
+                        className="mt-16 sm:mt-24 flex justify-center w-full"
                     >
-                        {/* Stats Heading */}
-                        <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-5xl mb-6 text-center">
-                            Key Features
-                        </h2>
-                        <p className="text-lg text-muted-foreground mb-12 text-center">
-                            Everything you need to create <span className="text-brand-primary">stunning product videos</span>
-                        </p>
-
-
-                        {/* Stats Cards */}
-                        <div className="grid grid-cols-2  lg:grid-cols-4 gap-4 max-w-6xl mx-auto w-full">
-                            {stats.map((stat, i) => {
-                                const Icon = stat.icon;
-                                return (
-                                    <motion.div
-                                        key={i}
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: 0.9 + i * 0.1, duration: 0.5 }}
-                                        className="flex flex-col items-center justify-center p-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm"
-                                    >
-                                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-primary/20 to-purple-600/20 flex items-center justify-center mb-3">
-                                            <Icon className="w-5 h-5 text-brand-primary" />
-                                        </div>
-                                        <span className="text-2xl md:text-3xl font-bold text-white mb-1">
-                                            {stat.value}
+                        <div className="w-full max-w-4xl bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 px-6 py-6 sm:px-12 sm:py-8">
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+                                {stats.map((stat, index) => (
+                                    <div key={index} className="flex flex-col items-center">
+                                        <span className="text-2xl sm:text-4xl font-bold text-foreground tracking-tight">
+                                            <AnimatedCounter value={stat.value} suffix={stat.suffix} />
                                         </span>
-                                        <span className="text-xs text-muted-foreground text-center font-medium">
-                                            {stat.label}
-                                        </span>
-                                    </motion.div>
-                                );
-                            })}
+                                        <span className="text-xs sm:text-sm text-muted-foreground mt-1 text-center">{stat.label}</span>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </motion.div>
 
