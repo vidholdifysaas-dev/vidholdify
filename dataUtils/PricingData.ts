@@ -1,7 +1,7 @@
 export interface PricingPlan {
   id: string;
   name: string;
-  icon: string;
+  iconId: "starter" | "professional" | "business" | "scale";
   price: {
     monthly: number;
     yearly: number;
@@ -20,7 +20,7 @@ export const pricingData: PricingPlan[] = [
   {
     id: "starter",
     name: "Starter",
-    icon: "🎬",
+    iconId: "starter",
     price: {
       monthly: 79,
       yearly: 790,
@@ -31,7 +31,7 @@ export const pricingData: PricingPlan[] = [
     },
     description: "Perfect for individuals starting out.",
     features: [
-      "11 UGC videos (30 sec)",
+      "10 UGC videos (30 sec)",
       "400+ UGC Avatars (8 ethnicities)",
       "15 Languages",
       "50+ Voices with accents",
@@ -49,7 +49,7 @@ export const pricingData: PricingPlan[] = [
   {
     id: "professional",
     name: "Professional",
-    icon: "⚡",
+    iconId: "professional",
     price: {
       monthly: 189,
       yearly: 1890,
@@ -60,7 +60,7 @@ export const pricingData: PricingPlan[] = [
     },
     description: "For creators who need more power.",
     features: [
-      "34 UGC videos (60 sec)",
+      "33 UGC videos (60 sec)",
       "400+ UGC Avatars (8 ethnicities)",
       "15 Languages",
       "50+ Voices with accents",
@@ -78,7 +78,7 @@ export const pricingData: PricingPlan[] = [
   {
     id: "business",
     name: "Business",
-    icon: "🚀",
+    iconId: "business",
     price: {
       monthly: 379,
       yearly: 3790,
@@ -89,7 +89,7 @@ export const pricingData: PricingPlan[] = [
     },
     description: "Scale your video production.",
     features: [
-      "68 UGC videos (90 sec)",
+      "67 UGC videos (90 sec)",
       "400+ UGC Avatars (8 ethnicities)",
       "15 Languages",
       "50+ Voices with accents",
@@ -109,7 +109,7 @@ export const pricingData: PricingPlan[] = [
   {
     id: "scale",
     name: "Scale",
-    icon: "👑",
+    iconId: "scale",
     price: {
       monthly: 749,
       yearly: 7490,
@@ -120,7 +120,7 @@ export const pricingData: PricingPlan[] = [
     },
     description: "For agencies and high volume.",
     features: [
-      "137 UGC videos (90 sec)",
+      "136 UGC videos (90 sec)",
       "400+ UGC Avatars (8 ethnicities)",
       "15 Languages",
       "50+ Voices with accents",
@@ -138,3 +138,4 @@ export const pricingData: PricingPlan[] = [
     isPopular: false,
   },
 ];
+

@@ -203,6 +203,56 @@ body {
   .animate-shimmer {
     animation: shimmer-horizontal 2s infinite;
   }
+  
+  /* Premium Theme Utilities */
+  .premium-card {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 1rem;
+  }
+  
+  .premium-input {
+    background: var(--elevated);
+    border: 1px solid rgba(65, 59, 250, 0.2);
+    color: white;
+    border-radius: 0.5rem;
+  }
+  
+  .premium-input:focus {
+    border-color: var(--brand-blue);
+    box-shadow: 0 0 0 3px rgba(65, 59, 250, 0.15);
+    outline: none;
+  }
+  
+  .premium-glow {
+    box-shadow: 0 0 40px rgba(65, 59, 250, 0.2);
+  }
+  
+  .premium-glow-strong {
+    box-shadow: 0 0 60px rgba(65, 59, 250, 0.35);
+  }
+  
+  .gradient-brand {
+    background: linear-gradient(135deg, var(--brand-blue-dark), var(--brand-blue), var(--brand-blue-light));
+  }
+  
+  .gradient-brand-text {
+    background: linear-gradient(135deg, #397CF7, #413BFA, #9333ea);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .glass-dark {
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(16px);
+  }
+  
+  .glass-light {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+  }
 }
 
 @keyframes shimmer-horizontal {

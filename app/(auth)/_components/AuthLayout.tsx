@@ -2,97 +2,101 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { Sparkles } from "lucide-react";
+
+// Video data from AnySizeSection
+const VIDEOS = [
+    { id: 0, videoSrc: "https://d1735p3aqhycef.cloudfront.net/official-website/public/landing-page/home/result_0.mp4", posterSrc: "https://d1735p3aqhycef.cloudfront.net/official-website/public/landing-page/home/init_0.webp", rotation: "rotate-3" },
+    { id: 1, videoSrc: "https://d1735p3aqhycef.cloudfront.net/official-website/public/landing-page/home/result_1.mp4", posterSrc: "https://d1735p3aqhycef.cloudfront.net/official-website/public/landing-page/home/init_1.webp", rotation: "-rotate-3" },
+    { id: 2, videoSrc: "https://d1735p3aqhycef.cloudfront.net/official-website/public/landing-page/home/result_20.mp4", posterSrc: "https://d1735p3aqhycef.cloudfront.net/official-website/public/landing-page/home/init_20.webp", rotation: "rotate-3" },
+    { id: 3, videoSrc: "https://d1735p3aqhycef.cloudfront.net/official-website/public/landing-page/home/result_15.mp4", posterSrc: "https://d1735p3aqhycef.cloudfront.net/official-website/public/landing-page/home/init_15.webp", rotation: "-rotate-3" },
+];
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
     return (
-        <div className="min-h-screen w-full flex bg-background hero-glow overflow-hidden">
+        <div className="min-h-screen w-full flex bg-background overflow-hidden">
             {/* LEFT SIDE - BRANDING & VISUALS */}
-            <div className="hidden lg:flex w-1/2 relative flex-col justify-between">
-                {/* Background Gradient/Image - Removed as main container has hero-glow */}
-                <div className="absolute inset-0 z-0 bg-gradient-to-br from-elevated/50 to-transparent" />
+            <div className="hidden lg:flex w-1/2 relative flex-col p-8">
+                {/* Background Effects */}
+                <div className="absolute inset-0 z-0 bg-gradient-to-br from-brand-primary/10 via-purple-600/5 to-transparent" />
+                <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-brand-primary/20 rounded-full blur-[100px] -z-10" />
+                <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-purple-600/15 rounded-full blur-[80px] -z-10" />
 
                 {/* Content Container */}
-                <div className="relative z-10 flex flex-col h-full justify-between">
+                <div className="relative z-10 flex flex-col h-full">
                     {/* Logo */}
-                    <Link href="/" className="flex items-center gap-2">
+                    {/* <Link href="/" className="flex items-center gap-2 mb-8">
                         <Image
                             src="/Full_logo.png"
                             alt="Vidholdify Logo"
-                            width={180}
+                            width={160}
                             height={30}
                             className="object-contain"
                         />
-                    </Link>
+                    </Link> */}
 
-                    {/* Main Visuals & Text */}
-                    <div className="flex flex-col items-center text-center">
-                        <h1 className="text-4xl font-bold text-white mb-4 leading-tight">
-                            Create AI UGC Videos in Minutes, Your Way
+                    {/* Main Content */}
+                    <div className="flex-1 flex flex-col justify-center">
+                        {/* Badge */}
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-muted-foreground text-sm font-medium mb-6 w-fit backdrop-blur-sm">
+                            <Sparkles className="w-4 h-4 text-brand-primary" />
+                            <span>AI-Powered Product Videos</span>
+                        </div>
+
+                        {/* Headline */}
+                        <h1 className="text-4xl xl:text-5xl font-bold text-white mb-4 leading-tight">
+                            Create AI UGC Videos{" "}
+                            <span className="inline-block px-3 py-1 bg-gradient-to-r from-brand-primary to-purple-600 text-white rounded-lg shadow-lg shadow-brand-primary/30 transform -rotate-1">
+                                in Minutes
+                            </span>
                         </h1>
-                        <p className="text-gray-400 max-w-md mb-10">
-                            Create stunning and ready-to-use AI UGC videos delivered while your coffee is still hot.
+                        <p className="text-gray-400 text-lg mb-10 max-w-md">
+                            Stunning and ready-to-use AI UGC videos delivered while your coffee is still hot.
                         </p>
 
-                        {/* Overlapping Videos - Mix of Faceless & UGC */}
-                        <div className="relative w-full max-w-2xl h-[420px] flex items-center justify-center">
-                            {/* Video 1 - Left Up (Faceless) */}
-                            <video
-                                src="/video/RealStory.mp4"
-                                autoPlay
-                                muted
-                                loop
-                                playsInline
-                                className="absolute w-[220px] h-[360px] rounded-2xl object-cover border-2 border-white/20 shadow-2xl rotate-3 -translate-x-52 -translate-y-8 z-10"
-                            />
-
-                            {/* Video 2 - Center Left Down (Faceless) */}
-                            <video
-                                src="/video/newyork.mp4"
-                                autoPlay
-                                muted
-                                loop
-                                playsInline
-                                className="absolute w-[220px] h-[360px] rounded-2xl object-cover border-2 border-white/20 shadow-2xl -rotate-3 -translate-x-20 translate-y-8 z-20"
-                            />
-
-                            {/* Video 3 - Center Right Up (UGC) */}
-                            <video
-                                src="https://www.vidaify.com/vid5.mp4"
-                                autoPlay
-                                muted
-                                loop
-                                playsInline
-                                className="absolute w-[220px] h-[360px] rounded-2xl object-cover border-2 border-brand-primary-light/40 shadow-2xl rotate-3 translate-x-20 -translate-y-8 z-30"
-                            />
-
-                            {/* Video 4 - Right Down (UGC) */}
-                            <video
-                                src="https://www.vidaify.com/vid4.mp4"
-                                autoPlay
-                                muted
-                                loop
-                                playsInline
-                                className="absolute w-[220px] h-[360px] rounded-2xl object-cover border-2 border-brand-primary-light/40 shadow-2xl -rotate-3 translate-x-52 translate-y-8 z-40"
-                            />
+                        {/* Video Row with Rotation */}
+                        <div className="flex items-center justify-start gap-4">
+                            {VIDEOS.map((video, index) => (
+                                <div
+                                    key={video.id}
+                                    className={`w-[140px] h-[220px] xl:w-[160px] xl:h-[260px] rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl transition-transform duration-300 hover:scale-105 ${video.rotation}`}
+                                    style={{
+                                        marginTop: index % 2 === 0 ? '0' : '20px',
+                                        zIndex: 10 + index
+                                    }}
+                                >
+                                    <video
+                                        src={video.videoSrc}
+                                        poster={video.posterSrc}
+                                        autoPlay
+                                        muted
+                                        loop
+                                        playsInline
+                                        className="w-full h-full object-cover"
+                                    />
+                                </div>
+                            ))}
                         </div>
                     </div>
 
-                    {/* Trust Badges / Footer */}
-                    <div className="flex items-center justify-center gap-6 mt-8">
-                        {/* Placeholders for badges - using text/icons for now if specific assets aren't known */}
-                        <div className="flex gap-1">
+                    {/* Trust Badges */}
+                    <div className="flex items-center gap-4 mt-8">
+                        <div className="flex gap-0.5">
                             {[1, 2, 3, 4, 5].map(i => (
-                                <span key={i} className="text-[#FFB800]">★</span>
+                                <span key={i} className="text-amber-400 text-lg">★</span>
                             ))}
                         </div>
-                        <p className="text-sm text-gray-400">Based on 100+ reviews from our users</p>
+                        <p className="text-sm text-gray-400">Trusted by 500+ creators worldwide</p>
                     </div>
                 </div>
             </div>
 
             {/* RIGHT SIDE - FORM */}
-            <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-12 relative z-10 bg-black/40 backdrop-blur-sm lg:border-l border-white/5 min-h-screen lg:min-h-0">
-                <div className="w-full max-w-[380px] sm:max-w-md bg-black/20 backdrop-blur-xl border border-white/10 p-4 sm:p-8 rounded-2xl sm:rounded-3xl shadow-2xl animate-in fade-in slide-in-from-right-8 duration-700">
+            <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-12 relative z-10 bg-black/60 backdrop-blur-md lg:border-l border-white/5 min-h-screen lg:min-h-0">
+                {/* Background glow for right side */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-brand-primary/10 rounded-full blur-[120px] -z-10" />
+
+                <div className="w-full max-w-[380px] sm:max-w-md bg-black/30 backdrop-blur-xl border border-white/10 p-4 sm:p-8 rounded-2xl sm:rounded-3xl shadow-2xl animate-in fade-in slide-in-from-right-8 duration-700">
                     {/* Mobile Logo (visible only on small screens) */}
                     <div className="lg:hidden flex justify-center mb-6 sm:mb-8">
                         <Link href="/" className="flex items-center gap-2">
@@ -123,3 +127,4 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </div>
     );
 }
+

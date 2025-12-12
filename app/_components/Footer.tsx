@@ -13,9 +13,9 @@ export default function Footer() {
 
     return (
         <footer className="w-full border-t border-white/10 py-5 pt-5 px-6 text-white">
-            <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10">
-                {/* Logo */}
-                <div>
+            <div className="max-w-7xl mx-auto grid grid-cols-3 md:grid-cols-4 gap-6 md:gap-10">
+                {/* Logo - Full width on mobile, 1 col on md+ */}
+                <div className="col-span-3 md:col-span-1">
                     <div className="flex items-center gap-1 mb-3">
                         <Image
                             src="/removebg-logo-white.png"
@@ -41,7 +41,7 @@ export default function Footer() {
                 </div>
 
                 {/* Product Column */}
-                <div>
+                <div className="col-span-1">
                     <h4 className="font-semibold mb-3">Product</h4>
                     <ul className="text-gray-400 text-sm space-y-2">
                         <li>
@@ -63,7 +63,7 @@ export default function Footer() {
                 </div>
 
                 {/* Company Column */}
-                <div>
+                <div className="col-span-1">
                     <h4 className="font-semibold mb-3">Company</h4>
                     <ul className="text-gray-400 text-sm space-y-2">
                         <li>
@@ -84,7 +84,8 @@ export default function Footer() {
                     </ul>
                 </div>
 
-                <div>
+                {/* Features Column */}
+                <div className="col-span-1">
                     <h4 className="font-semibold mb-3">Features</h4>
                     <ul className="text-gray-400 text-sm space-y-2">
                         <li>
@@ -95,11 +96,6 @@ export default function Footer() {
                         <li>
                             <button onClick={() => scrollToSection("features")} className="hover:text-white transition-colors">
                                 AI UGC
-                            </button>
-                        </li>
-                        <li>
-                            <button onClick={() => scrollToSection("pricing")} className="hover:text-white transition-colors">
-                                Avatar marketing Video
                             </button>
                         </li>
                     </ul>

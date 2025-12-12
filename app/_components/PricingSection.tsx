@@ -1,11 +1,51 @@
 "use client";
 
-import { Check, Sparkles } from "lucide-react";
+import { Check, Sparkles, Video, Zap, Rocket, Crown } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { pricingData } from "@/dataUtils/PricingData";
+import { pricingData, PricingPlan } from "@/dataUtils/PricingData";
 import { useState } from "react";
+
+// Premium icon component for each plan
+function PlanIcon({ iconId, isPopular }: { iconId: PricingPlan["iconId"]; isPopular?: boolean }) {
+    const iconConfig = {
+        starter: {
+            icon: Video,
+            gradient: "from-[#397CF7] to-[#165DFC]",
+            shadow: "shadow-[#397CF7]/30",
+        },
+        professional: {
+            icon: Zap,
+            gradient: "from-[#7C70FF] to-[#413BFA]",
+            shadow: "shadow-[#413BFA]/40",
+        },
+        business: {
+            icon: Rocket,
+            gradient: "from-[#9333ea] to-[#6366f1]",
+            shadow: "shadow-purple-500/30",
+        },
+        scale: {
+            icon: Crown,
+            gradient: "from-[#f59e0b] to-[#d97706]",
+            shadow: "shadow-amber-500/30",
+        },
+    };
+
+    const config = iconConfig[iconId];
+    const Icon = config.icon;
+
+    return (
+        <div className={cn(
+            "w-14 h-14 rounded-2xl bg-gradient-to-br flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-110",
+            config.gradient,
+            config.shadow,
+            isPopular && "ring-2 ring-white/20"
+        )}>
+            <Icon className="w-7 h-7 text-white" strokeWidth={2} />
+        </div>
+    );
+}
 
 export default function PricingSection() {
     const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
@@ -83,8 +123,10 @@ export default function PricingSection() {
                             </div>
                         )}
 
-                        <div className="mb-6 relative z-10 text-center">
-                            <div className="text-4xl mb-3">{tier.icon}</div>
+                        <div className="mb-6 relative z-10 text-center flex flex-col items-center">
+                            <div className="mb-4">
+                                <PlanIcon iconId={tier.iconId} isPopular={tier.isPopular} />
+                            </div>
                             <h3 className="text-xl font-bold text-foreground mb-2">{tier.name}</h3>
                             <p className="text-muted-foreground text-sm h-12 flex items-center justify-center">{tier.description}</p>
                         </div>

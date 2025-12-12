@@ -25,10 +25,12 @@ export default function Page() {
             colorBackground: "transparent",
             colorInputBackground: "#050a1f",
             colorInputText: "white",
+            colorTextSecondary: "rgba(255,255,255,0.6)",
+            colorDanger: "#ef4444",
           },
           elements: {
             socialButtonsBlockButton:
-              "bg-elevated hover:bg-elevated/80 border border-brand-primary/20 rounded-lg shadow-[0_0_10px_rgba(59,130,246,0.2)] text-white h-12",
+              "bg-[#050a1f] hover:bg-[#0a1535] border border-[#413BFA]/30 rounded-xl shadow-[0_0_20px_rgba(65,59,250,0.15)] text-white h-12 transition-all duration-300",
             socialButtonsBlockButtonText: "!text-white font-medium",
             socialButtonsIconButton: "text-white",
 
@@ -38,19 +40,23 @@ export default function Page() {
             headerTitle: "hidden",
             headerSubtitle: "hidden",
 
-            formFieldLabel: "text-gray-300",
+            formFieldLabel: "text-gray-300 font-medium",
             formFieldInput:
-              "bg-elevated border border-brand-primary/20 text-white placeholder-gray-500 rounded-lg h-11 focus:border-brand-primary focus:ring-brand-primary/20",
+              "bg-[#050a1f] border border-[#413BFA]/30 text-white placeholder-gray-500 rounded-xl h-12 focus:border-[#413BFA] focus:ring-2 focus:ring-[#413BFA]/20 transition-all duration-300",
 
             formButtonPrimary:
-              "btn-primary rounded-lg h-11 mt-2",
+              "bg-gradient-to-r from-[#165DFC] to-[#413BFA] hover:from-[#413BFA] hover:to-[#9333ea] text-white rounded-xl h-12 mt-2 font-semibold shadow-lg shadow-[#413BFA]/30 transition-all duration-300",
 
             footer: "text-gray-400 mt-6",
-            footerActionLink: "text-brand-primary hover:text-brand-primary-light hover:underline font-medium",
-            footerPages: "hidden", // Hide "Secured by Clerk" and "Development mode"
+            footerActionLink: "text-[#397CF7] hover:text-[#413BFA] hover:underline font-medium transition-colors",
+            footerPages: "hidden",
 
             dividerLine: "bg-white/10",
             dividerText: "text-gray-500",
+
+            identityPreview: "bg-[#050a1f] border border-[#413BFA]/20 rounded-xl",
+            identityPreviewText: "text-white",
+            identityPreviewEditButton: "text-[#397CF7] hover:text-[#413BFA]",
           },
         }}
       />
