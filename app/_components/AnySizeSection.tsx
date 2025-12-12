@@ -41,7 +41,8 @@ export default function AnySizeSection() {
             <div className="max-w-4xl mx-auto text-center px-6 mb-16">
                 <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-5xl mb-6">
                     Product Avatar 2 - Beyond handheld <br />
-                    <span className="text-brand-primary">Any product, any size</span>
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-purple-600">
+                            Any product, any size</span>
                 </h2>
                 <p className="text-lg text-muted-foreground">
                     Whether worn, displayed, or held — your product gets the attention it deserves.

@@ -6,8 +6,7 @@ import {
     Smartphone,
     Share2,
     Megaphone,
-    TrendingUp,
-    ArrowRight
+    TrendingUp
 } from "lucide-react";
 
 const USE_CASES = [
@@ -70,7 +69,9 @@ export default function UseCasesSection() {
                     </div>
 
                     <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-foreground mb-6">
-                        One Tool, <span className="text-brand-primary">Endless Use Cases</span>
+                        One Tool,{" "} 
+                               <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-purple-600">
+                            Endless Use Cases</span>
                     </h2>
                     <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                         Whether you&apos;re selling on Amazon or building a brand on TikTok, Vidholdify adapts to your needs.
@@ -93,30 +94,29 @@ export default function UseCasesSection() {
                             <motion.div
                                 key={index}
                                 variants={item}
-                                className={`group relative overflow-hidden rounded-2xl bg-card/50 backdrop-blur-md border border-border/50 p-8 hover:shadow-2xl hover:shadow-brand-primary/5 transition-all duration-500 hover:-translate-y-1 ${useCase.colSpan}`}
+                                className={`group relative overflow-hidden rounded-3xl bg-white/[0.03] backdrop-blur-sm border border-white/10 p-8 hover:bg-white/[0.06] hover:border-brand-primary/30 hover:shadow-2xl hover:shadow-brand-primary/10 transition-all duration-500 hover:-translate-y-1 ${useCase.colSpan}`}
                             >
-                                {/* Premium Subdued Gradient on Hover */}
-                                <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                                {/* Hover Glow Effect */}
+                                <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/5 to-purple-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-                                {/* Top Highlight Line */}
-                                <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-brand-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                {/* Corner Accent */}
+                                <div className="absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br from-brand-primary to-purple-600 opacity-5 blur-3xl group-hover:opacity-15 transition-opacity duration-500" />
 
                                 <div className="relative z-10 flex flex-col h-full">
-                                    <div className="w-12 h-12 rounded-xl bg-brand-primary/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500 group-hover:bg-brand-primary text-brand-primary group-hover:text-white border border-brand-primary/10 group-hover:border-transparent">
-                                        <Icon className="w-6 h-6 transition-colors duration-500" />
+                                    {/* Icon Container */}
+                                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-primary to-purple-600 mb-6 shadow-lg shadow-brand-primary/20">
+                                        <Icon className="w-7 h-7 text-white" />
                                     </div>
 
-                                    <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-brand-primary transition-colors duration-300">
+                                    <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-white transition-colors duration-300">
                                         {useCase.title}
                                     </h3>
-                                    <p className="text-muted-foreground text-sm leading-relaxed flex-1 group-hover:text-muted-foreground/80 transition-colors duration-300">
+                                    <p className="text-muted-foreground text-sm leading-relaxed flex-1 group-hover:text-white/70 transition-colors duration-300">
                                         {useCase.description}
                                     </p>
 
-                                    <div className="mt-6 flex items-center gap-2 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-500">
-                                        <span className="text-sm font-semibold text-brand-primary/80 group-hover:text-brand-primary">Explore</span>
-                                        <ArrowRight className="w-3.5 h-3.5 text-brand-primary/80 group-hover:text-brand-primary" />
-                                    </div>
+                                    {/* Bottom Line Accent */}
+                                    <div className="mt-6 h-1 w-12 rounded-full bg-gradient-to-r from-brand-primary to-purple-600 opacity-50 group-hover:w-20 group-hover:opacity-100 transition-all duration-500" />
                                 </div>
                             </motion.div>
                         );

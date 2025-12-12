@@ -68,7 +68,7 @@ export default function FeaturesSection() {
                     </div>
 
                     <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-5xl mb-6 bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
-                        More Than Product Avatar Generator
+                        More Than    <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-purple-600"> Product Avatar </span> Generator
                     </h2>
                     <p className="text-lg text-muted-foreground mx-auto max-w-2xl">
                         All-in-one AI avatar generators that effortlessly transform products, photos, and videos into unique AI avatars.
