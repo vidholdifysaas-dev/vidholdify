@@ -40,13 +40,13 @@ export default function HeroSection() {
                                 initial={{ opacity: 0, y: 30 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.2, duration: 0.8 }}
-                                className="text-4xl md:text-5xl lg:text-7xl font-bold tracking-tighter font-geist mt-2 mb-6"
-                                style={{
-                                    background: 'linear-gradient(135deg, #706aefff 10%, #f7f0f0ff 40%, #6053daff 70%)',
-                                    WebkitBackgroundClip: 'text',
-                                    WebkitTextFillColor: 'transparent',
-                                    backgroundClip: 'text',
-                                }}
+                                className="text-4xl md:text-5xl lg:text-7xl font-bold tracking-tighter font-geist mt-2 mb-6 text-white/95"
+                                // style={{
+                                //     background: 'linear-gradient(135deg, #706aefff 10%, #f7f0f0ff 40%, #6053daff 70%)',
+                                //     WebkitBackgroundClip: 'text',
+                                //     WebkitTextFillColor: 'transparent',
+                                //     backgroundClip: 'text',
+                                // }}
                             >
                                 Product Avatars for AI UGC Videos
                             </motion.h1>

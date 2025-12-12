@@ -6,7 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ReactNode, useState } from "react";
 
-import CreditDisplay from "./_components/CreditDisplay";
+import SidebarCredits from "./_components/SidebarCredits";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -85,37 +85,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           })}
         </nav>
 
-        {/* User Profile */}
-        <div className="p-4 border-t border-sidebar-border">
-          <div className="flex items-center gap-3">
-            <UserButton
-              appearance={{
-                elements: {
-                  avatarBox: "w-10 h-10 ring-2 ring-brand-primary/40 hover:ring-brand-primary transition-all",
-                  userButtonPopoverCard: "bg-black/90 backdrop-blur-xl border border-brand-primary/30 shadow-2xl",
-                  userButtonPopoverActionButton: "text-white hover:bg-brand-primary/20 transition",
-                  userButtonPopoverActionButtonText: "text-white",
-                  userButtonPopoverActionButtonIcon: "text-white",
-                  userPreviewMainIdentifier: "text-white",
-                  userPreviewSecondaryIdentifier: "text-white/60",
-                },
-                variables: {
-                  colorPrimary: "#413BFA",
-                  colorText: "white",
-                  colorBackground: "black",
-                }
-              }}
-            />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-sidebar-foreground truncate">
-                User Account
-              </p>
-              <p className="text-xs text-sidebar-foreground/60">
-                Manage profile
-              </p>
-            </div>
-          </div>
-        </div>
+        {/* Credits Display */}
+        <SidebarCredits />
+
+
       </aside>
 
       {/* Main Content */}
@@ -136,20 +109,21 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </h1>
           </div>
 
-          {/* Credit Display & User Button */}
+          {/* User Button */}
           <div className="flex items-center gap-2 md:gap-4">
-            <CreditDisplay />
-
 
 
             <UserButton
               appearance={{
                 elements: {
                   avatarBox: "w-9 h-9 ring-2 ring-brand-primary/40 hover:ring-brand-primary transition-all",
-                  userButtonPopoverCard: "bg-black/90 backdrop-blur-xl border border-brand-primary/30 shadow-2xl",
+                  userButtonPopoverActionButton__manageAccount: "!text-white",
+                  userButtonPopoverActionButton__signOut: "!text-white",
+                  userButtonPopoverCard: "bg-black/95 backdrop-blur-xl border border-brand-primary/30 shadow-2xl",
                   userButtonPopoverActionButton: "text-white hover:bg-brand-primary/20 px-3 py-2 rounded-md transition",
                   userButtonPopoverActionButtonText: "text-white",
                   userButtonPopoverActionButtonIcon: "text-white",
+                  userButtonPopoverFooter: "bg-black/95 border-t border-brand-primary/20",
                   userPreviewMainIdentifier: "text-white",
                   userPreviewSecondaryIdentifier: "text-white/60",
                   card: "bg-black/95 backdrop-blur-xl text-white border border-brand-primary/30 shadow-2xl",
@@ -163,14 +137,24 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                   formFieldInput: "bg-black border border-brand-primary/40 text-white placeholder-white/40 focus:border-brand-primary",
                   formButtonPrimary: "bg-brand-primary hover:bg-brand-primary-dark text-white shadow",
                   badge: "bg-brand-primary/20 text-brand-primary",
+                  menuList: "bg-black/95 backdrop-blur-xl border border-brand-primary/30",
+                  menuItem: "text-white hover:bg-brand-primary/20",
+                  menuButton: "text-white hover:bg-brand-primary/20",
+                  userButtonPopoverMain: "bg-black/95",
+                  userButtonPopoverActions: "bg-black/95",
+                  footerAction: "text-white hover:bg-brand-primary/20",
+                  footerActionLink: "text-white hover:text-brand-primary",
+                  footerActionText: "text-white",
                 },
                 variables: {
                   colorPrimary: "#413BFA",
                   colorText: "white",
-                  colorBackground: "black",
+                  colorBackground: "#0a0a0a",
                   colorInputBackground: "black",
                   colorInputText: "white",
-                  colorTextSecondary: "white",
+                  colorTextSecondary: "rgba(255,255,255,0.7)",
+                  colorDanger: "#ef4444",
+                  colorTextOnPrimaryBackground: "white",
                 }
               }}
             />

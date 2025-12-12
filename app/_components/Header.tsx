@@ -69,7 +69,51 @@ export default function Header() {
                                 Dashboard
                             </button>
                         </Link>
-                        <UserButton afterSignOutUrl="/" />
+                        <UserButton
+                            appearance={{
+                                elements: {
+                                    avatarBox: "w-9 h-9 ring-2 ring-brand-primary/40 hover:ring-brand-primary transition-all",
+                                    userButtonPopoverActionButton__manageAccount: "!text-white",
+                                    userButtonPopoverActionButton__signOut: "!text-white",
+                                    userButtonPopoverCard: "bg-black/95 backdrop-blur-xl border border-brand-primary/30 shadow-2xl",
+                                    userButtonPopoverActionButton: "text-white hover:bg-brand-primary/20 px-3 py-2 rounded-md transition",
+                                    userButtonPopoverActionButtonText: "text-white",
+                                    userButtonPopoverActionButtonIcon: "text-white",
+                                    userButtonPopoverFooter: "bg-black/95 border-t border-brand-primary/20",
+                                    userPreviewMainIdentifier: "text-white",
+                                    userPreviewSecondaryIdentifier: "text-white/60",
+                                    card: "bg-black/95 backdrop-blur-xl text-white border border-brand-primary/30 shadow-2xl",
+                                    headerTitle: "text-white",
+                                    headerSubtitle: "text-white/60",
+                                    navbar: "bg-black/90 backdrop-blur-xl border-r border-brand-primary/20",
+                                    navbarButton: "text-white hover:bg-brand-primary/20 transition",
+                                    pageScrollBox: "bg-black/95 backdrop-blur-xl text-white",
+                                    scrollBox: "bg-black/95",
+                                    formFieldLabel: "text-white",
+                                    formFieldInput: "bg-black border border-brand-primary/40 text-white placeholder-white/40 focus:border-brand-primary",
+                                    formButtonPrimary: "bg-brand-primary hover:bg-brand-primary-dark text-white shadow",
+                                    badge: "bg-brand-primary/20 text-brand-primary",
+                                    menuList: "bg-black/95 backdrop-blur-xl border border-brand-primary/30",
+                                    menuItem: "text-white hover:bg-brand-primary/20",
+                                    menuButton: "text-white hover:bg-brand-primary/20",
+                                    userButtonPopoverMain: "bg-black/95",
+                                    userButtonPopoverActions: "bg-black/95",
+                                    footerAction: "text-white hover:bg-brand-primary/20",
+                                    footerActionLink: "text-white hover:text-brand-primary",
+                                    footerActionText: "text-white",
+                                },
+                                variables: {
+                                    colorPrimary: "#413BFA",
+                                    colorText: "white",
+                                    colorBackground: "#0a0a0a",
+                                    colorInputBackground: "black",
+                                    colorInputText: "white",
+                                    colorTextSecondary: "rgba(255,255,255,0.7)",
+                                    colorDanger: "#ef4444",
+                                    colorTextOnPrimaryBackground: "white",
+                                }
+                            }}
+                        />
                     </SignedIn>
 
                     {/* Mobile Menu Button */}
@@ -110,9 +154,9 @@ export default function Header() {
                     <button onClick={() => scrollToSection("how-it-works")} className="block w-full text-left text-base font-semibold leading-7 text-foreground hover:bg-white/5 p-2 rounded-lg transition-colors">
                         How it works
                     </button>
-                    <Link href="/pricing" className="block text-base font-semibold leading-7 text-foreground hover:bg-white/5 p-2 rounded-lg transition-colors">
+                    <button onClick={() => scrollToSection("pricing")} className="block w-full text-left text-base font-semibold leading-7 text-foreground hover:bg-white/5 p-2 rounded-lg transition-colors">
                         Pricing
-                    </Link>
+                    </button>
 
                     <div className="border-t border-border/10">
                         <SignedOut>
@@ -131,10 +175,6 @@ export default function Header() {
                                     Dashboard
                                 </button>
                             </Link>
-                            <div className="flex items-center gap-2 pl-2">
-                                <span className="text-sm font-semibold text-foreground">Account:</span>
-                                <UserButton afterSignOutUrl="/" />
-                            </div>
                         </SignedIn>
                     </div>
                 </div>
