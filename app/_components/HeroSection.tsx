@@ -47,9 +47,9 @@ export default function HeroSection() {
                                 initial={{ opacity: 0, y: 30 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.2, duration: 0.8 }}
-                                className="text-4xl md:text-5xl lg:text-7xl font-bold tracking-tighter font-geist mt-2 mb-6 text-white/95 leading-tight"
+                                className="text-3xl md:text-5xl lg:text-6xl font-bold tracking-tighter font-geist mt-2 mb-6 text-white/95 leading-tight"
                             >
-                                Product Avatars for AI{" "}
+                                Create Product-Holding{"  "}
                                 <span
                                     className="relative inline-block px-3 py-1 bg-gradient-to-r from-brand-primary to-purple-600 text-white rounded-lg shadow-lg shadow-brand-primary/40 transform -rotate-3 hover:rotate-0 transition-transform duration-300"
                                     style={{
@@ -58,7 +58,7 @@ export default function HeroSection() {
                                 >
                                     UGC
                                 </span>{" "}
-                                Videos
+                                Videos in a Few Clicks.
                             </motion.h1>
 
                             {/* ✅ Subtitle Fade-Up */}
@@ -109,11 +109,12 @@ export default function HeroSection() {
                         className="mt-10 sm:mt-36 flex flex-col items-center"
                     >
                         {/* Stats Heading */}
-
-                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted/60 border border-border/50 text-muted-foreground text-sm font-medium mb-12 backdrop-blur-sm">
-                            <Sparkles className="w-4 h-4 text-brand-primary" />
-                            <span>Key features</span>
-                        </div>
+                        <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-5xl mb-6 text-center">
+                            Key Features
+                        </h2>
+                        <p className="text-lg text-muted-foreground mb-12 text-center">
+                            Everything you need to create <span className="text-brand-primary">stunning product videos</span>
+                        </p>
 
 
                         {/* Stats Cards */}

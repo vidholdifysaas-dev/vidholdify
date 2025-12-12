@@ -15,7 +15,7 @@ export default function Home() {
   return (
     <>
       {/* Fixed Spline Background - Visible across entire page */}
-      <div className="fixed top-0 left-0 w-full h-screen -z-50 sm:pt-0 pt-65">
+      <div className="fixed top-0 left-0 w-full h-screen -z-50 sm:pt-0 pt-65 bg-black">
         <iframe
           src="https://my.spline.design/aidatamodelinteraction-mdTL3FktFVHgDvFr5TKtnYDV"
           frameBorder="0"
