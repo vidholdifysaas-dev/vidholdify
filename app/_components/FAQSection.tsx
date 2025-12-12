@@ -10,7 +10,7 @@ const FAQS = [
         answer: "An AI Product Avatar is a digital model that can hold and showcase your product in realistic video formats. It eliminates the need for traditional photoshoots, allowing you to create high-quality, customizable videos in minutes.",
     },
     {
-        question: "How does ProductHold's AI Product Avatar work?",
+        question: "How does Vidholdify's AI Product Avatar work?",
         answer: "Simply upload a product image, select a digital avatar from our library, and let the AI generate a video of the avatar holding and presenting your product. It's quick, easy, and requires no technical expertise.",
     },
     {
@@ -37,10 +37,6 @@ const FAQS = [
         question: "How long does it take to generate a video?",
         answer: "The process is fast and efficient. Once you've uploaded your product image and made your selections, the video is typically generated within a few minutes.",
     },
-    {
-        question: "Is there a free version available?",
-        answer: "Yes, TopView offers a free version with essential features. For more advanced customization options and resources, premium plans are available.",
-    },
 ];
 
 export default function FAQSection() {
@@ -51,7 +47,7 @@ export default function FAQSection() {
     };
 
     return (
-        <section className="w-full py-24 md:py-32 flex flex-col items-center relative overflow-hidden">
+        <section className="w-full sm:py-16 py-6 flex flex-col items-center relative overflow-hidden">
             {/* Background Decor */}
             <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-brand-primary/5 rounded-full blur-[100px] -z-10 translate-y-1/2 translate-x-1/4" />
 
@@ -61,7 +57,7 @@ export default function FAQSection() {
                     Frequently Asked Questions
                 </h2>
                 <p className="text-lg text-muted-foreground">
-                    Everything you need to know about creating product videos with ProductHold.
+                    Everything you need to know about creating product videos with Vidholdify.
                 </p>
             </div>
 
@@ -79,10 +75,10 @@ export default function FAQSection() {
                     >
                         <button
                             onClick={() => toggleFAQ(index)}
-                            className="w-full py-6 px-8 flex items-center justify-between gap-6 text-left group"
+                            className="w-full py-2 px-2 sm:py-6 sm:px-8 flex items-center justify-between gap-6 text-left group"
                         >
                             <span className={cn(
-                                "text-lg font-semibold transition-colors duration-300",
+                                "text-sm sm:text-lg font-semibold transition-colors duration-300",
                                 openIndex === index ? "text-brand-primary" : "text-foreground group-hover:text-foreground/90"
                             )}>
                                 {faq.question}
@@ -104,7 +100,7 @@ export default function FAQSection() {
                             )}
                         >
                             <div className="overflow-hidden">
-                                <p className="text-muted-foreground leading-relaxed px-8 pb-8 pt-0">
+                                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed px-4 sm:px-8 pb-6 sm:pb-8 pt-0">
                                     {faq.answer}
                                 </p>
                             </div>

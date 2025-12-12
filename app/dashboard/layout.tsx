@@ -46,7 +46,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               <Sparkles className="w-5 h-5 text-white" />
             </div>
             <span className="text-lg font-bold text-sidebar-foreground">
-              ProductHold
+              Vidholdify
             </span>
           </div>
 
@@ -91,7 +91,18 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <UserButton
               appearance={{
                 elements: {
-                  avatarBox: "w-10 h-10"
+                  avatarBox: "w-10 h-10 ring-2 ring-brand-primary/40 hover:ring-brand-primary transition-all",
+                  userButtonPopoverCard: "bg-black/90 backdrop-blur-xl border border-brand-primary/30 shadow-2xl",
+                  userButtonPopoverActionButton: "text-white hover:bg-brand-primary/20 transition",
+                  userButtonPopoverActionButtonText: "text-white",
+                  userButtonPopoverActionButtonIcon: "text-white",
+                  userPreviewMainIdentifier: "text-white",
+                  userPreviewSecondaryIdentifier: "text-white/60",
+                },
+                variables: {
+                  colorPrimary: "#413BFA",
+                  colorText: "white",
+                  colorBackground: "black",
                 }
               }}
             />
@@ -134,11 +145,32 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <UserButton
               appearance={{
                 elements: {
-                  avatarBox: "w-9 h-9",
-                  userButtonPopoverCard: "bg-card border-border",
-                  userButtonPopoverActionButton: "text-foreground hover:bg-sidebar-accent",
-                  userButtonPopoverActionButtonText: "text-foreground",
-                  userButtonPopoverActionButtonIcon: "text-muted-foreground",
+                  avatarBox: "w-9 h-9 ring-2 ring-brand-primary/40 hover:ring-brand-primary transition-all",
+                  userButtonPopoverCard: "bg-black/90 backdrop-blur-xl border border-brand-primary/30 shadow-2xl",
+                  userButtonPopoverActionButton: "text-white hover:bg-brand-primary/20 px-3 py-2 rounded-md transition",
+                  userButtonPopoverActionButtonText: "text-white",
+                  userButtonPopoverActionButtonIcon: "text-white",
+                  userPreviewMainIdentifier: "text-white",
+                  userPreviewSecondaryIdentifier: "text-white/60",
+                  card: "bg-black/95 backdrop-blur-xl text-white border border-brand-primary/30 shadow-2xl",
+                  headerTitle: "text-white",
+                  headerSubtitle: "text-white/60",
+                  navbar: "bg-black/90 backdrop-blur-xl border-r border-brand-primary/20",
+                  navbarButton: "text-white hover:bg-brand-primary/20 transition",
+                  pageScrollBox: "bg-black/95 backdrop-blur-xl text-white",
+                  scrollBox: "bg-black/95",
+                  formFieldLabel: "text-white",
+                  formFieldInput: "bg-black border border-brand-primary/40 text-white placeholder-white/40 focus:border-brand-primary",
+                  formButtonPrimary: "bg-brand-primary hover:bg-brand-primary-dark text-white shadow",
+                  badge: "bg-brand-primary/20 text-brand-primary",
+                },
+                variables: {
+                  colorPrimary: "#413BFA",
+                  colorText: "white",
+                  colorBackground: "black",
+                  colorInputBackground: "black",
+                  colorInputText: "white",
+                  colorTextSecondary: "white",
                 }
               }}
             />

@@ -5,7 +5,7 @@ import { ArrowRight } from "lucide-react";
 
 export default function CTASection() {
     return (
-        <div className="w-full py-24 px-6 flex justify-center">
+        <div className="w-full sm:py-24 py-16 px-6 flex justify-center">
             <div className="w-full max-w-5xl bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] rounded-3xl p-12 md:p-16 flex flex-col items-center text-center shadow-2xl relative overflow-hidden group">
 
                 {/* Vibrant Overlay Gradient - Animated */}
@@ -18,7 +18,7 @@ export default function CTASection() {
                     Use Product Avatar to create product introduction videos quickly
                 </h2>
 
-                <Link href="/gen/product-avatar" className="relative z-10">
+                <Link href="/dashboard" className="relative z-10">
                     <button className="bg-white text-brand-primary-dark px-8 py-4 rounded-xl text-lg font-bold flex items-center gap-2 hover:bg-white/90 transition-all hover:scale-105 hover:shadow-lg">
                         Start Now
                         <ArrowRight className="w-5 h-5" />

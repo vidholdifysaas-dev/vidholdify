@@ -2,7 +2,6 @@
 
 import { Play, Plus, ArrowRight } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import { useRef } from "react";
 import { cn } from "@/lib/utils";
 
@@ -36,7 +35,7 @@ const ITEMS = DATA_SOURCES.map((source, i) => {
 
 export default function AnySizeSection() {
     return (
-        <div className="w-full py-24 flex flex-col items-center">
+        <div className="w-full sm:py-24 py-12 flex flex-col items-center">
 
             {/* Header */}
             <div className="max-w-4xl mx-auto text-center px-6 mb-16">
@@ -62,24 +61,19 @@ export default function AnySizeSection() {
                             spanClass = "col-span-2 row-span-2";
                         }
 
+                        // Hide last item on small screens
+                        const isLastItem = index === ITEMS.length - 1;
+
                         return (
                             <VideoCard
                                 key={item.id}
                                 item={item}
-                                className={spanClass}
+                                className={cn(spanClass, isLastItem && "hidden sm:block")}
                             />
                         );
                     })}
                 </div>
             </div>
-
-            {/* CTA */}
-            <Link href="/dashboard">
-                <button className="btn-primary px-8 py-4 rounded-xl text-lg font-semibold flex items-center gap-2 group transition-all hover:scale-105">
-                    Create Now
-                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                </button>
-            </Link>
         </div>
     );
 }

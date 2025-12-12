@@ -25,7 +25,7 @@ export default function Header() {
                     <Link href="/" className="-m-1.5 p-1.5 flex items-center gap-2">
                         <Image
                             src="/Full_logo.png"
-                            alt="ProductHold Logo"
+                            alt="Vidholdify Logo"
                             width={170}
                             height={50}
                             className="object-contain"
@@ -52,12 +52,12 @@ export default function Header() {
                     <SignedOut>
                         <Link
                             href="/sign-in"
-                            className="hidden lg:block text-sm font-semibold leading-6 text-foreground hover:text-brand-primary transition-colors"
+                            className="hidden lg:block px-4 py-2 rounded-lg text-sm font-semibold border border-border hover:bg-white/5 transition text-foreground"
                         >
                             Sign in
                         </Link>
                         <Link href="/sign-up">
-                            <button className="hidden lg:block btn-primary px-4 py-2 rounded-lg text-sm font-semibold">
+                            <button className="hidden lg:block btn-primary px-4 py-2 rounded-lg text-sm cursor-pointer font-semibold">
                                 Sign up
                             </button>
                         </Link>
@@ -88,9 +88,17 @@ export default function Header() {
                 </div>
             </nav>
 
+            {/* Mobile Menu Backdrop */}
+            {isMobileMenuOpen && (
+                <div
+                    className="lg:hidden fixed top-16 left-0 right-0 bottom-0 bg-black/70 backdrop-blur-xl z-40"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                />
+            )}
+
             {/* Mobile Menu */}
             <div
-                className={`lg:hidden absolute top-16 left-0 right-0 mx-6 rounded-2xl border border-border/10 p-6 shadow-2xl bg-elevated/95 backdrop-blur-lg transition-all duration-300 ease-in-out origin-top ${isMobileMenuOpen
+                className={`lg:hidden fixed top-20 left-4 right-4 rounded-2xl border border-white/30 p-5 shadow-2xl bg-black/95 backdrop-blur-2xl z-50 transition-all duration-300 ease-in-out origin-top ${isMobileMenuOpen
                     ? "opacity-100 translate-y-0 scale-100 pointer-events-auto"
                     : "opacity-0 -translate-y-4 scale-95 pointer-events-none"
                     }`}
@@ -106,9 +114,9 @@ export default function Header() {
                         Pricing
                     </Link>
 
-                    <div className="mt-6 pt-6 border-t border-border/10">
+                    <div className="border-t border-border/10">
                         <SignedOut>
-                            <Link href="/sign-in" className="block text-base font-semibold leading-7 text-foreground mb-4 pl-2 hover:text-brand-primary transition-colors">
+                            <Link href="/sign-in" className="block px-4 mb-3 py-2 rounded-lg text-sm font-semibold border border-border hover:bg-white/5 transition text-foreground text-center">
                                 Sign in
                             </Link>
                             <Link href="/sign-up" className="block w-full">

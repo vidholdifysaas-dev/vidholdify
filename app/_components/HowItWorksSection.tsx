@@ -45,7 +45,7 @@ const STEPS = [
 
 export default function HowItWorksSection() {
     return (
-        <section id="how-it-works" className="relative w-full py-20 md:py-32 flex flex-col items-center overflow-hidden">
+        <section id="how-it-works" className="relative w-full py-16 sm:py-24 flex flex-col items-center overflow-hidden">
 
             {/* Soft Ambient Background - Adjusted for blending */}
             <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
@@ -53,7 +53,7 @@ export default function HowItWorksSection() {
             <div className="absolute left-0 bottom-1/4 w-1/3 h-1/3 bg-purple-500/5 rounded-full blur-[120px] -z-10" />
 
             {/* Header */}
-            <div className="max-w-4xl mx-auto text-center px-6 mb-20 md:mb-32 relative z-10">
+            <div className="max-w-4xl mx-auto text-center px-6 mb-16 md:mb-32 relative z-10">
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -84,7 +84,7 @@ export default function HowItWorksSection() {
             <div className="w-full max-w-7xl mx-auto px-6 relative z-10">
 
                 {/* Central Timeline Line (Desktop) */}
-                <div className="absolute left-[50%] top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-border/60 to-transparent hidden lg:block -translate-x-1/2" />
+                <div className="absolute left-[50%] top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-white/70 to-transparent hidden lg:block -translate-x-1/2" />
 
                 <div className="flex flex-col gap-16 md:gap-24 lg:gap-32">
                     {STEPS.map((step, index) => {

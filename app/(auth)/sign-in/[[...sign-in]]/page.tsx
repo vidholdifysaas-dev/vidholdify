@@ -1,11 +1,14 @@
 import { SignIn } from "@clerk/nextjs";
 import AuthLayout from "../../_components/AuthLayout";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 export default function Page() {
   return (
     <AuthLayout>
+
       <div className="mb-8 text-center lg:text-left">
-        <h2 className="text-3xl font-bold text-white mb-2">Welcome to VidShortify</h2>
+        <h2 className="text-3xl font-bold text-white mb-2">Welcome to Vidholdify</h2>
         <p className="text-gray-400">Sign in to create amazing videos</p>
       </div>
 
@@ -51,6 +54,15 @@ export default function Page() {
           },
         }}
       />
+
+      {/* Back Button - Only visible on mobile, at bottom center */}
+      <Link
+        href="/"
+        className="lg:hidden flex items-center justify-center gap-2 mt-6 text-white/70 hover:text-white text-sm font-medium transition-colors"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        <span>Back to home</span>
+      </Link>
     </AuthLayout>
   );
 }

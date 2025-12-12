@@ -11,7 +11,7 @@ import { Toaster } from "@/components/ui/sonner";
 const outfit = Outfit({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Vidshortify",
+  title: "Vidholdify",
   description: "Generate AI UGC videos in minutes, your way.",
   icons: {
     icon: "/favicon.ico",

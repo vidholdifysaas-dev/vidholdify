@@ -45,7 +45,7 @@ interface WorkflowData {
   voiceId?: string;
   captionStyleId?: string;
   videoLength?: string;
-  mode?: "pro" | "lite";
+  mode?: "avatar4Fast" | "lite";
 
   // UI State Persistence
   activeTab?: "url" | "upload";  // Step 1 tab state

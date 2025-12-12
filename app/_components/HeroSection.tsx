@@ -19,20 +19,20 @@ export default function HeroSection() {
                 <div className="mx-auto max-w-7xl px-6 lg:px-8">
 
                     {/* Two Column Layout */}
-                    <div className="grid lg:grid-cols-2 items-center justify-center">
+                    <div className="grid md:grid-cols-2 items-center justify-center gap-8 md:gap-4">
 
                         {/* Left Column - Content */}
                         <motion.div
                             initial={{ opacity: 0, y: 40 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.9, ease: "easeOut" }}
-                            className="text-center lg:text-left order-2 lg:order-1"
+                            className="text-center md:text-left order-1 md:order-1"
                         >
 
                             {/* ✅ Premium Badge */}
 
-                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted/60 border border-border/50 text-muted-foreground text-sm font-medium mb-8 backdrop-blur-sm">
-                                <Sparkles className="w-4 h-4 text-brand-primary" />
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted/60 border border-border/50 text-muted-foreground text-sm font-medium mb-4 sm:mb-8 backdrop-blur-sm">
+                                <Sparkles className="w-4 h-4 text-white" />
                                 <span>AI-Powered Product Videos</span>
                             </div>
                             {/* ✅ Animated Headline */}
@@ -40,10 +40,12 @@ export default function HeroSection() {
                                 initial={{ opacity: 0, y: 30 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.2, duration: 0.8 }}
-                                className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter font-geist mt-2 mb-6"
+                                className="text-4xl md:text-5xl lg:text-7xl font-bold tracking-tighter font-geist mt-2 mb-6"
                                 style={{
-                                    maskImage: 'linear-gradient(150deg, transparent, black 30%, black 30%, transparent)',
-                                    WebkitMaskImage: 'linear-gradient(150deg, transparent, black 30%, black 30%, transparent)'
+                                    background: 'linear-gradient(135deg, #706aefff 10%, #f7f0f0ff 40%, #6053daff 70%)',
+                                    WebkitBackgroundClip: 'text',
+                                    WebkitTextFillColor: 'transparent',
+                                    backgroundClip: 'text',
                                 }}
                             >
                                 Product Avatars for AI UGC Videos
@@ -54,7 +56,7 @@ export default function HeroSection() {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.4, duration: 0.8 }}
-                                className="mt-6 text-lg leading-8 text-white/60 mb-10"
+                                className="mt-6 sm:text-lg text-md leading-8 text-white/60 mb-10"
                             >
                                 Upload your product image and instantly create an AI avatar showcasing it.
                                 <br className="hidden sm:block" />
@@ -66,7 +68,7 @@ export default function HeroSection() {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.6, duration: 0.8 }}
-                                className="mt-10 flex items-center justify-center lg:justify-start gap-x-6"
+                                className="mt-10 flex items-center justify-center md:justify-start gap-x-6"
                             >
                                 <Link href="/dashboard">
                                     <button className="shiny-cta focus:outline-none">
@@ -82,7 +84,7 @@ export default function HeroSection() {
                             initial={{ opacity: 0, x: 40 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.4, duration: 0.9, ease: "easeOut" }}
-                            className="relative order-1 lg:order-2 flex items-center justify-center lg:min-h-[550px]"
+                            className="relative order-2 md:order-2 flex items-center justify-center md:justify-end px-4 md:px-6 lg:px-10 min-h-[350px] md:min-h-[450px] lg:min-h-[550px]"
                         >
                             <BeforeAfterSlider />
                         </motion.div>

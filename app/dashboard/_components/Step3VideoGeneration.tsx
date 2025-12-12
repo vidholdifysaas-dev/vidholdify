@@ -658,7 +658,7 @@ export default function Step3VideoGeneration() {
               Quality Mode
             </label>
             <div className="flex gap-3">
-              {(["lite", "pro"] as const).map((m) => (
+              {(["lite", "avatar4Fast"] as const).map((m) => (
                 <button
                   key={m}
                   onClick={() => setWorkflowData({ mode: m })}
@@ -667,7 +667,7 @@ export default function Step3VideoGeneration() {
                     : "bg-sidebar border border-border text-foreground hover:border-brand-primary/50"
                     }`}
                 >
-                  {m === "pro" ? "Pro" : "Standard"}
+                  {m === "avatar4Fast" ? "pro" : "Standard"}
                 </button>
               ))}
             </div>

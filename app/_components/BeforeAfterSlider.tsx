@@ -11,16 +11,58 @@ export default function BeforeAfterSlider() {
     };
 
     return (
-        <div className="relative w-full max-w-[320px] min-h-[300px] flex items-center justify-end">
-            {/* Main Slider Container with Premium Border */}
+        <div className="relative w-full max-w-[320px] min-h-[300px] flex items-center justify-center">
+
+            {/* ✨ Creative Floating Blobs */}
+            <motion.div
+                className="absolute -top-16 -left-12 w-32 h-32 rounded-full blur-3xl opacity-60 pointer-events-none"
+                style={{ background: 'linear-gradient(135deg, #706aef 0%, #9b8aff 100%)' }}
+                animate={{
+                    y: [0, -20, 0, 15, 0],
+                    x: [0, 10, -5, 8, 0],
+                    scale: [1, 1.1, 0.95, 1.05, 1],
+                }}
+                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div
+                className="absolute -bottom-12 -right-10 w-28 h-28 rounded-full blur-3xl opacity-50 pointer-events-none"
+                style={{ background: 'linear-gradient(135deg, #635ab3 0%, #8b7fd9 100%)' }}
+                animate={{
+                    y: [0, 15, -10, 5, 0],
+                    x: [0, -8, 12, -5, 0],
+                    scale: [1, 0.95, 1.08, 0.98, 1],
+                }}
+                transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+            />
+            <motion.div
+                className="absolute top-1/3 -right-8 w-20 h-20 rounded-full blur-2xl opacity-40 pointer-events-none"
+                style={{ background: '#7c78d8' }}
+                animate={{
+                    y: [0, -12, 8, -5, 0],
+                    scale: [1, 1.15, 0.9, 1.1, 1],
+                }}
+                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+            />
+            <motion.div
+                className="absolute bottom-1/4 -left-6 w-16 h-16 rounded-full blur-2xl opacity-35 pointer-events-none"
+                style={{ background: 'linear-gradient(180deg, #a39dff 0%, #706aef 100%)' }}
+                animate={{
+                    x: [0, 8, -6, 4, 0],
+                    y: [0, 10, -8, 5, 0],
+                    scale: [1, 1.1, 0.92, 1.05, 1],
+                }}
+                transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+            />
+
+            {/* Main Slider Container */}
             <div
-                className="relative w-full sm:aspect-[2/3] aspect-[9/12] justify-end rounded-xl overflow-hidden bg-background/50 backdrop-blur-sm border-2 border-brand-primary/30"
+                className="relative w-full sm:aspect-[2/3] aspect-[9/12] rounded-2xl overflow-hidden bg-background/50 backdrop-blur-sm"
                 style={{
                     boxShadow: `
-                        0 0 0 1px hsl(var(--brand-primary) / 0.1),
-                        0 0 20px hsl(var(--brand-primary) / 0.3),
-                        0 0 40px hsl(var(--brand-primary) / 0.2),
-                        0 20px 60px rgba(0, 0, 0, 0.4)
+0 0 0 1px rgba(112, 106, 239, 0.3),
+    0 0 30px rgba(112, 106, 239, 0.25),
+        0 0 60px rgba(99, 90, 179, 0.15),
+            0 25px 50px rgba(0, 0, 0, 0.4)
                     `
                 }}
             >
@@ -48,7 +90,7 @@ export default function BeforeAfterSlider() {
                 {/* After Video with Clip Path */}
                 <div
                     className="absolute inset-0 transition-all duration-100 ease-out"
-                    style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
+                    style={{ clipPath: `inset(0 ${100 - sliderPosition} % 0 0)` }}
                 >
                     <img
                         src="https://d1735p3aqhycef.cloudfront.net/official-website/public/landing-page/home/init_5.webp"
@@ -60,7 +102,7 @@ export default function BeforeAfterSlider() {
                 {/* Enhanced Vertical Divider Line */}
                 <div
                     className="absolute top-0 bottom-0 w-[3px] transition-all duration-100 ease-out z-30"
-                    style={{ left: `${sliderPosition}%` }}
+                    style={{ left: `${sliderPosition}% ` }}
                 >
                     {/* Outer glow effect */}
                     <div className="absolute inset-0 bg-gradient-to-b from-white/60 via-white/80 to-white/60 blur-sm" />

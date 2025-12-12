@@ -58,7 +58,7 @@ const FeatureItem = ({ feature, index, setActiveIndex }: { feature: typeof FEATU
             className="min-h-[80vh] flex flex-col justify-center py-20"
         >
             <div className="flex items-center gap-4 mb-6">
-                <span className="text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-br from-brand-primary/20 to-transparent select-none font-mono">
+                <span className="text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-br from-brand-primary/50 to-white/70 select-none font-mono">
                     {`0${index + 1}`}
                 </span>
                 <div className="h-px flex-1 bg-gradient-to-r from-brand-primary/20 to-transparent" />
@@ -71,7 +71,7 @@ const FeatureItem = ({ feature, index, setActiveIndex }: { feature: typeof FEATU
                 {feature.description}
             </p>
 
-            <Link href="/gen/product-avatar">
+            <Link href="/dashboard">
                 <button className="group flex items-center gap-2 text-brand-primary font-semibold text-lg hover:text-brand-primary-light transition-colors">
                     Trying it now
                     <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
@@ -100,7 +100,7 @@ export default function KeyFeaturesSection() {
             <div className="pt-24 md:pt-32 pb-12 max-w-4xl mx-auto text-center px-6 relative z-10">
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted/50 border border-border/50 text-muted-foreground text-sm font-medium mb-8 backdrop-blur-sm">
                     <Sparkles className="w-4 h-4 text-brand-primary" />
-                    <span>Why Choose ProductHold?</span>
+                    <span>Why Choose Vidholdify?</span>
                 </div>
                 <h2 className="text-4xl md:text-6xl font-bold tracking-tight text-foreground mb-6">
                     Key Features of <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-purple-600">Product Avatar</span>
@@ -185,8 +185,6 @@ export default function KeyFeaturesSection() {
                             setActiveIndex={setActiveIndex}
                         />
                     ))}
-                    {/* Extra padding at bottom to allow last item to scroll fully */}
-                    <div className="h-[20vh]" />
                 </div>
 
             </div>

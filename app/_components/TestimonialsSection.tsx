@@ -7,17 +7,17 @@ const TESTIMONIALS = [
     {
         name: "Noah Davis",
         avatar: "https://d1735p3aqhycef.cloudfront.net/official-website/public/avatar/0.webp",
-        quote: "ProductHold's AI Product Avatar has revolutionized the creation of dynamic content. It's effortless to use and has made our product showcases more engaging.",
+        quote: "Vidholdify's AI Product Avatar has revolutionized the creation of dynamic content. It's effortless to use and has made our product showcases more engaging.",
     },
     {
         name: "Mason Clark",
         avatar: "https://d1735p3aqhycef.cloudfront.net/official-website/public/avatar/1.webp",
-        quote: "ProductHold's AI avatars provide a cost-effective and highly interactive solution that our clients love. It's a must-have tool in our strategy.",
+        quote: "Vidholdify's AI avatars provide a cost-effective and highly interactive solution that our clients love. It's a must-have tool in our strategy.",
     },
     {
         name: "Elijah Walker",
         avatar: "https://d1735p3aqhycef.cloudfront.net/official-website/public/avatar/2.webp",
-        quote: "ProductHold has revolutionized how we present our brand's products. The AI avatars add a professional touch to our content without costly photoshoots.",
+        quote: "Vidholdify has revolutionized how we present our brand's products. The AI avatars add a professional touch to our content without costly photoshoots.",
     },
     {
         name: "Mia Robinson",
@@ -27,17 +27,17 @@ const TESTIMONIALS = [
     {
         name: "Olivia Brown",
         avatar: "https://d1735p3aqhycef.cloudfront.net/official-website/public/avatar/4.webp",
-        quote: "Using ProductHold's AI avatars has streamlined my workflow. It's like having a virtual studio—creating professional videos has never been this straightforward.",
+        quote: "Using Vidholdify's AI avatars has streamlined my workflow. It's like having a virtual studio—creating professional videos has never been this straightforward.",
     },
     {
         name: "Liam Wilson",
         avatar: "https://d1735p3aqhycef.cloudfront.net/official-website/public/avatar/7.webp",
-        quote: "ProductHold's AI Product Avatar has simplified our team's marketing efforts. The flexibility and efficiency it offers are unparalleled.",
+        quote: "Vidholdify's AI Product Avatar has simplified our team's marketing efforts. The flexibility and efficiency it offers are unparalleled.",
     },
     {
         name: "Ethan Johnson",
         avatar: "https://d1735p3aqhycef.cloudfront.net/official-website/public/avatar/8.webp",
-        quote: "ProductHold enables me to generate high-quality product videos quickly and easily. The AI avatars are versatile, and the customization options are endless!",
+        quote: "Vidholdify enables me to generate high-quality product videos quickly and easily. The AI avatars are versatile, and the customization options are endless!",
     },
 ];
 
@@ -45,7 +45,7 @@ const ITEMS = [...TESTIMONIALS, ...TESTIMONIALS];
 
 export default function TestimonialsSection() {
     return (
-        <section className="w-full py-24 md:py-32 flex flex-col items-center overflow-hidden bg-transparent relative">
+        <section className="w-full pb-6 sm:py-12 flex flex-col items-center overflow-hidden bg-transparent relative">
             {/* Background Glow */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-7xl h-96 bg-brand-primary/5 blur-[120px] rounded-full -z-10" />
 
@@ -56,7 +56,7 @@ export default function TestimonialsSection() {
                     <span>Trusted by Creators</span>
                 </div>
                 <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-foreground mb-6">
-                    How ProductHold is Changing <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-purple-600">Product Showcasing</span>
+                    How Vidholdify is Changing <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-purple-600">Product Showcasing</span>
                 </h2>
             </div>
 

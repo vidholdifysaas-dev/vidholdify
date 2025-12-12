@@ -10,7 +10,7 @@ const FEATURES = [
         title: "Product Avatar Generator",
         description: "Create an avatar holding your product with one image.",
         imageSrc: "/Image1.png",
-        link: "/gen/product-avatar",
+        link: "/dashboard",
         badge: "New",
         icon: Box,
     },
@@ -18,14 +18,14 @@ const FEATURES = [
         title: "Video Avatar Generator",
         description: "Generate avatar videos or clone your avatar from a video.",
         imageSrc: "/Image4.png",
-        link: "/gen/avatar-video-creation",
+        link: "/dashboard",
         icon: Play,
     },
     {
         title: "Talking Photo Avatar",
         description: "Turn any photo into a talking video with one click.",
         imageSrc: "/Image3.png",
-        link: "/gen/photo-talking-avatar",
+        link: "/dashboard",
         icon: Mic,
     },
 ];
@@ -47,7 +47,7 @@ const item = {
 
 export default function FeaturesSection() {
     return (
-        <section className="relative w-full py-24 flex flex-col items-center overflow-hidden">
+        <section className="relative w-full py-12 flex flex-col items-center overflow-hidden">
 
             {/* ✅ Background Glows - Matching Hero Style */}
             <div className="absolute top-1/2 left-0 w-96 h-96 bg-brand-primary/10 rounded-full blur-[120px] -translate-x-1/2 -translate-y-1/2 -z-10" />
@@ -62,8 +62,8 @@ export default function FeaturesSection() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.6 }}
                 >
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-primary/10 text-brand-primary text-sm font-medium mb-6">
-                        <Sparkles className="w-4 h-4" />
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted/50 border border-border/50 text-muted-foreground text-sm font-medium mb-8 backdrop-blur-sm">
+                        <Sparkles className="w-4 h-4 text-brand-primary" />
                         <span>AI-Powered Creation</span>
                     </div>
 
@@ -128,7 +128,7 @@ export default function FeaturesSection() {
                                         {feature.description}
                                     </p>
 
-                                    <Link href={feature.link} className="inline-block mt-auto">
+                                    <Link href="/dashboard" className="inline-block mt-auto">
                                         <button className="text-sm font-semibold text-brand-primary hover:text-brand-primary-light transition-colors flex items-center gap-2 group/btn">
                                             Try now
                                             <ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />

@@ -54,7 +54,7 @@ const item = {
 
 export default function UseCasesSection() {
     return (
-        <section id="use-cases" className="relative w-full py-24 md:py-32 flex flex-col items-center bg-transparent overflow-hidden">
+        <section id="use-cases" className="relative w-full py-16 flex flex-col items-center bg-transparent overflow-hidden">
 
             {/* Header */}
             <div className="max-w-4xl mx-auto text-center px-6 mb-16 relative z-10">
@@ -73,7 +73,7 @@ export default function UseCasesSection() {
                         One Tool, <span className="text-brand-primary">Endless Use Cases</span>
                     </h2>
                     <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                        Whether you&apos;re selling on Amazon or building a brand on TikTok, ProductHold adapts to your needs.
+                        Whether you&apos;re selling on Amazon or building a brand on TikTok, Vidholdify adapts to your needs.
                     </p>
                 </motion.div>
             </div>

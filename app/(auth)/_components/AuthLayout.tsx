@@ -17,7 +17,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
                     <Link href="/" className="flex items-center gap-2">
                         <Image
                             src="/Full_logo.png"
-                            alt="ProductHold Logo"
+                            alt="Vidholdify Logo"
                             width={180}
                             height={30}
                             className="object-contain"
@@ -91,14 +91,14 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             </div>
 
             {/* RIGHT SIDE - FORM */}
-            <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-6 lg:p-12 relative z-10 bg-black/40 backdrop-blur-sm border-l border-white/5">
-                <div className="w-full max-w-md bg-black/20 backdrop-blur-xl border border-white/10 p-8 rounded-3xl shadow-2xl animate-in fade-in slide-in-from-right-8 duration-700">
+            <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-12 relative z-10 bg-black/40 backdrop-blur-sm lg:border-l border-white/5 min-h-screen lg:min-h-0">
+                <div className="w-full max-w-[380px] sm:max-w-md bg-black/20 backdrop-blur-xl border border-white/10 p-4 sm:p-8 rounded-2xl sm:rounded-3xl shadow-2xl animate-in fade-in slide-in-from-right-8 duration-700">
                     {/* Mobile Logo (visible only on small screens) */}
-                    <div className="lg:hidden flex justify-center mb-8">
+                    <div className="lg:hidden flex justify-center mb-6 sm:mb-8">
                         <Link href="/" className="flex items-center gap-2">
                             <Image
                                 src="/Full_logo.png"
-                                alt="ProductHold Logo"
+                                alt="Vidholdify Logo"
                                 width={120}
                                 height={32}
                                 className="h-8 w-auto object-contain"
@@ -110,7 +110,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
                     <div className="hidden lg:flex items-center justify-center gap-2 mb-8">
                         <Image
                             src="/Full_logo.png"
-                            alt="ProductHold Logo"
+                            alt="Vidholdify Logo"
                             width={150}
                             height={40}
                             className="object-contain h-10 w-auto"
