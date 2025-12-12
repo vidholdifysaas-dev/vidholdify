@@ -1,14 +1,72 @@
 "use client";
 
-import { Check, Sparkles } from "lucide-react";
-import Link from "next/link";
+import { Check, Sparkles, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { pricingData } from "@/dataUtils/PricingData";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
 export default function PricingPage() {
     const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
+    const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
+    const [currentPlanTier, setCurrentPlanTier] = useState<string | null>(null);
+    const [currentPriceId, setCurrentPriceId] = useState<string | null>(null);
+    const [isLoadingPlan, setIsLoadingPlan] = useState(true);
+
+    // Fetch user's current subscription
+    useEffect(() => {
+        async function fetchUserPlan() {
+            try {
+                const response = await fetch("/api/user/subscription");
+                if (response.ok) {
+                    const data = await response.json();
+                    setCurrentPlanTier(data.plan_tier || null);
+                    setCurrentPriceId(data.stripe_price_id || null);
+                }
+            } catch (error) {
+                console.error("Failed to fetch subscription:", error);
+            } finally {
+                setIsLoadingPlan(false);
+            }
+        }
+        fetchUserPlan();
+    }, []);
+
+    const handleCheckout = async (priceId: string, planId: string) => {
+        if (!priceId) {
+            toast.error("Price ID not configured. Please contact support.");
+            return;
+        }
+
+        setLoadingPlanId(planId);
+
+        try {
+            const response = await fetch("/api/checkout", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ priceId }),
+            });
+
+            const data = await response.json();
+
+            if (data.error) {
+                toast.error(data.error);
+                return;
+            }
+
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                toast.error("Failed to create checkout session");
+            }
+        } catch (error) {
+            console.error("Checkout error:", error);
+            toast.error("Something went wrong. Please try again.");
+        } finally {
+            setLoadingPlanId(null);
+        }
+    };
 
     return (
         <div className="space-y-6">
@@ -98,18 +156,27 @@ export default function PricingPage() {
                             ))}
                         </ul>
 
-                        <Link href={`/dashboard/billing?planId=${tier.priceId[billingCycle]}`} className="w-full relative z-10 mt-auto">
+                        {currentPriceId === tier.priceId[billingCycle] ? (
+                            <div className="w-full py-2.5 px-4 rounded-lg font-bold text-sm bg-green-500/20 text-green-500 border border-green-500/30 relative z-10 mt-auto flex items-center justify-center gap-2">
+                                <Check className="w-4 h-4" />
+                                Current Plan
+                            </div>
+                        ) : (
                             <button
+                                onClick={() => handleCheckout(tier.priceId[billingCycle], tier.id)}
+                                disabled={loadingPlanId === tier.id || isLoadingPlan}
                                 className={cn(
-                                    "w-full py-2.5 px-4 rounded-lg font-bold text-sm transition-all duration-300 shadow-sm",
+                                    "w-full py-2.5 px-4 rounded-lg font-bold text-sm transition-all duration-300 shadow-sm relative z-10 mt-auto flex items-center justify-center gap-2",
                                     tier.isPopular
                                         ? "bg-gradient-to-r from-brand-primary to-purple-600 text-white shadow-brand-primary/25 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
-                                        : "bg-sidebar-accent text-sidebar-foreground hover:bg-sidebar-accent/80"
+                                        : "bg-sidebar-accent text-sidebar-foreground hover:bg-sidebar-accent/80",
+                                    (loadingPlanId === tier.id || isLoadingPlan) && "opacity-70 cursor-not-allowed"
                                 )}
                             >
+                                {loadingPlanId === tier.id && <Loader2 className="w-4 h-4 animate-spin" />}
                                 {tier.buttonText}
                             </button>
-                        </Link>
+                        )}
                     </motion.div>
                 ))}
             </div>

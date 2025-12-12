@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/configs/db';
 import { Users } from '@/configs/schema';
-import { eq, lte, and } from 'drizzle-orm';
+import { eq, lte, and, lt, isNotNull } from 'drizzle-orm';
 import { resetMonthlyCredits, shouldResetCredits } from '@/utils/creditHelpers';
 import { planLimits } from '@/dataUtils/planLimits';
 
@@ -15,9 +15,71 @@ export async function GET(req: Request) {
     }
 
     const now = new Date();
-    
-    // Find active users whose next_credit_reset is in the past or today
-    // We only care about users with active subscriptions
+    const results = {
+      creditsReset: [] as { email: string; prevReset: Date | null; newReset: Date }[],
+      carryoverExpired: [] as { email: string }[],
+      subscriptionsExpired: [] as { email: string; previousPlan: string | null }[],
+    };
+
+    // =============================================
+    // 1. Handle Expired Subscriptions
+    // =============================================
+    // Find users with active subscriptions where current_period_end has passed
+    // This catches subscriptions that Stripe webhooks might have missed
+    const expiredSubscriptions = await db
+      .select()
+      .from(Users)
+      .where(
+        and(
+          eq(Users.subscription_active, true),
+          lt(Users.current_period_end, now),
+          isNotNull(Users.current_period_end)
+        )
+      );
+
+    for (const user of expiredSubscriptions) {
+      // Downgrade to free plan and clear all subscription fields
+      await db
+        .update(Users)
+        .set({
+          subscription_active: false,
+          subscription_status: 'expired',
+          plan_tier: 'free',
+          
+          // Clear credits
+          credits_allowed: 0,
+          credits_used: 0,
+          carryover: 0,
+          carryover_expiry: null,
+          
+          // Clear Stripe subscription fields (keep customer_id for future purchases)
+          stripe_subscription_id: null,
+          stripe_price_id: null,
+          
+          // Clear period dates
+          current_period_start: null,
+          current_period_end: null,
+          
+          // Clear reset tracking
+          credit_reset_day: null,
+          next_credit_reset: null,
+          
+          updated_at: new Date(),
+        })
+        .where(eq(Users.id, user.id));
+
+      results.subscriptionsExpired.push({
+        email: user.email,
+        previousPlan: user.plan_tier,
+      });
+
+      console.log(`⏰ Cron: Subscription expired for ${user.email}. Downgraded from ${user.plan_tier} to free. All fields cleared.`);
+    }
+
+    // =============================================
+    // 2. Handle Monthly Credit Reset (for active subscriptions)
+    // =============================================
+    // This handles both monthly plans AND yearly plans that need monthly credit refresh
     const usersToReset = await db
       .select()
       .from(Users)
@@ -28,19 +90,12 @@ export async function GET(req: Request) {
         )
       );
 
-    if (usersToReset.length === 0) {
-      return NextResponse.json({ message: 'No credits to reset', count: 0 });
-    }
-
-    const results = [];
-
     for (const user of usersToReset) {
       // Double check using the helper (handles timezone normalization if needed)
       if (shouldResetCredits(user, now)) {
         const resetData = resetMonthlyCredits(user);
         
-        // Get plan limits to reset the "allowed" amounts if needed
-        // (Though usually allowed amounts don't change, it's good practice to enforce plan limits on reset)
+        // Get plan limits to reset the "allowed" amounts
         const planTier = (user.plan_tier as keyof typeof planLimits) || 'free';
         const limits = planLimits[planTier];
 
@@ -51,13 +106,13 @@ export async function GET(req: Request) {
             carryover: resetData.carryover,
             carryover_expiry: resetData.carryover_expiry,
             next_credit_reset: resetData.next_credit_reset,
-            // Ensure allowed is correct
+            // Reset credits_allowed to plan level (important for yearly plans getting monthly credits)
             credits_allowed: limits?.credits ?? user.credits_allowed,
             updated_at: new Date(),
           })
           .where(eq(Users.id, user.id));
 
-        results.push({
+        results.creditsReset.push({
           email: user.email,
           prevReset: user.next_credit_reset,
           newReset: resetData.next_credit_reset
@@ -67,9 +122,38 @@ export async function GET(req: Request) {
       }
     }
 
+    // =============================================
+    // 3. Handle Expired Carryover Cleanup
+    // =============================================
+    const usersWithExpiredCarryover = await db
+      .select({ id: Users.id, email: Users.email })
+      .from(Users)
+      .where(
+        and(
+          lt(Users.carryover_expiry, now),
+          isNotNull(Users.carryover_expiry)
+        )
+      );
+
+    for (const user of usersWithExpiredCarryover) {
+      await db
+        .update(Users)
+        .set({
+          carryover: 0,
+          carryover_expiry: null,
+          updated_at: new Date(),
+        })
+        .where(eq(Users.id, user.id));
+
+      results.carryoverExpired.push({ email: user.email });
+      console.log(`🧹 Cron: Cleared expired carryover for ${user.email}`);
+    }
+
     return NextResponse.json({ 
       success: true, 
-      processed: results.length,
+      subscriptionsExpiredCount: results.subscriptionsExpired.length,
+      creditsResetCount: results.creditsReset.length,
+      carryoverExpiredCount: results.carryoverExpired.length,
       details: results 
     });
 

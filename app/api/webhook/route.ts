@@ -28,29 +28,29 @@ interface StripeInvoiceWithSubscription extends Stripe.Invoice {
 export const runtime = "nodejs";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: "2025-11-17.clover" as Stripe.LatestApiVersion,
+    apiVersion: "2024-06-20" as any,
 });
 
 // map priceId -> plan tier (use your real price IDs)
 function getPlanTier(priceId: string) {
     if (
-        priceId === "price_1SXZ4TBEStw3HK5gLIRBc7mU" ||
-        priceId === "price_1SXZ5hBEStw3HK5gaahNKeNA"
+        priceId === "price_1SdMjxLwv1puVvqSszOeB9X3" ||
+        priceId === "price_1SdMo4Lwv1puVvqSF5BtLjwd"
     ) return "starter";
 
     if (
-        priceId === "price_1SXZ4oBEStw3HK5g47Tp0opH" ||
-        priceId === "price_1SXZ8UBEStw3HK5g9aWHhgjT"
+        priceId === "price_1SdMkyLwv1puVvqStunGMdK6" ||
+        priceId === "price_1SdMxeLwv1puVvqS7nHfuP09"
     ) return "professional";
 
     if (
-        priceId === "price_1SXZ55BEStw3HK5gciuiffxs" ||
-        priceId === "price_1SXZ96BEStw3HK5gDvYT9yPE"
+        priceId === "price_1SdMmCLwv1puVvqSh9yX8vnP" ||
+        priceId === "price_1SdMySLwv1puVvqSokK7EAUM"
     ) return "business";
 
     if (
-        priceId === "price_1SXZ5IBEStw3HK5gl5n56R3M" ||
-        priceId === "price_1SXZ9hBEStw3HK5grxCvv0Qj"
+        priceId === "price_1SdMmyLwv1puVvqSUc1gPxh1" ||
+        priceId === "price_1SdMzOLwv1puVvqSYLsQBbQs"
     ) return "scale";
 
     return "free";
@@ -125,7 +125,7 @@ export async function POST(req: Request) {
             // get full subscription
             const subscription = await stripe.subscriptions.retrieve(
                 subscriptionId
-            ) as unknown as StripeSubscriptionWithPeriod;
+            ) as any;
 
             const priceId = subscription.items.data[0].price.id;
             const planTier = getPlanTier(priceId);
@@ -163,10 +163,26 @@ export async function POST(req: Request) {
 
                 console.log(`📦 Plan Change Carryover: ${carryoverAmount} credits, Expires=${carryoverExpiry?.toISOString()}`);
 
-                // Preserve existing reset day for plan changes
+                // Preserve existing reset day for plan changes, but ensure next_credit_reset is in the future
+                const now = new Date();
+                let nextReset = currentUser.next_credit_reset;
+                
+                // If next_credit_reset is in the past, calculate the next valid reset date
+                if (nextReset && nextReset < now) {
+                    const resetDay = currentUser.credit_reset_day ?? now.getDate();
+                    const nextResetDate = new Date(now.getFullYear(), now.getMonth(), resetDay, 0, 0, 0);
+                    
+                    // If the reset day this month has passed, move to next month
+                    if (nextResetDate <= now) {
+                        nextResetDate.setMonth(nextResetDate.getMonth() + 1);
+                    }
+                    nextReset = nextResetDate;
+                    console.log(`🔄 Reset date was in past, updated to: ${nextReset.toISOString()}`);
+                }
+                
                 resetInfo = {
-                    credit_reset_day: currentUser.credit_reset_day ?? new Date().getDate(),
-                    next_credit_reset: currentUser.next_credit_reset,
+                    credit_reset_day: currentUser.credit_reset_day ?? now.getDate(),
+                    next_credit_reset: nextReset,
                 };
             } else {
                 // New subscription: Initialize credit reset tracking
@@ -191,6 +207,7 @@ export async function POST(req: Request) {
                 subscription_status: subscription.status ?? "active",
                 subscription_active: subscription.status === "active",
                 plan_tier: planTier,
+                
 
                 // Update NEW plan's MONTHLY credit allowance
                 credits_allowed: limits.credits,
@@ -234,7 +251,7 @@ export async function POST(req: Request) {
         }
 
         if (event.type === "customer.subscription.created") {
-            const subscription = event.data.object as StripeSubscriptionWithPeriod;
+            const subscription = event.data.object as any;
             const subscriptionId = subscription.id;
             const customerId = subscription.customer as string;
             const priceId = subscription.items.data[0]?.price?.id;
@@ -242,7 +259,7 @@ export async function POST(req: Request) {
             const planTier = getPlanTier(priceId);
             const limits = planLimits[planTier] ?? { credits: 0 };
 
-            // period
+            // period - access directly from subscription object
             const periodStart = subscription.current_period_start
                 ? new Date(subscription.current_period_start * 1000)
                 : null;
@@ -325,7 +342,7 @@ export async function POST(req: Request) {
 
                 const subscription = await stripe.subscriptions.retrieve(
                     subscriptionId
-                ) as unknown as StripeSubscriptionWithPeriod;
+                ) as any;
 
                 const priceId = subscription.items.data[0].price.id;
                 const planTier = getPlanTier(priceId);

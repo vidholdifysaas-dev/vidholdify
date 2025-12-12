@@ -50,15 +50,24 @@ export function shouldResetCredits(user: UserCreditData, currentDate: Date = new
 
 /**
  * Calculate next reset date based on a reset day (1..31).
+ * Uses UTC to avoid timezone issues.
  */
 export function calculateNextResetDate(currentDate: Date, resetDay: number): Date {
-  const candidate = new Date(currentDate);
-  candidate.setMonth(candidate.getMonth() + 1);
-  const lastDayOfNext = new Date(candidate.getFullYear(), candidate.getMonth() + 1, 0).getDate();
+  // Work in UTC to avoid timezone issues
+  const year = currentDate.getUTCFullYear();
+  const month = currentDate.getUTCMonth();
+  
+  // Next month in UTC
+  const nextMonth = month + 1;
+  const nextYear = nextMonth > 11 ? year + 1 : year;
+  const normalizedMonth = nextMonth % 12;
+  
+  // Get the last day of next month
+  const lastDayOfNext = new Date(Date.UTC(nextYear, normalizedMonth + 1, 0)).getUTCDate();
   const day = Math.min(resetDay, lastDayOfNext);
-  candidate.setDate(day);
-  candidate.setHours(0, 0, 0, 0);
-  return candidate;
+  
+  // Create date at midnight UTC on the reset day
+  return new Date(Date.UTC(nextYear, normalizedMonth, day, 0, 0, 0));
 }
 
 /**
@@ -137,12 +146,14 @@ export function calculateCarryover(
 
 /**
  * Initialize credit reset tracking for new subscription.
+ * Uses UTC to avoid timezone issues.
  */
 export function initializeCreditReset(subscriptionStartDate: Date): {
   credit_reset_day: number;
   next_credit_reset: Date;
 } {
-  const resetDay = subscriptionStartDate.getDate();
+  // Use UTC date to avoid timezone drift
+  const resetDay = subscriptionStartDate.getUTCDate();
   const nextReset = calculateNextResetDate(subscriptionStartDate, resetDay);
   return {
     credit_reset_day: resetDay,

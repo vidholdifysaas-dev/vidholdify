@@ -3,9 +3,8 @@ export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
-import { TopviewTasks, TopviewVideo, Users } from "@/configs/schema";
+import { TopviewTasks, TopviewVideo } from "@/configs/schema";
 import { eq } from "drizzle-orm";
-import { sql } from "drizzle-orm";
 import axios, { AxiosError } from "axios";
 
 const TOPVIEW_API_KEY = process.env.TOPVIEW_API_KEY!;
@@ -139,33 +138,10 @@ export async function GET(req: NextRequest) {
 
     console.log("✅ Video generation status:", result.status);
 
-    // If completed successfully, update database and deduct credits
+    // If completed successfully, update database
     if (result.status === "success" && result.finishedVideoUrl) {
-      // NOTE: creditsDeducted column removed. Assuming status check is sufficient or credits logic handled elsewhere.
-      
-      // Get user by Clerk ID from email (or better, add clerk_id to Users table)
-      const [user] = await db
-        .select()
-        .from(Users)
-        .where(eq(Users.email, userId))
-        .limit(1);
-
-      if (user) {
-        // Deduct 1 credit
-        // Only deduct if we can ensure we haven't already (limited by lack of creditsDeducted flag)
-        // For now, deducting if status was not already 'completed' in DB
-        const alreadyCompleted = videoRecord?.status === "completed";
-        
-        if (!alreadyCompleted) {
-           await db
-            .update(Users)
-            .set({
-              credits_used: sql`${Users.credits_used} + 1`,
-              updated_at: sql`NOW()`,
-            })
-            .where(eq(Users.id, user.id));
-        }
-      }
+      // NOTE: Credits are already deducted in the submit route (5 credits)
+      // No need to deduct here - that would be double-charging
 
       // Update video record
       if (videoRecord) {

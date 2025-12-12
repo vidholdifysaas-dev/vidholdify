@@ -19,19 +19,19 @@ export async function POST(req: Request) {
         targetSeconds = "0-15 seconds";
         break;
       case "15-30s":
-        wordCountRange = "40-75 words";
+        wordCountRange = "40-100 words";
         targetSeconds = "15-30 seconds";
         break;
       case "30-60s":
-        wordCountRange = "75-150 words";
+        wordCountRange = "100-200 words";
         targetSeconds = "30-60 seconds";
         break;
       case "60-90s":
-        wordCountRange = "150-225 words";
+        wordCountRange = "200-300 words";
         targetSeconds = "60-90 seconds";
         break;
       default:
-        wordCountRange = "75-150 words";
+        wordCountRange = "40-100 words";
         targetSeconds = "30-60 seconds";
     }
 
