@@ -36,8 +36,8 @@ export default function Header() {
 
                 {/* Center: Desktop Navigation */}
                 <div className="hidden lg:flex lg:gap-x-8">
-                    <button onClick={() => scrollToSection("use-cases")} className="text-sm font-semibold leading-6 text-foreground/80 hover:text-foreground transition-colors">
-                        Use cases
+                    <button onClick={() => scrollToSection("features")} className="text-sm font-semibold leading-6 text-foreground/80 hover:text-foreground transition-colors">
+                      Features
                     </button>
                     <button onClick={() => scrollToSection("how-it-works")} className="text-sm font-semibold leading-6 text-foreground/80 hover:text-foreground transition-colors">
                         How it works
@@ -201,8 +201,8 @@ export default function Header() {
                     }`}
             >
                 <div className="space-y-4">
-                    <button onClick={() => scrollToSection("use-cases")} className="block w-full text-left text-base font-semibold leading-7 text-foreground hover:bg-white/5 p-2 rounded-lg transition-colors">
-                        Use cases
+                    <button onClick={() => scrollToSection("features")} className="block w-full text-left text-base font-semibold leading-7 text-foreground hover:bg-white/5 p-2 rounded-lg transition-colors">
+                      Features
                     </button>
                     <button onClick={() => scrollToSection("how-it-works")} className="block w-full text-left text-base font-semibold leading-7 text-foreground hover:bg-white/5 p-2 rounded-lg transition-colors">
                         How it works

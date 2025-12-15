@@ -1,9 +1,80 @@
 "use client";
 
-import { ArrowRight, Box, Play, Mic, Sparkles } from "lucide-react";
+import { ArrowRight, Box, Play, Mic, Sparkles, Globe, Type, Volume2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
+
+// ---------- BENTO CARD COMPONENT ----------
+const BentoCard = ({
+    title,
+    subtitle,
+    icon: Icon,
+    children,
+    className = "",
+    gradient = false,
+}: {
+    title?: string;
+    subtitle?: string;
+    icon?: React.ElementType;
+    children?: React.ReactNode;
+    className?: string;
+    gradient?: boolean;
+}) => {
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className={`group relative rounded-2xl border border-border/50 backdrop-blur-xl p-5 overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-brand-primary/10 ${gradient
+                ? "bg-gradient-to-br from-brand-primary/20 to-brand-primary/5 border-brand-primary/30"
+                : "bg-card/30"
+                } ${className}`}
+        >
+            {/* Hover glow effect */}
+            <div className="absolute inset-0 bg-gradient-to-b from-brand-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+
+            {title && (
+                <div className="flex items-center gap-2 mb-2 relative z-10">
+                    {Icon && (
+                        <div className="p-1.5 rounded-lg bg-brand-primary/10 text-brand-primary">
+                            <Icon className="w-4 h-4" />
+                        </div>
+                    )}
+                    <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+                </div>
+            )}
+            {subtitle && <p className="text-sm text-muted-foreground mb-4 relative z-10">{subtitle}</p>}
+            <div className="relative z-10">{children}</div>
+        </motion.div>
+    );
+};
+
+// ---------- ANIMATED WAVEFORM COMPONENT ----------
+const AnimatedWaveform = () => {
+    return (
+        <div className="flex items-end gap-1">
+            {[0, 1, 2, 3, 4].map((bar, idx) => (
+                <motion.div
+                    key={idx}
+                    initial={{ height: 8 }}
+                    animate={{ height: [8 + (idx % 3) * 6, 28 - (idx % 2) * 6, 12 + (idx % 4) * 4] }}
+                    transition={{
+                        delay: idx * 0.08,
+                        duration: 0.9,
+                        repeat: Infinity,
+                        repeatType: "reverse",
+                        ease: "easeInOut",
+                    }}
+                    style={{ width: 4 }}
+                    className="bg-brand-primary rounded"
+                    aria-hidden
+                />
+            ))}
+        </div>
+    );
+};
 
 const FEATURES = [
     {
@@ -16,14 +87,14 @@ const FEATURES = [
     },
     {
         title: "Video Avatar Generator",
-        description: "Generate avatar videos or clone your avatar from a video.",
+        description: "Generate avatar videos from 400+ different Avatars.",
         imageSrc: "/Image4.png",
         link: "/dashboard",
         icon: Play,
     },
     {
-        title: "Talking Photo Avatar",
-        description: "Turn any photo into a talking video with one click.",
+        title: "Avatar to Video",
+        description: "Turn Avatar into a talking video with some clicks.",
         imageSrc: "/Image3.png",
         link: "/dashboard",
         icon: Mic,
@@ -47,7 +118,7 @@ const item = {
 
 export default function FeaturesSection() {
     return (
-        <section className="relative w-full py-12 flex flex-col items-center overflow-hidden">
+        <section id="features" className="relative w-full py-16 flex flex-col items-center overflow-hidden">
 
             {/* ✅ Background Glows - Matching Hero Style */}
             <div className="absolute top-1/2 left-0 w-96 h-96 bg-brand-primary/10 rounded-full blur-[120px] -translate-x-1/2 -translate-y-1/2 -z-10" />
@@ -83,15 +154,16 @@ export default function FeaturesSection() {
                     initial="hidden"
                     whileInView="show"
                     viewport={{ once: true }}
-                    className="grid grid-cols-1 md:grid-cols-3 gap-8"
+                    className="grid grid-cols-1 md:grid-cols-6 gap-6"
                 >
+                    {/* Existing 3 Feature Cards - Each takes 2 columns */}
                     {FEATURES.map((feature, index) => {
                         const Icon = feature.icon;
                         return (
                             <motion.div
                                 key={index}
                                 variants={item}
-                                className="group relative flex flex-col bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl overflow-hidden hover:shadow-2xl hover:shadow-brand-primary/10 transition-all duration-300 hover:-translate-y-2"
+                                className="md:col-span-2 group relative flex flex-col bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl overflow-hidden hover:shadow-2xl hover:shadow-brand-primary/10 transition-all duration-300 hover:-translate-y-2"
                             >
                                 {/* Card Glow Effect on Hover */}
                                 <div className="absolute inset-0 bg-gradient-to-b from-brand-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
@@ -138,6 +210,134 @@ export default function FeaturesSection() {
                             </motion.div>
                         );
                     })}
+
+                    {/* 🎨 CAPTION STYLES - Takes 3 columns */}
+                    <BentoCard
+                        title="Caption Styles"
+                        subtitle="15+ stunning caption styles with accurate transcriptions"
+                        icon={Type}
+                        className="md:col-span-3"
+                        gradient
+                    >
+                        <div className="relative w-full h-48 rounded-xl overflow-hidden bg-black/20">
+                            <Image
+                                src="/Caption-landing.png"
+                                alt="Caption Styles Preview"
+                                fill
+                                className="object-cover"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                            <div className="absolute bottom-3 left-3 right-3">
+                                <div className="flex gap-2 flex-wrap">
+                                    {["Karaoke", "Word Pop", "Neon", "Classic"].map((style) => (
+                                        <span key={style} className="text-xs px-2.5 py-1 rounded-full bg-brand-primary/30 text-white/90 border border-brand-primary/50">
+                                            {style}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </BentoCard>
+
+                    {/* 🎤 NARRATION VOICES - Takes 3 columns */}
+                    <BentoCard
+                        title="Narration Voices"
+                        subtitle="Crisp studio voices in 8+ languages"
+                        icon={Volume2}
+                        className="md:col-span-3"
+                    >
+                        <div className="space-y-2">
+                            {[
+                                { name: "Brian", accent: "American", flag: "🇺🇸" },
+                                { name: "Natasha", accent: "British", flag: "🇬🇧" },
+                                { name: "Adam", accent: "Australian", flag: "🇦🇺" },
+                            ].map((voice, i) => (
+                                <div
+                                    key={i}
+                                    className="p-3 rounded-xl bg-muted/30 border border-border/30 flex items-center justify-between hover:bg-muted/50 transition-colors"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-9 h-9 rounded-full bg-brand-primary/10 flex items-center justify-center text-base">
+                                            {voice.flag}
+                                        </div>
+                                        <div>
+                                            <p className="font-medium text-foreground text-sm">{voice.name}</p>
+                                            <p className="text-xs text-muted-foreground">Narration · {voice.accent}</p>
+                                        </div>
+                                    </div>
+                                    <AnimatedWaveform />
+                                </div>
+                            ))}
+                        </div>
+                    </BentoCard>
+
+                    {/* 🌍 8+ LANGUAGES - Full Width with Infinite Scroll */}
+                    <BentoCard
+                        title="8+ Languages"
+                        subtitle="Auto-translated captions for global reach"
+                        icon={Globe}
+                        className="md:col-span-6"
+                    >
+                        <div className="h-20 overflow-hidden relative">
+                            <motion.div
+                                className="flex gap-4"
+                                animate={{ x: ["0%", "-50%"] }}
+                                transition={{
+                                    repeat: Infinity,
+                                    duration: 20,
+                                    ease: "linear",
+                                }}
+                            >
+                                {/* First set of languages */}
+                                {[
+                                    { lang: "English", flag: "🇺🇸" },
+                                    { lang: "Spanish", flag: "🇪🇸" },
+                                    { lang: "French", flag: "🇫🇷" },
+                                    { lang: "German", flag: "🇩🇪" },
+                                    { lang: "Japanese", flag: "🇯🇵" },
+                                    { lang: "Hindi", flag: "🇮🇳" },
+                                    { lang: "Arabic", flag: "🇸🇦" },
+                                    { lang: "Portuguese", flag: "🇧🇷" },
+                                    { lang: "Korean", flag: "🇰🇷" },
+                                    { lang: "Chinese", flag: "🇨🇳" },
+                                    { lang: "Italian", flag: "🇮🇹" },
+                                    { lang: "Dutch", flag: "🇳🇱" },
+                                ].map((item, i) => (
+                                    <div
+                                        key={i}
+                                        className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-muted/30 border border-border/30 hover:bg-brand-primary/10 hover:border-brand-primary/30 transition-all"
+                                    >
+                                        <span className="text-xl">{item.flag}</span>
+                                        <span className="text-sm font-medium text-foreground whitespace-nowrap">{item.lang}</span>
+                                    </div>
+                                ))}
+                                {/* Duplicate for seamless loop */}
+                                {[
+                                    { lang: "English", flag: "🇺🇸" },
+                                    { lang: "Spanish", flag: "🇪🇸" },
+                                    { lang: "French", flag: "🇫🇷" },
+                                    { lang: "German", flag: "🇩🇪" },
+                                    { lang: "Japanese", flag: "🇯🇵" },
+                                    { lang: "Hindi", flag: "🇮🇳" },
+                                    { lang: "Arabic", flag: "🇸🇦" },
+                                    { lang: "Portuguese", flag: "🇧🇷" },
+                                    { lang: "Korean", flag: "🇰🇷" },
+                                    { lang: "Chinese", flag: "🇨🇳" },
+                                    { lang: "Italian", flag: "🇮🇹" },
+                                    { lang: "Dutch", flag: "🇳🇱" },
+                                ].map((item, i) => (
+                                    <div
+                                        key={`dup-${i}`}
+                                        className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-muted/30 border border-border/30 hover:bg-brand-primary/10 hover:border-brand-primary/30 transition-all"
+                                    >
+                                        <span className="text-xl">{item.flag}</span>
+                                        <span className="text-sm font-medium text-foreground whitespace-nowrap">{item.lang}</span>
+                                    </div>
+                                ))}
+                            </motion.div>
+                        </div>
+                    </BentoCard>
+
                 </motion.div>
             </div>
 

@@ -47,8 +47,8 @@ export default function Footer() {
                             </button>
                         </li>
                         <li>
-                            <button onClick={() => scrollToSection("use-cases")} className="hover:text-white transition-colors">
-                                Use cases
+                            <button onClick={() => scrollToSection("features")} className="hover:text-white transition-colors">
+                                Features
                             </button>
                         </li>
                         <li>
@@ -85,11 +85,6 @@ export default function Footer() {
                 <div className="col-span-1">
                     <h4 className="font-semibold mb-3">Features</h4>
                     <ul className="text-gray-400 text-sm space-y-2">
-                        <li>
-                            <button onClick={() => scrollToSection("how-it-works")} className="hover:text-white transition-colors">
-                                AI Shorts
-                            </button>
-                        </li>
                         <li>
                             <button onClick={() => scrollToSection("features")} className="hover:text-white transition-colors">
                                 AI UGC

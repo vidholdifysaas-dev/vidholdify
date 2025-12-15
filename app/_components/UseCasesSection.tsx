@@ -53,7 +53,7 @@ const item = {
 
 export default function UseCasesSection() {
     return (
-        <section id="use-cases" className="relative w-full py-16 flex flex-col items-center bg-transparent overflow-hidden">
+        <section className="relative w-full py-16 flex flex-col items-center bg-transparent overflow-hidden">
 
             {/* Header */}
             <div className="max-w-4xl mx-auto text-center px-6 mb-16 relative z-10">
