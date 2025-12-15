@@ -14,8 +14,8 @@ export const metadata: Metadata = {
   title: "Vidholdify",
   description: "Generate AI UGC videos in minutes, your way.",
   icons: {
-    icon: "/favicon.ico",
-    apple: "/favicon.ico",
+    icon: "/favicon.png",
+    apple: "/favicon.png",
   },
 };
 
