@@ -4,6 +4,7 @@ import { ArrowRight, Box, Play, Mic, Sparkles, Globe, Type, Volume2 } from "luci
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { CaptionStyles } from "@/dataUtils/Captionstyles";
 
 // ---------- BENTO CARD COMPONENT ----------
 const BentoCard = ({
@@ -211,30 +212,102 @@ export default function FeaturesSection() {
                         );
                     })}
 
-                    {/* 🎨 CAPTION STYLES - Takes 3 columns */}
+                    {/* 🎨 CAPTION STYLES - Premium 3-row scrolling showcase */}
                     <BentoCard
                         title="Caption Styles"
-                        subtitle="15+ stunning caption styles with accurate transcriptions"
+                        subtitle="21+ stunning caption styles with accurate transcriptions"
                         icon={Type}
                         className="md:col-span-3"
                         gradient
                     >
-                        <div className="relative w-full h-48 rounded-xl overflow-hidden bg-black/20">
-                            <Image
-                                src="/Caption-landing.png"
-                                alt="Caption Styles Preview"
-                                fill
-                                className="object-cover"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                            <div className="absolute bottom-3 left-3 right-3">
-                                <div className="flex gap-2 flex-wrap">
-                                    {["Karaoke", "Word Pop", "Neon", "Classic"].map((style) => (
-                                        <span key={style} className="text-xs px-2.5 py-1 rounded-full bg-brand-primary/30 text-white/90 border border-brand-primary/50">
-                                            {style}
-                                        </span>
+                        <div className="relative w-full h-52 rounded-xl overflow-hidden bg-gradient-to-br from-black/40 to-brand-primary/10">
+                            {/* Row 1 - Styles 1-7 scrolling left */}
+                            <div className="absolute top-2 left-0 right-0 overflow-hidden">
+                                <motion.div
+                                    className="flex gap-2"
+                                    animate={{ x: ["0%", "-100%"] }}
+                                    transition={{
+                                        repeat: Infinity,
+                                        duration: 50,
+                                        ease: "linear",
+                                    }}
+                                >
+                                    {[...CaptionStyles.slice(0, 7), ...CaptionStyles.slice(0, 7), ...CaptionStyles.slice(0, 7), ...CaptionStyles.slice(0, 7)].map((style, i) => (
+                                        <div
+                                            key={`row1-${i}`}
+                                            className="flex-shrink-0 w-24 h-14 rounded-lg overflow-hidden border border-white/10 bg-black/30 shadow-lg"
+                                        >
+                                            <img
+                                                src={style.thumbnail}
+                                                alt="Caption Style"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
                                     ))}
-                                </div>
+                                </motion.div>
+                            </div>
+
+                            {/* Row 2 - Styles 8-14 scrolling right */}
+                            <div className="absolute top-[4.5rem] left-0 right-0 overflow-hidden">
+                                <motion.div
+                                    className="flex gap-2"
+                                    animate={{ x: ["-100%", "0%"] }}
+                                    transition={{
+                                        repeat: Infinity,
+                                        duration: 50,
+                                        ease: "linear",
+                                    }}
+                                >
+                                    {[...CaptionStyles.slice(7, 14), ...CaptionStyles.slice(7, 14), ...CaptionStyles.slice(7, 14), ...CaptionStyles.slice(7, 14)].map((style, i) => (
+                                        <div
+                                            key={`row2-${i}`}
+                                            className="flex-shrink-0 w-28 h-14 rounded-lg overflow-hidden border border-brand-primary/30 bg-black/30 shadow-xl ring-1 ring-brand-primary/20"
+                                        >
+                                            <img
+                                                src={style.thumbnail}
+                                                alt="Caption Style"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                    ))}
+                                </motion.div>
+                            </div>
+
+                            {/* Row 3 - Styles 15-21 scrolling left */}
+                            <div className="absolute top-[8.5rem] left-0 right-0 overflow-hidden">
+                                <motion.div
+                                    className="flex gap-2"
+                                  animate={{ x: ["0%", "-100%"] }}
+                                    transition={{
+                                        repeat: Infinity,
+                                        duration: 50,
+                                        ease: "linear",
+                                    }}
+                                >
+                                    {[...CaptionStyles.slice(14, 21), ...CaptionStyles.slice(14, 21), ...CaptionStyles.slice(14, 21), ...CaptionStyles.slice(14, 21)].map((style, i) => (
+                                        <div
+                                            key={`row3-${i}`}
+                                            className="flex-shrink-0 w-24 h-14 rounded-lg overflow-hidden border border-white/10 bg-black/30 shadow-lg"
+                                        >
+                                            <img
+                                                src={style.thumbnail}
+                                                alt="Caption Style"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                    ))}
+                                </motion.div>
+                            </div>
+
+                            {/* Premium gradient overlays */}
+                            <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-transparent to-black/70 pointer-events-none" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/40 pointer-events-none" />
+
+                            {/* Badge overlay */}
+                            <div className="absolute bottom-3 left-3 z-10">
+                                <span className="text-xs px-3 py-1.5 rounded-full bg-brand-primary/50 text-white font-medium border border-brand-primary/60 backdrop-blur-md shadow-lg">
+                                    ✨ 21+ Premium Styles
+                                </span>
                             </div>
                         </div>
                     </BentoCard>
