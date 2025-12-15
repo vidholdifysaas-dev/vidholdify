@@ -113,6 +113,43 @@ body {
   font-family: var(--font-sans, Arial, Helvetica, sans-serif);
 }
 
+/* ✅ Clerk Auth Mobile Fixes */
+.cl-rootBox,
+.cl-cardBox,
+.cl-card {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.cl-footer {
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+}
+
+.cl-footerAction {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  text-align: center !important;
+}
+
+.cl-footerAction__signIn,
+.cl-footerAction__signUp {
+  justify-content: center !important;
+}
+
+.cl-internal-1dauvp,
+.cl-internal-h2zfvr {
+  text-align: center !important;
+}
+
 .btn-primary {
   background: linear-gradient(
     to bottom,

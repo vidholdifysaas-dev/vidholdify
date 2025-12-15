@@ -75,7 +75,7 @@ export default function BeforeAfterSlider() {
                     <span className="text-sm font-semibold text-foreground">After</span>
                 </div>
 
-                {/* Before Image (Static) */}
+                {/* After Video (Revealed by slider) */}
                 <div className="absolute inset-0">
                     <video
                         src="https://d1735p3aqhycef.cloudfront.net/official-website/public/landing-page/home/result_5.mp4"
@@ -87,10 +87,10 @@ export default function BeforeAfterSlider() {
                     />
                 </div>
 
-                {/* After Video with Clip Path */}
+                {/* Before Image (Static, clipped from left) */}
                 <div
                     className="absolute inset-0 transition-all duration-100 ease-out"
-                    style={{ clipPath: `inset(0 ${100 - sliderPosition} % 0 0)` }}
+                    style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
                 >
                     <img
                         src="https://d1735p3aqhycef.cloudfront.net/official-website/public/landing-page/home/init_5.webp"
