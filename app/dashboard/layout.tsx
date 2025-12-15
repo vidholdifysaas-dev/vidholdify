@@ -2,6 +2,7 @@
 
 import { UserButton } from "@clerk/nextjs";
 import { LayoutDashboard, Video, CreditCard, Settings, Sparkles, Menu, X, ShieldPlus } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ReactNode, useState } from "react";
@@ -41,14 +42,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       >
         {/* Logo/Header */}
         <div className="h-16 flex items-center justify-between px-6 border-b border-sidebar-border">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-primary-dark to-brand-primary flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-lg font-bold text-sidebar-foreground">
-              Vidholdify
-            </span>
-          </div>
+          <Link href="/dashboard" className="flex items-center">
+            <Image
+              src="/Full_logo.svg"
+              alt="Vidholdify Logo"
+              width={140}
+              height={32}
+              className="h-8 w-auto object-contain"
+            />
+          </Link>
 
           {/* Close button for mobile */}
           <button

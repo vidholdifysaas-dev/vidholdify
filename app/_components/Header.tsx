@@ -64,56 +64,109 @@ export default function Header() {
                     </SignedOut>
 
                     <SignedIn>
-                        <Link href="/dashboard" className="hidden lg:block">
-                            <button className="px-4 py-2 rounded-lg text-sm font-semibold border border-border hover:bg-white/5 transition text-foreground">
-                                Dashboard
-                            </button>
-                        </Link>
-                        <UserButton
-                            appearance={{
-                                elements: {
-                                    avatarBox: "w-9 h-9 ring-2 ring-brand-primary/40 hover:ring-brand-primary transition-all",
-                                    userButtonPopoverActionButton__manageAccount: "!text-white",
-                                    userButtonPopoverActionButton__signOut: "!text-white",
-                                    userButtonPopoverCard: "bg-black/95 backdrop-blur-xl border border-brand-primary/30 shadow-2xl",
-                                    userButtonPopoverActionButton: "text-white hover:bg-brand-primary/20 px-3 py-2 rounded-md transition",
-                                    userButtonPopoverActionButtonText: "text-white",
-                                    userButtonPopoverActionButtonIcon: "text-white",
-                                    userButtonPopoverFooter: "bg-black/95 border-t border-brand-primary/20",
-                                    userPreviewMainIdentifier: "text-white",
-                                    userPreviewSecondaryIdentifier: "text-white/60",
-                                    card: "bg-black/95 backdrop-blur-xl text-white border border-brand-primary/30 shadow-2xl",
-                                    headerTitle: "text-white",
-                                    headerSubtitle: "text-white/60",
-                                    navbar: "bg-black/90 backdrop-blur-xl border-r border-brand-primary/20",
-                                    navbarButton: "text-white hover:bg-brand-primary/20 transition",
-                                    pageScrollBox: "bg-black/95 backdrop-blur-xl text-white",
-                                    scrollBox: "bg-black/95",
-                                    formFieldLabel: "text-white",
-                                    formFieldInput: "bg-black border border-brand-primary/40 text-white placeholder-white/40 focus:border-brand-primary",
-                                    formButtonPrimary: "bg-brand-primary hover:bg-brand-primary-dark text-white shadow",
-                                    badge: "bg-brand-primary/20 text-brand-primary",
-                                    menuList: "bg-black/95 backdrop-blur-xl border border-brand-primary/30",
-                                    menuItem: "text-white hover:bg-brand-primary/20",
-                                    menuButton: "text-white hover:bg-brand-primary/20",
-                                    userButtonPopoverMain: "bg-black/95",
-                                    userButtonPopoverActions: "bg-black/95",
-                                    footerAction: "text-white hover:bg-brand-primary/20",
-                                    footerActionLink: "text-white hover:text-brand-primary",
-                                    footerActionText: "text-white",
-                                },
-                                variables: {
-                                    colorPrimary: "#413BFA",
-                                    colorText: "white",
-                                    colorBackground: "#0a0a0a",
-                                    colorInputBackground: "black",
-                                    colorInputText: "white",
-                                    colorTextSecondary: "rgba(255,255,255,0.7)",
-                                    colorDanger: "#ef4444",
-                                    colorTextOnPrimaryBackground: "white",
-                                }
-                            }}
-                        />
+                        <div className="hidden lg:flex lg:items-center lg:gap-x-4">
+                            <Link href="/dashboard">
+                                <button className="px-4 py-2 rounded-lg text-sm font-semibold border border-border hover:bg-white/5 transition text-foreground">
+                                    Dashboard
+                                </button>
+                            </Link>
+                            <UserButton
+                                appearance={{
+                                    elements: {
+                                        avatarBox: "w-9 h-9 ring-2 ring-brand-primary/40 hover:ring-brand-primary transition-all",
+                                        userButtonPopoverActionButton__manageAccount: "!text-white",
+                                        userButtonPopoverActionButton__signOut: "!text-white",
+                                        userButtonPopoverCard: "bg-black/95 backdrop-blur-xl border border-brand-primary/30 shadow-2xl",
+                                        userButtonPopoverActionButton: "text-white hover:bg-brand-primary/20 px-3 py-2 rounded-md transition",
+                                        userButtonPopoverActionButtonText: "text-white",
+                                        userButtonPopoverActionButtonIcon: "text-white",
+                                        userButtonPopoverFooter: "bg-black/95 border-t border-brand-primary/20",
+                                        userPreviewMainIdentifier: "text-white",
+                                        userPreviewSecondaryIdentifier: "text-white/60",
+                                        card: "bg-black/95 backdrop-blur-xl text-white border border-brand-primary/30 shadow-2xl",
+                                        headerTitle: "text-white",
+                                        headerSubtitle: "text-white/60",
+                                        navbar: "bg-black/90 backdrop-blur-xl border-r border-brand-primary/20",
+                                        navbarButton: "text-white hover:bg-brand-primary/20 transition",
+                                        pageScrollBox: "bg-black/95 backdrop-blur-xl text-white",
+                                        scrollBox: "bg-black/95",
+                                        formFieldLabel: "text-white",
+                                        formFieldInput: "bg-black border border-brand-primary/40 text-white placeholder-white/40 focus:border-brand-primary",
+                                        formButtonPrimary: "bg-brand-primary hover:bg-brand-primary-dark text-white shadow",
+                                        badge: "bg-brand-primary/20 text-brand-primary",
+                                        menuList: "bg-black/95 backdrop-blur-xl border border-brand-primary/30",
+                                        menuItem: "text-white hover:bg-brand-primary/20",
+                                        menuButton: "text-white hover:bg-brand-primary/20",
+                                        userButtonPopoverMain: "bg-black/95",
+                                        userButtonPopoverActions: "bg-black/95",
+                                        footerAction: "text-white hover:bg-brand-primary/20",
+                                        footerActionLink: "text-white hover:text-brand-primary",
+                                        footerActionText: "text-white",
+                                    },
+                                    variables: {
+                                        colorPrimary: "#413BFA",
+                                        colorText: "white",
+                                        colorBackground: "#0a0a0a",
+                                        colorInputBackground: "black",
+                                        colorInputText: "white",
+                                        colorTextSecondary: "rgba(255,255,255,0.7)",
+                                        colorDanger: "#ef4444",
+                                        colorTextOnPrimaryBackground: "white",
+                                    }
+                                }}
+                            />
+                        </div>
+                    </SignedIn>
+
+                    {/* Mobile UserButton - visible only on mobile */}
+                    <SignedIn>
+                        <div className="lg:hidden">
+                            <UserButton
+                                appearance={{
+                                    elements: {
+                                        avatarBox: "w-9 h-9 ring-2 ring-brand-primary/40 hover:ring-brand-primary transition-all",
+                                        userButtonPopoverActionButton__manageAccount: "!text-white",
+                                        userButtonPopoverActionButton__signOut: "!text-white",
+                                        userButtonPopoverCard: "bg-black/95 backdrop-blur-xl border border-brand-primary/30 shadow-2xl",
+                                        userButtonPopoverActionButton: "text-white hover:bg-brand-primary/20 px-3 py-2 rounded-md transition",
+                                        userButtonPopoverActionButtonText: "text-white",
+                                        userButtonPopoverActionButtonIcon: "text-white",
+                                        userButtonPopoverFooter: "bg-black/95 border-t border-brand-primary/20",
+                                        userPreviewMainIdentifier: "text-white",
+                                        userPreviewSecondaryIdentifier: "text-white/60",
+                                        card: "bg-black/95 backdrop-blur-xl text-white border border-brand-primary/30 shadow-2xl",
+                                        headerTitle: "text-white",
+                                        headerSubtitle: "text-white/60",
+                                        navbar: "bg-black/90 backdrop-blur-xl border-r border-brand-primary/20",
+                                        navbarButton: "text-white hover:bg-brand-primary/20 transition",
+                                        pageScrollBox: "bg-black/95 backdrop-blur-xl text-white",
+                                        scrollBox: "bg-black/95",
+                                        formFieldLabel: "text-white",
+                                        formFieldInput: "bg-black border border-brand-primary/40 text-white placeholder-white/40 focus:border-brand-primary",
+                                        formButtonPrimary: "bg-brand-primary hover:bg-brand-primary-dark text-white shadow",
+                                        badge: "bg-brand-primary/20 text-brand-primary",
+                                        menuList: "bg-black/95 backdrop-blur-xl border border-brand-primary/30",
+                                        menuItem: "text-white hover:bg-brand-primary/20",
+                                        menuButton: "text-white hover:bg-brand-primary/20",
+                                        userButtonPopoverMain: "bg-black/95",
+                                        userButtonPopoverActions: "bg-black/95",
+                                        footerAction: "text-white hover:bg-brand-primary/20",
+                                        footerActionLink: "text-white hover:text-brand-primary",
+                                        footerActionText: "text-white",
+                                    },
+                                    variables: {
+                                        colorPrimary: "#413BFA",
+                                        colorText: "white",
+                                        colorBackground: "#0a0a0a",
+                                        colorInputBackground: "black",
+                                        colorInputText: "white",
+                                        colorTextSecondary: "rgba(255,255,255,0.7)",
+                                        colorDanger: "#ef4444",
+                                        colorTextOnPrimaryBackground: "white",
+                                    }
+                                }}
+                            />
+                        </div>
                     </SignedIn>
 
                     {/* Mobile Menu Button */}
