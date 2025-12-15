@@ -1,6 +1,6 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { getDashboardStats } from "@/app/actions/get-dashboard-stats";
-import { Video, TrendingUp, Clock, Sparkles } from "lucide-react";
+import { Video, TrendingUp, Clock, Sparkles, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -64,6 +64,16 @@ export default async function DashboardPage() {
             <p className="text-sm text-muted-foreground">
               {stats.credits.allowed - stats.credits.used} credits remaining
             </p>
+            {stats.credits.carryover > 0 && (
+              <p className="text-xs text-brand-primary mt-2">
+                +{stats.credits.carryover} carryover
+                {stats.credits.carryoverExpiry && (
+                  <span className="text-muted-foreground ml-1">
+                    (expires {new Date(stats.credits.carryoverExpiry).toLocaleDateString()})
+                  </span>
+                )}
+              </p>
+            )}
           </div>
         </div>
 
@@ -86,6 +96,18 @@ export default async function DashboardPage() {
         </div>
       </div>
 
+      {/* DATA RETENTION NOTICE - Only show if there are videos */}
+      <div className="p-4 rounded-xl border border-yellow-500/30 bg-yellow-500/10 backdrop-blur-sm flex items-start gap-3">
+        <AlertCircle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+        <div className="text-sm">
+          <p className="text-yellow-200 font-medium">
+            Please download your videos!
+          </p>
+          <p className="text-yellow-300/80 mt-1">
+            We store your data for 2 days only. Make sure to download your videos before they are automatically deleted.
+          </p>
+        </div>
+      </div>
       {/* Recent Videos */}
       <div className="rounded-xl bg-card border border-border p-6">
         <div className="flex items-center justify-between mb-6">
@@ -109,7 +131,7 @@ export default async function DashboardPage() {
                 className="flex items-center gap-4 p-4 rounded-lg bg-sidebar border border-sidebar-border hover:border-brand-primary/50 transition-all"
               >
                 {/* Thumbnail */}
-                <div className="w-24 h-16 rounded-lg bg-gradient-to-br from-brand-primary-dark to-brand-primary flex items-center justify-center overflow-hidden">
+                <div className="sm:w-24 sm:h-16 w-12 h-12 rounded-lg bg-gradient-to-br from-brand-primary-dark to-brand-primary flex items-center justify-center overflow-hidden">
                   {item.videoCoverUrl ? (
                     <img src={item.videoCoverUrl} alt="Thumbnail" className="w-full h-full object-cover" />
                   ) : (
@@ -125,16 +147,6 @@ export default async function DashboardPage() {
                   <p className="text-sm text-muted-foreground">
                     {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "Unknown date"}
                   </p>
-                </div>
-
-                {/* Status Badge */}
-                <div className={`px-3 py-1 rounded-full border border-opacity-20 ${item.status === 'completed' ? 'bg-green-500/10 border-green-500 text-green-500' :
-                  item.status === 'failed' ? 'bg-red-500/10 border-red-500 text-red-500' :
-                    'bg-amber-500/10 border-amber-500 text-amber-500'
-                  }`}>
-                  <span className="text-xs font-medium capitalize">
-                    {item.status}
-                  </span>
                 </div>
 
                 {/* Actions */}

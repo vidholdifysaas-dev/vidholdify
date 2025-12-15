@@ -2,12 +2,14 @@
 
 import { db } from "@/lib/db";
 import { TopviewVideo, Users } from "@/configs/schema";
-import { desc, eq, sql } from "drizzle-orm";
+import { desc, eq, sql, and, gte } from "drizzle-orm";
 
 export async function getDashboardStats(email: string) {
   try {
     let creditsUsed = 0;
     let creditsAllowed = 0;
+    let carryover = 0;
+    let carryoverExpiry: Date | null = null;
 
     // 1. Get User Credits by Email
     if (email) {
@@ -20,6 +22,8 @@ export async function getDashboardStats(email: string) {
       if (userRecord) {
         creditsAllowed = userRecord.credits_allowed || 0;
         creditsUsed = userRecord.credits_used || 0;
+        carryover = userRecord.carryover || 0;
+        carryoverExpiry = userRecord.carryover_expiry || null;
       }
     }
 
@@ -46,11 +50,19 @@ export async function getDashboardStats(email: string) {
     const processingVideos = Number(processingCountResult?.count || 0);
 
 
-    // 3. Get Recent Videos
+    // 3. Get Recent Videos (last 2 days only - data retention policy)
+    const twoDaysAgo = new Date();
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+    
     const recentVideos = await db
       .select()
       .from(TopviewVideo)
-      .where(eq(TopviewVideo.createdBy, email))
+      .where(
+        and(
+          eq(TopviewVideo.createdBy, email),
+          gte(TopviewVideo.createdAt, twoDaysAgo)
+        )
+      )
       .orderBy(desc(TopviewVideo.createdAt))
       .limit(3);
 
@@ -60,6 +72,8 @@ export async function getDashboardStats(email: string) {
       credits: {
         used: creditsUsed,
         allowed: creditsAllowed,
+        carryover: carryover,
+        carryoverExpiry: carryoverExpiry,
       },
       recentVideos,
     };
@@ -69,7 +83,7 @@ export async function getDashboardStats(email: string) {
     return {
       totalVideos: 0,
       processingVideos: 0,
-      credits: { used: 0, allowed: 0 },
+      credits: { used: 0, allowed: 0, carryover: 0, carryoverExpiry: null },
       recentVideos: [],
     };
   }

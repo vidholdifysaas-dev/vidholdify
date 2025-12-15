@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Video, Calendar, Download, ExternalLink, RefreshCw, Play, X } from "lucide-react";
+import { Video, Calendar, Download, ExternalLink, RefreshCw, Play, X, AlertCircle } from "lucide-react";
 import { TopviewVideo } from "@/configs/schema";
 
 type VideoType = typeof TopviewVideo.$inferSelect;
@@ -15,6 +15,20 @@ export default function VideoGrid({ videos }: VideoGridProps) {
 
     return (
         <>
+            {/* DATA RETENTION NOTICE - Only show if there are videos */}
+            {videos && videos.length > 0 && (
+                <div className="mb-6 p-4 rounded-xl border border-yellow-500/30 bg-yellow-500/10 backdrop-blur-sm flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                    <div className="text-sm">
+                        <p className="text-yellow-200 font-medium">
+                            Please download your videos!
+                        </p>
+                        <p className="text-yellow-300/80 mt-1">
+                            We store your data for 2 days only. Make sure to download your videos before they are automatically deleted.
+                        </p>
+                    </div>
+                </div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {videos.map((video) => (
                     <div
