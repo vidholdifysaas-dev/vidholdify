@@ -52,7 +52,7 @@ export async function POST(req: Request) {
         credit_reset_day: null,
       });
 
-      if (availableCredits.available > 0) {
+      if (availableCredits.available > 10) {
         console.log(`⚠️ User ${userEmail} has ${availableCredits.available} unused credits. Blocking new plan purchase.`);
         return NextResponse.json(
           { 
