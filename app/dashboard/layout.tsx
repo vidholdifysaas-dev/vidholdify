@@ -1,7 +1,7 @@
 "use client";
 
 import { UserButton } from "@clerk/nextjs";
-import { LayoutDashboard, Video, CreditCard, Settings, Sparkles, Menu, X, ShieldPlus } from "lucide-react";
+import { LayoutDashboard, Video, CreditCard, Settings, Sparkles, Menu, X, ShieldPlus, Wand2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -12,6 +12,7 @@ import SidebarCredits from "./_components/SidebarCredits";
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Create Video", href: "/dashboard/create", icon: Video },
+  { name: "Manual Video", href: "/dashboard/manual-video", icon: Wand2 },
   { name: "My Videos", href: "/dashboard/videos", icon: Sparkles },
   { name: "Pricing", href: "/dashboard/pricing", icon: ShieldPlus },
   { name: "Billing", href: "/dashboard/billing", icon: CreditCard },
