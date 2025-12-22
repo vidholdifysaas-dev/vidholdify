@@ -13,27 +13,29 @@ export async function POST(req: Request) {
     let wordCountRange = "";
     let targetSeconds = "";
 
-    switch (duration) {
-      case "0-15s":
-        wordCountRange = "20-40 words";
-        targetSeconds = "0-15 seconds";
-        break;
-      case "15-30s":
-        wordCountRange = "40-100 words";
-        targetSeconds = "15-30 seconds";
-        break;
-      case "30-60s":
-        wordCountRange = "100-200 words";
-        targetSeconds = "30-60 seconds";
-        break;
-      case "60-90s":
-        wordCountRange = "200-300 words";
-        targetSeconds = "60-90 seconds";
-        break;
-      default:
-        wordCountRange = "40-100 words";
-        targetSeconds = "30-60 seconds";
+    // Parse duration string (e.g. "10-15s", "30s", "30-60s") to get max seconds
+    let maxSeconds = 30; // Default
+    try {
+      const matches = duration.match(/(\d+)/g);
+      if (matches && matches.length > 0) {
+        // Take the last number found as the max duration
+        maxSeconds = parseInt(matches[matches.length - 1]);
+      }
+    } catch {
+      console.warn("Failed to parse duration:", duration);
     }
+
+    // Calculate word count based on 2.8 words/sec rule (slightly faster pace for energy)
+    // 15s -> ~42 words
+    // 30s -> ~84 words
+    // 45s -> ~126 words
+    const maxWords = Math.floor(maxSeconds * 2.8);
+    const minWords = Math.floor(maxWords * 0.6); // Allow some range
+
+    wordCountRange = `${minWords}-${maxWords} words`;
+    targetSeconds = `${maxSeconds} seconds`;
+
+    console.log(`[GenerateScript] Duration: ${duration} -> MaxSeconds: ${maxSeconds} -> Words: ${wordCountRange}`);
 
     // ✅ HARD-LOCKED PROMPT (NO JSON POSSIBLE)
     const aiPrompt = `
@@ -75,8 +77,8 @@ If you return anything except a SINGLE RAW PARAGRAPH OF SPOKEN TEXT, the output 
       typeof response?.text === "function"
         ? response.text()
         : typeof response?.response?.text === "function"
-        ? response.response.text()
-        : response?.text ?? "";
+          ? response.response.text()
+          : response?.text ?? "";
 
     let cleanScript = rawText.trim();
 

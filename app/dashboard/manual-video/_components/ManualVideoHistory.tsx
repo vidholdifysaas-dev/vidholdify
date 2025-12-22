@@ -143,13 +143,15 @@ function VideoCard({
     return (
         <div className="group bg-card border border-border rounded-xl overflow-hidden hover:border-brand-primary/30 transition-all hover:shadow-lg">
             {/* Thumbnail / Video Preview */}
-            <div className="relative aspect-[9/16] max-h-[200px] bg-sidebar">
+            <div className="relative aspect-[9/16] bg-sidebar">
                 {job.finalVideoUrl ? (
                     <video
                         src={job.finalVideoUrl}
                         className="w-full h-full object-cover"
                         muted
                         preload="metadata"
+                        poster={job.referenceImageUrl}
+                        playsInline
                     />
                 ) : job.referenceImageUrl && !imageError ? (
                     <Image

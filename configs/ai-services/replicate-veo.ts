@@ -73,8 +73,6 @@ export async function generateVeoScene(
         sceneIndex,
         totalScenes,
         duration,
-        avatarDescription,
-        backgroundDescription,
         aspectRatio = "16:9",
         resolution = "720p",
     } = request;
@@ -98,9 +96,39 @@ export async function generateVeoScene(
             productName,
             sceneIndex,
             totalScenes,
-            avatarDescription,
-            backgroundDescription,
         });
+
+        const payload = {
+            input: {
+                prompt,
+                script, // Explicitly pass script for models that support it
+                image: referenceImageUrl,
+                duration,
+                resolution,
+                aspect_ratio: aspectRatio,
+                generate_audio: true,
+            },
+        };
+
+        // // --- EXPLICIT PAYLOAD LOGGING ---
+        // console.log(`[Veo] ----------------------------------------`);
+        // console.log(`[Veo] SCENE ${sceneIndex + 1}/${totalScenes} PAYLOAD:`);
+        // console.log(JSON.stringify(payload, null, 2));
+        // console.log(`[Veo] ----------------------------------------`);
+
+        // // TEST MODE: Bypass API call if requested or forced for debugging
+        // if (process.env.TEST_VEO === "true" || true) { // Explicitly enabled for debugging as requested
+        //     console.log("[Veo] TEST MODE ACTIVE: Bypassing actual Replicate API call");
+
+        //     // Simulate processing delay
+        //     await new Promise(resolve => setTimeout(resolve, 1500));
+
+        //     return {
+        //         success: true,
+        //         videoUrl: "https://replicate.delivery/pbxt/MockVideoUrlForTesting/video.mp4",
+        //         predictionId: "test-mock-id-" + Date.now(),
+        //     };
+        // }
 
         // Create Replicate prediction using the models endpoint
         // Official model: google/veo-3.1-fast
@@ -118,16 +146,7 @@ export async function generateVeoScene(
             urls?: { get: string };
         }>(
             `${REPLICATE_API_URL}/models/${modelOwner}/${modelName}/predictions`,
-            {
-                input: {
-                    prompt,
-                    image: referenceImageUrl,
-                    duration,
-                    resolution,
-                    aspect_ratio: aspectRatio,
-                    generate_audio: true,
-                },
-            },
+            payload,
             {
                 headers: {
                     Authorization: `Bearer ${apiToken}`,
@@ -141,7 +160,7 @@ export async function generateVeoScene(
         );
 
         // Poll for completion
-        const result = await pollReplicatePrediction(prediction.id, apiToken);
+        const result = await pollReplicatePrediction(prediction.id, apiToken || "");
 
         if (!result.success || !result.videoUrl) {
             throw new Error(result.error || "Failed to generate video");
@@ -181,8 +200,6 @@ function buildConsistentPrompt(params: {
     productName: string;
     sceneIndex: number;
     totalScenes: number;
-    avatarDescription?: string;
-    backgroundDescription?: string;
 }): string {
     const {
         script,
@@ -191,8 +208,6 @@ function buildConsistentPrompt(params: {
         productName,
         sceneIndex,
         totalScenes,
-        avatarDescription,
-        backgroundDescription,
     } = params;
 
     // Determine scene position for natural flow
@@ -204,50 +219,41 @@ function buildConsistentPrompt(params: {
 
     return `Generate scene ${sceneIndex + 1} of ${totalScenes} for a UGC product video about "${productName}".
 
-CRITICAL: This video will be stitched with other scenes. The person MUST look EXACTLY like the reference image in EVERY frame.
+CRITICAL INSTRUCTIONS:
+1. The character MUST SPEAK the exact dialogue below.
+2. The lips MUST MOVE in sync with the speech (Lip Sync).
+3. The character MUST look EXACTLY like the reference image in EVERY frame.
 
-SPOKEN DIALOGUE (natural, conversational):
+SPOKEN DIALOGUE (Must be spoken audibly):
 "${script}"
 
-=== ABSOLUTE REQUIREMENTS FOR CONSISTENCY ===
+=== VISUAL CONSISTENCY (Reference Image) ===
 
-1. PERSON/AVATAR:
+1. PERSON:
    - MUST be the EXACT same person from the reference image
-   - Same face, hair color, hairstyle, skin tone, body type
-   - Same clothing and accessories
-   ${avatarDescription ? `- Description: ${avatarDescription}` : ""}
+   - Same face, hair, skin, body, clothes
+   - Maintain consistent appearance with the provided image
 
 2. BACKGROUND:
    - MUST be IDENTICAL to the reference image
-   - Same room, same objects, same arrangement
-   - NO changes between scenes
-   ${backgroundDescription ? `- Description: ${backgroundDescription}` : ""}
+   - Same room, lighting, and objects
+   - Maintain consistent environment with the provided image
 
-3. CAMERA:
-   - STATIC camera - NO movement
-   - Front-facing, eye-level angle
-   - Same framing as reference image
-
-4. LIGHTING:
-   - IDENTICAL lighting to reference image
-   - No changes in brightness, shadows, or color temperature
-
-5. MOTION:
+3. CAMERA & MOTION:
    - ${motionDescription}
-   - Keep movements SUBTLE and natural
-   - Natural lip sync matching the dialogue
-   - Slight hand gestures only
+   - Camera: ABSOLUTELY STATIC (Tripod Shot). NO panning, NO zooming, NO shakes.
+   - Motion: Natural speaking gestures, lips moving in sync with audio
 
 === SCENE CONTEXT ===
 Position: ${scenePosition} scene
-Visual: ${visualPrompt}
+Visual Action: ${visualPrompt}
 
-=== AUDIO ===
-- Clear speech matching the dialogue above
-- Natural, authentic delivery
-- No background music
+4. AUDIO:
+   - CLEAR SPEECH of the dialogue provided above
+   - Natural delivery, no background music
+   - Voice must match the character's appearance
 
-This is part of a CONTINUOUS video - it must flow seamlessly with other scenes. DO NOT introduce any visual changes that would break continuity.`;
+This is part of a sequence. DO NOT change the visual style or character appearance.`;
 }
 
 /**

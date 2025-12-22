@@ -25,7 +25,7 @@ export default async function MyVideosPage() {
                     </p>
                 </div>
                 <Link
-                    href="/dashboard/create"
+                    href="/dashboard/manual-video"
                     className="px-4 py-2 bg-brand-primary text-white rounded-lg font-medium hover:bg-brand-primary/90 transition-all shadow-lg shadow-brand-primary/20 flex items-center gap-2 w-fit"
                 >
                     <Video className="w-4 h-4" />
@@ -33,27 +33,7 @@ export default async function MyVideosPage() {
                 </Link>
             </div>
 
-            {videos.length === 0 ? (
-                <div className="text-center py-12 rounded-2xl bg-card border border-border shadow-sm">
-                    <div className="w-16 h-16 rounded-full bg-sidebar-accent flex items-center justify-center mx-auto mb-4">
-                        <Video className="w-8 h-8 text-muted-foreground" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-foreground mb-2">
-                        No videos yet
-                    </h3>
-                    <p className="text-muted-foreground mb-6">
-                        Create your first AI-powered product video today!
-                    </p>
-                    <Link
-                        href="/dashboard/create"
-                        className="px-6 py-2 bg-brand-primary text-white rounded-lg font-medium hover:bg-brand-primary/90 transition-all"
-                    >
-                        Create Video
-                    </Link>
-                </div>
-            ) : (
-                <VideoGrid videos={videos} />
-            )}
+            <VideoGrid videos={videos} />
         </div>
     );
 }

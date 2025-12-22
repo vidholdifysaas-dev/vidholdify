@@ -331,6 +331,8 @@ function AvatarCard({
 // STEP INDICATOR COMPONENT
 // ============================================
 
+import { CheckCircle2 } from "lucide-react";
+
 function StepIndicator({
     currentStep,
     totalSteps,
@@ -340,35 +342,114 @@ function StepIndicator({
     totalSteps: number;
     onStepClick?: (step: number) => void;
 }) {
+    const steps = [
+        { number: 1, title: "Configure Details", description: "Product & Avatar" },
+        { number: 2, title: "Review", description: "Image & Script" },
+        { number: 3, title: "Result", description: "Generated Video" },
+    ];
+
     return (
-        <div className="flex items-center justify-center gap-2 mb-6">
-            {Array.from({ length: totalSteps }).map((_, index) => (
-                <div key={index} className="flex items-center gap-2">
-                    <button
-                        onClick={() => onStepClick?.(index + 1)}
-                        disabled={!onStepClick}
-                        className={cn(
-                            "w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all",
-                            index + 1 === currentStep
-                                ? "bg-brand-primary text-white"
-                                : index + 1 < currentStep
-                                    ? "bg-green-500 text-white hover:bg-green-600"
-                                    : "bg-border text-muted-foreground",
-                            onStepClick && "cursor-pointer hover:scale-110"
-                        )}
-                    >
-                        {index + 1 < currentStep ? <Check className="w-4 h-4" /> : index + 1}
-                    </button>
-                    {index < totalSteps - 1 && (
-                        <div
-                            className={cn(
-                                "w-12 h-1 rounded-full transition-all",
-                                index + 1 < currentStep ? "bg-green-500" : "bg-border"
-                            )}
-                        />
-                    )}
+        <div className="bg-gradient-to-br from-card via-card to-sidebar-accent/30 border border-border rounded-xl p-6 sm:p-8 shadow-lg overflow-hidden relative mb-6">
+            <div className="w-full max-w-4xl mx-auto">
+                <div className="relative">
+                    {/* Fixed Container */}
+                    <div className="flex items-start justify-between gap-6 sm:gap-10 relative pb-2">
+                        {steps.map((step, index) => {
+                            const isCompleted = currentStep > step.number;
+                            const isActive = currentStep === step.number;
+
+                            return (
+                                <div key={step.number} className="flex-1 flex flex-col items-center relative">
+
+                                    {/* Line */}
+                                    {index < steps.length - 1 && (
+                                        <div className="absolute sm:top-7 top-5 left-[calc(50%+26px)] right-[-60%] h-0.5 z-0 pointer-events-none">
+                                            {isCompleted && (
+                                                <div
+                                                    className="absolute inset-0 border-t-2 border-dashed border-[#03AC13] right-[5%]"
+                                                    style={{ animation: "progressFill 0.4s ease-out forwards" }}
+                                                />
+                                            )}
+                                            {!isCompleted && (
+                                                <div className="absolute inset-0 border-t-2 border-dashed border-border opacity-70" />
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Circle */}
+                                    <div
+                                        onClick={() => isActive || isCompleted ? onStepClick?.(step.number) : undefined}
+                                        className={`relative z-10 mb-3 ${onStepClick && (isActive || isCompleted) ? "cursor-pointer" : ""}`}
+                                    >
+                                        {/* Glow */}
+                                        {currentStep >= step.number && (
+                                            <div
+                                                className={`absolute inset-0 rounded-full blur-lg ${isCompleted ? "bg-[#03AC13]/40" : "bg-brand-primary/40"
+                                                    }`}
+                                            />
+                                        )}
+
+                                        <div
+                                            className={`
+                                                relative w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full 
+                                                flex items-center justify-center font-bold text-sm sm:text-base md:text-lg
+                                                transition-all duration-300
+                                                ${isCompleted
+                                                    ? "bg-[#03AC13]/20 border-2 border-[#03AC13]"
+                                                    : isActive
+                                                        ? "bg-sidebar-accent border-2 border-brand-primary ring-4 ring-brand-primary/20 shadow-lg"
+                                                        : "bg-sidebar-accent/80 border-2 border-border/60"
+                                                }
+                                            `}
+                                        >
+                                            {isCompleted ? (
+                                                <CheckCircle2 className="w-6 h-6 text-[#03AC13] drop-shadow-lg" />
+                                            ) : (
+                                                <span
+                                                    className={
+                                                        isActive
+                                                            ? "text-brand-primary font-bold"
+                                                            : "text-muted-foreground/70"
+                                                    }
+                                                >
+                                                    {step.number}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Text */}
+                                    <div className="text-center px-1 max-w-[90px] md:max-w-none">
+                                        <p
+                                            className={`text-[11px] sm:text-xs md:text-sm font-semibold leading-tight transition-all duration-300 ${currentStep >= step.number
+                                                ? "text-foreground"
+                                                : "text-muted-foreground/60"
+                                                }`}
+                                        >
+                                            {step.title}
+                                        </p>
+                                        <p
+                                            className={`hidden md:block text-xs mt-1.5 transition-all duration-300 ${currentStep >= step.number
+                                                ? "text-muted-foreground"
+                                                : "text-muted-foreground/50"
+                                                }`}
+                                        >
+                                            {step.description}
+                                        </p>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
-            ))}
+            </div>
+
+            <style jsx>{`
+                @keyframes progressFill {
+                    0% { transform: scaleX(0); transform-origin: left; opacity: 0; }
+                    100% { transform: scaleX(1); transform-origin: left; opacity: 1; }
+                }
+            `}</style>
         </div>
     );
 }
@@ -386,16 +467,12 @@ export default function ManualVideoForm({
         formState,
         setAvatarMode,
         setAvatarImage,
-        setAvatarImageS3Url,
         setAvatarDescription,
         setSelectedAvatarId,
         setProductName,
         setProductDescription,
         setProductImage,
-        setProductImageS3Url,
-        setProductHoldDescription,
         setBackgroundDescription,
-        setPlatform,
         setVideoLength,
         setAspectRatio,
         setUserScript,
@@ -409,14 +486,12 @@ export default function ManualVideoForm({
         avatarMode,
         avatarImage,
         avatarImagePreview,
-        avatarImageS3Url,
         avatarDescription,
         selectedAvatarId,
         productName,
         productDescription,
         productImage,
         productImagePreview,
-        productImageS3Url,
         productHoldDescription,
         backgroundDescription,
         platform,
@@ -654,10 +729,12 @@ export default function ManualVideoForm({
                 backgroundDescription,
                 platform,
                 targetLength: videoLength,
+                userScript, // Send the user's script
             });
 
             if (response.data.success) {
                 onJobCreated(jobId);
+                setCurrentStep(3); // Move to Step 3 (Result)
             } else {
                 throw new Error(response.data.error || "Failed to start video generation");
             }
@@ -727,7 +804,7 @@ export default function ManualVideoForm({
             {/* Step Indicator - Click to navigate */}
             <StepIndicator
                 currentStep={currentStep}
-                totalSteps={2}
+                totalSteps={3}
                 onStepClick={(step) => setCurrentStep(step)}
             />
 
@@ -738,12 +815,14 @@ export default function ManualVideoForm({
                 </div>
                 <div>
                     <h2 className="text-lg font-semibold text-foreground">
-                        {currentStep === 1 ? "Step 1: Configure Product & Avatar" : "Step 2: Review & Generate Video"}
+                        {currentStep === 1 ? "Configure Product & Avatar" : currentStep === 2 ? "Peview & Generate Video" : "Your Video is Ready!"}
                     </h2>
                     <p className="text-sm text-muted-foreground">
                         {currentStep === 1
                             ? "Set up your product and choose an avatar style"
-                            : "Review the generated image and configure video options"}
+                            : currentStep === 2
+                                ? "Review the generated image and configure video options"
+                                : "Watch your generated video or create another one"}
                     </p>
                 </div>
             </div>
@@ -1195,12 +1274,21 @@ export default function ManualVideoForm({
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="pt-4 border-t border-border space-y-3">
+                    <div className="pt-4 border-t border-border space-y-3 flex justify-between">
+                       
+
                         <button
+                            onClick={() => setCurrentStep(1)}
+                            disabled={loading}
+                            className="py-2 px-4 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition flex items-center justify-center gap-2"
+                        >
+                            Back
+                        </button>
+                         <button
                             onClick={handleGenerateVideo}
                             disabled={loading || isProcessing || !generatedImageUrl || !userScript.trim()}
                             className={cn(
-                                "w-full py-4 rounded-xl font-semibold text-white transition-all flex items-center justify-center gap-2",
+                                " py-3 rounded-xl font-semibold text-white transition-all flex items-center justify-center gap-2",
                                 generatedImageUrl && userScript.trim()
                                     ? "bg-gradient-to-r from-brand-primary to-brand-primary/80 hover:opacity-90"
                                     : "bg-muted cursor-not-allowed opacity-50"
@@ -1218,15 +1306,6 @@ export default function ManualVideoForm({
                                     <span className="ml-1 text-sm opacity-70">(1 credit)</span>
                                 </>
                             )}
-                        </button>
-
-                        <button
-                            onClick={() => setCurrentStep(1)}
-                            disabled={loading}
-                            className="w-full py-3 rounded-xl border border-border text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition flex items-center justify-center gap-2"
-                        >
-                            <ArrowLeft className="w-4 h-4" />
-                            Back to Step 1
                         </button>
                     </div>
                 </>
@@ -1315,6 +1394,195 @@ export default function ManualVideoForm({
                     </div>
                 </div>
             )}
+
+            {/* ==================== */}
+            {/* STEP 3: Video Result */}
+            {/* ==================== */}
+            {currentStep === 3 && (
+                <Step3Result jobId={jobId} onReset={handleRegenerateImage} />
+            )}
+
+            {/* Quick Nav (Testing) */}
+            <div className="pt-6 mt-6 border-t border-dashed border-border/50 flex justify-center gap-2 opacity-50 hover:opacity-100 transition-opacity">
+                <span className="text-xs text-muted-foreground self-center mr-2">Debug:</span>
+                {[1, 2, 3].map(s => (
+                    <QuickNavButton
+                        key={s}
+                        stepNumber={s as 1 | 2 | 3}
+                        setStep={setCurrentStep}
+                        currentStep={currentStep}
+                    />
+                ))}
+            </div>
+        </div>
+    );
+}
+
+// ============================================
+// QUICK NAV BUTTON (TESTING)
+// ============================================
+function QuickNavButton({ stepNumber, setStep, currentStep }: { stepNumber: 1 | 2 | 3; setStep: (s: number) => void; currentStep: number }) {
+    return (
+        <button
+            onClick={() => setStep(stepNumber)}
+            className={`px-3 py-1 text-xs rounded border transition-all ${currentStep === stepNumber
+                ? "bg-brand-primary text-white border-brand-primary"
+                : "bg-sidebar border-border text-muted-foreground hover:bg-sidebar-accent"
+                }`}
+        >
+            Step {stepNumber}
+        </button>
+    );
+}
+
+// ============================================
+// STEP 3 RESULT COMPONENT
+// ============================================
+function Step3Result({ jobId, onReset }: { jobId: string | null; onReset: () => void }) {
+    // ... existing Step3Result code ...
+    const [status, setStatus] = useState<"loading" | "done" | "failed">("loading");
+    const [videoUrl, setVideoUrl] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [progress, setProgress] = useState(0);
+
+    useEffect(() => {
+        if (!jobId) return;
+
+        let pollInterval: NodeJS.Timeout;
+        let progressInterval: NodeJS.Timeout;
+
+        // Fake progress for improved UX
+        const startProgress = () => {
+            setProgress(0);
+            progressInterval = setInterval(() => {
+                setProgress(prev => {
+                    // Slow down as we approach 90%
+                    if (prev >= 90) return 90;
+                    const increment = prev < 50 ? 2 : prev < 80 ? 1 : 0.5;
+                    return prev + increment;
+                });
+            }, 800);
+        };
+
+        const checkStatus = async () => {
+            try {
+                const response = await axios.get(`/api/manual-video/status?jobId=${jobId}`);
+                const job = response.data.job;
+
+                if (job.status === "DONE" && job.finalVideoUrl) {
+                    setVideoUrl(job.finalVideoUrl);
+                    setStatus("done");
+                    setProgress(100);
+                    clearInterval(pollInterval);
+                    clearInterval(progressInterval);
+                } else if (job.status === "FAILED") {
+                    setError(job.errorMessage || "Video generation failed");
+                    setStatus("failed");
+                    clearInterval(pollInterval);
+                    clearInterval(progressInterval);
+                } else {
+                    // Still processing
+                }
+            } catch (err) {
+                console.error("Poll status error:", err);
+            }
+        };
+
+        startProgress();
+        // Check immediately then poll
+        checkStatus();
+        pollInterval = setInterval(checkStatus, 5000);
+
+        return () => {
+            clearInterval(pollInterval);
+            clearInterval(progressInterval);
+        };
+    }, [jobId]);
+
+    if (status === "loading") {
+        return (
+            <div className="flex flex-col items-center justify-center py-12 space-y-6">
+                <div className="relative w-24 h-24">
+                    <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="6" className="text-border/30" />
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="url(#gradient-step3)" strokeWidth="6" strokeLinecap="round" strokeDasharray={`${progress * 2.83} 283`} className="transition-all duration-300 ease-out" />
+                        <defs>
+                            <linearGradient id="gradient-step3" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stopColor="hsl(var(--brand-primary))" />
+                                <stop offset="100%" stopColor="hsl(var(--brand-primary) / 0.6)" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-xl font-bold">{Math.round(progress)}%</span>
+                    </div>
+                </div>
+                <div className="text-center space-y-2">
+                    <h3 className="text-xl font-semibold animate-pulse">Generating Video...</h3>
+                    <p className="text-muted-foreground text-sm max-w-xs mx-auto">
+                        Please wait for while. This may take a few minutes.
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    if (status === "failed") {
+        return (
+            <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center">
+                    <X className="w-8 h-8 text-red-500" />
+                </div>
+                <h3 className="text-xl font-semibold text-red-500">Generation Failed</h3>
+                <p className="text-muted-foreground text-sm text-center max-w-md">{error}</p>
+                <button onClick={onReset} className="px-6 py-2 rounded-lg bg-border hover:bg-sidebar-accent transition">
+                    Try Again
+                </button>
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-6 animate-in fade-in duration-500">
+            <div className="flex flex-col items-center justify-center space-y-4">
+                <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center">
+                    <Check className="w-8 h-8 text-green-500" />
+                </div>
+                <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-brand-primary to-purple-600">
+                    Video Ready!
+                </h3>
+            </div>
+
+            {/* Video Player Box */}
+            <div className="relative rounded-2xl overflow-hidden border-2 border-brand-primary/20 shadow-2xl bg-black aspect-[9/16] max-h-[500px] mx-auto group">
+                {videoUrl && (
+                    <video
+                        src={videoUrl}
+                        controls
+                        autoPlay
+                        loop
+                        playsInline
+                        className="w-full h-full object-contain"
+                    />
+                )}
+            </div>
+
+            <div className="flex gap-3 pt-4">
+                <a
+                    href={videoUrl || "#"}
+                    download
+                    className="flex-1 py-3 rounded-xl bg-brand-primary text-white font-medium hover:opacity-90 transition flex items-center justify-center gap-2"
+                >
+                    <div className="w-5 h-5"><Zap className="w-5 h-5" /></div>
+                    Download Video
+                </a>
+                <button
+                    onClick={onReset}
+                    className="flex-1 py-3 rounded-xl border border-border text-foreground hover:bg-sidebar-accent transition"
+                >
+                    Create Another
+                </button>
+            </div>
         </div>
     );
 }

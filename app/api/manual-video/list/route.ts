@@ -25,10 +25,10 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { db } from "@/configs/db";
-import { videoJobs, VideoJobStatus } from "@/configs/schema";
-import { eq, and, desc, count, sql } from "drizzle-orm";
+import { generatedVideos, VideoJobStatus } from "@/configs/schema";
+import { eq, desc, count } from "drizzle-orm";
 import { getSignedUrlFromS3Url } from "@/configs/s3";
 
 export const runtime = "nodejs";
@@ -54,6 +54,17 @@ export async function GET(request: NextRequest) {
             );
         }
 
+        // Get user email
+        const user = await currentUser();
+        const userEmail = user?.emailAddresses[0]?.emailAddress;
+
+        if (!userEmail) {
+            return NextResponse.json(
+                { success: false, error: "User email not found" },
+                { status: 400 }
+            );
+        }
+
         // Parse query params
         const { searchParams } = new URL(request.url);
         const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
@@ -69,70 +80,69 @@ export async function GET(request: NextRequest) {
         }
 
         // Build where clause
-        const whereClause = statusFilter
-            ? and(eq(videoJobs.userId, userId), eq(videoJobs.status, statusFilter))
-            : eq(videoJobs.userId, userId);
+        const whereClause = eq(generatedVideos.userEmail, userEmail);
 
         // Get total count
         const [{ total }] = await db
             .select({ total: count() })
-            .from(videoJobs)
+            .from(generatedVideos)
             .where(whereClause);
 
-        // Get jobs with pagination
+        // Get videos with pagination
         const offset = (page - 1) * limit;
-        const jobs = await db
+        const videos = await db
             .select()
-            .from(videoJobs)
+            .from(generatedVideos)
             .where(whereClause)
-            .orderBy(desc(videoJobs.createdAt))
+            .orderBy(desc(generatedVideos.createdAt))
             .limit(limit)
             .offset(offset);
 
-        // Generate signed URLs for completed videos
-        const jobsWithSignedUrls = await Promise.all(
-            jobs.map(async (job) => {
+        // Generate signed URLs for completed videos (valid for 24 hours)
+        const videosWithSignedUrls = await Promise.all(
+            videos.map(async (video) => {
                 let signedVideoUrl: string | undefined;
                 let signedImageUrl: string | undefined;
 
-                if (job.finalVideoUrl) {
+                if (video.videoUrl) {
                     try {
-                        signedVideoUrl = await getSignedUrlFromS3Url(job.finalVideoUrl, 3600);
+                        signedVideoUrl = await getSignedUrlFromS3Url(video.videoUrl, 604800); // 7 days (max allowed)
                     } catch {
-                        signedVideoUrl = job.finalVideoUrl;
+                        signedVideoUrl = video.videoUrl;
                     }
                 }
 
-                if (job.referenceImageUrl) {
+                if (video.thumbnailUrl) {
                     try {
-                        signedImageUrl = await getSignedUrlFromS3Url(job.referenceImageUrl, 3600);
+                        signedImageUrl = await getSignedUrlFromS3Url(video.thumbnailUrl, 604800); // 7 days (max allowed)
                     } catch {
-                        signedImageUrl = job.referenceImageUrl;
+                        signedImageUrl = video.thumbnailUrl;
                     }
                 }
 
+                // Map to VideoJob-like structure for frontend compatibility
                 return {
-                    id: job.id,
-                    status: job.status,
-                    productName: job.productName,
-                    productDescription: job.productDescription,
-                    targetLength: parseInt(job.targetLength),
-                    platform: job.platform,
+                    id: video.videoJobId || video.id, // Use link to job if available, else video ID
+                    status: "DONE" as VideoJobStatus,
+                    productName: video.productName,
+                    productDescription: video.productDescription || "",
+                    targetLength: 0, // Not stored in generatedVideos
+                    platform: "tiktok", // Default
                     referenceImageUrl: signedImageUrl,
                     finalVideoUrl: signedVideoUrl,
-                    sceneCount: job.sceneCount,
-                    totalDuration: job.totalDuration,
-                    errorMessage: job.errorMessage,
-                    createdAt: job.createdAt,
-                    updatedAt: job.updatedAt,
-                    completedAt: job.completedAt,
+                    sceneCount: 0,
+                    totalDuration: video.duration || 0,
+                    errorMessage: null,
+                    createdAt: video.createdAt,
+                    updatedAt: video.createdAt,
+                    completedAt: video.createdAt,
                 };
             })
         );
 
         return NextResponse.json({
             success: true,
-            jobs: jobsWithSignedUrls,
+            jobs: videosWithSignedUrls,
             pagination: {
                 page,
                 limit,

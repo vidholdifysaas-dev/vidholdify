@@ -25,7 +25,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/configs/db";
-import { videoJobs, scenes, VideoLength } from "@/configs/schema";
+import { videoJobs, scenes, VideoLength, generatedVideos } from "@/configs/schema";
 import { eq, and } from "drizzle-orm";
 import { generateScriptPlan, getSceneConfig } from "@/configs/ai-services/script-planner";
 import {
@@ -72,6 +72,8 @@ function getVeoAspectRatio(imageAspectRatio: string | null): "16:9" | "9:16" {
 }
 
 export async function POST(request: NextRequest) {
+    let jobId: string | null = null;
+
     try {
         // Authenticate user
         const { userId } = await auth();
@@ -83,7 +85,8 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { jobId } = body;
+        jobId = body.jobId;
+        const { userScript, targetLength } = body;
 
         if (!jobId) {
             return NextResponse.json(
@@ -104,6 +107,31 @@ export async function POST(request: NextRequest) {
                 { status: 404 }
             );
         }
+
+        // Store userScript if provided
+        if (userScript && userScript.trim()) {
+            await db
+                .update(videoJobs)
+                .set({ userScript: userScript.trim() })
+                .where(eq(videoJobs.id, jobId));
+
+            // Update local object
+            job.userScript = userScript.trim();
+        }
+
+        // Update targetLength if provided (User might change it in Step 2)
+        if (targetLength && ["15", "30", "45"].includes(targetLength)) {
+            await db
+                .update(videoJobs)
+                .set({ targetLength: targetLength })
+                .where(eq(videoJobs.id, jobId));
+
+            // Update local object
+            job.targetLength = targetLength;
+            console.log(`[API] Updated job targetLength to ${targetLength}s`);
+        }
+
+
 
         // Validate job can be started (allow more statuses for resume/retry capability)
         const validStatuses = ["CREATED", "PLANNED", "GENERATING_IMAGE", "PLANNING", "IMAGE_READY", "SCRIPT_READY", "SCENES_GENERATING"];
@@ -250,13 +278,14 @@ export async function POST(request: NextRequest) {
             platform: job.platform || "TikTok",
             avatarDescription: job.avatarDescription || undefined,
             backgroundDescription: job.backgroundDescription || undefined,
+            userScript: job.userScript || undefined,
         });
 
         console.log(`[API] Generated plan: ${plan.scenes.length} scenes, ${plan.totalDuration}s total`);
 
         // Create scene records
         const sceneRecords = plan.scenes.map((scene) => ({
-            videoJobId: jobId,
+            videoJobId: jobId!, // Assert non-null as we checked above
             sceneIndex: scene.sceneIndex,
             plannedDuration: scene.duration,
             script: scene.script,
@@ -275,7 +304,7 @@ export async function POST(request: NextRequest) {
                 sceneCount: plan.scenes.length,
                 updatedAt: new Date(),
             })
-            .where(eq(videoJobs.id, jobId));
+            .where(eq(videoJobs.id, jobId!));
 
         // ========================================
         // STEP 3: Generate ALL Scene Videos with Veo
@@ -306,7 +335,7 @@ export async function POST(request: NextRequest) {
                     .from(scenes)
                     .where(
                         and(
-                            eq(scenes.videoJobId, jobId),
+                            eq(scenes.videoJobId, jobId!),
                             eq(scenes.sceneIndex, sceneIndex)
                         )
                     );
@@ -415,7 +444,7 @@ export async function POST(request: NextRequest) {
             jobId,
             clips: s3Clips.sort((a, b) => a.sceneIndex - b.sceneIndex),
             outputKey,
-            crossfadeDuration: 0.3, // Smooth 0.3s crossfade between scenes
+            crossfadeDuration: 0, // Hard cut for seamless "jump cut" style (no ghosting)
         });
 
         if (!mergeResult.success || !mergeResult.finalVideoUrl) {
@@ -440,6 +469,23 @@ export async function POST(request: NextRequest) {
             })
             .where(eq(videoJobs.id, jobId));
 
+        // Also add to the generated_videos table for clean record keeping
+        try {
+            await db.insert(generatedVideos).values({
+                userId,
+                userEmail: job.userEmail,
+                videoJobId: jobId,
+                productName: job.productName,
+                productDescription: job.productDescription,
+                videoUrl: mergeResult.finalVideoUrl,
+                thumbnailUrl: job.referenceImageUrl, // Use the reference image as thumbnail
+                duration: Math.round(finalDuration),
+                aspectRatio: job.aspectRatio || "9:16",
+            });
+        } catch (recordError) {
+            console.warn("[API] Failed to add to generated_videos (non-critical):", recordError);
+        }
+
         console.log(`[API] ========================================`);
         console.log(`[API] Job ${jobId} COMPLETED SUCCESSFULLY`);
         console.log(`[API] Final video: ${mergeResult.finalVideoUrl}`);
@@ -460,8 +506,7 @@ export async function POST(request: NextRequest) {
         console.error("[API] Generate video error:", error);
 
         // Mark job as failed
-        const body = await request.clone().json().catch(() => ({}));
-        if (body.jobId) {
+        if (jobId) {
             try {
                 await db
                     .update(videoJobs)
@@ -471,7 +516,7 @@ export async function POST(request: NextRequest) {
                             error instanceof Error ? error.message : "Unknown error",
                         updatedAt: new Date(),
                     })
-                    .where(eq(videoJobs.id, body.jobId));
+                    .where(eq(videoJobs.id, jobId));
             } catch (dbError) {
                 console.error("[API] Failed to update job status:", dbError);
             }

@@ -22,6 +22,7 @@ export const Users = pgTable('users', {
   credits_used: integer('credits_used').default(0),
   carryover: integer('carryover').default(0),
   carryover_expiry: timestamp('carryover_expiry'),
+  
   // Credit reset tracking
   credit_reset_day: integer('credit_reset_day'),
   next_credit_reset: timestamp('next_credit_reset'),
@@ -121,24 +122,10 @@ export const videoPlatformEnum = pgEnum("video_platform", [
  */
 export const videoLengthEnum = pgEnum("video_length", ["15", "30", "45"]);
 
-// ============================================
-// MANUAL VIDEO GENERATION TABLES
-// ============================================
-
-/**
- * Main table for tracking video generation jobs
- * 
- * Flow:
- * 1. User provides prompt describing avatar + product + background
- * 2. Nano Banana generates reference image from prompt
- * 3. AI generates script and scene plan
- * 4. Veo generates scene videos WITH audio (no separate TTS)
- * 5. FFmpeg stitches scenes with crossfades
- * 6. Final video uploaded to S3
- */
 export const videoJobs = pgTable("video_jobs", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: varchar("user_id", { length: 255 }).notNull(), // Clerk user ID
+  userEmail: varchar("user_email", { length: 255 }), // User's email address
 
   // Job configuration
   status: videoJobStatusEnum("status").notNull().default("CREATED"),
@@ -167,7 +154,8 @@ export const videoJobs = pgTable("video_jobs", {
   finalVideoUrl: varchar("final_video_url", { length: 1000 }), // Final stitched video
 
   // Generated content
-  fullScript: text("full_script"), // Complete generated script
+  userScript: text("user_script"), // Raw script provided by user
+  fullScript: text("full_script"), // Complete generated/parsed script
 
   // Error tracking
   errorMessage: text("error_message"),
@@ -219,6 +207,34 @@ export const scenes = pgTable("scenes", {
   // Timestamps
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+/**
+ * Final Generated Videos Table
+ * Stores the completed videos for easy retrieval and display on the dashboard
+ * Separates the "job" (process) from the "product" (result)
+ */
+export const generatedVideos = pgTable("generated_videos", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  userEmail: varchar("user_email", { length: 255 }), // Store email for record keeping
+
+  // Link back to the job that created this video
+  videoJobId: uuid("video_job_id")
+    .references(() => videoJobs.id, { onDelete: "set null" }),
+
+  // Product Info (denormalized for easier access)
+  productName: varchar("product_name", { length: 255 }).notNull(),
+  productDescription: text("product_description"),
+
+  // Video Metadata
+  videoUrl: varchar("video_url", { length: 1000 }).notNull(), // The final S3 URL
+  thumbnailUrl: varchar("thumbnail_url", { length: 1000 }), // The reference image used as thumbnail
+  duration: integer("duration"), // Duration in seconds
+  aspectRatio: varchar("aspect_ratio", { length: 10 }), // 9:16, 16:9 etc
+
+  // Timestamps
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 // ============================================

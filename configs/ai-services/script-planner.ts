@@ -146,6 +146,7 @@ interface ScriptPlannerInput {
     tone?: string;
     avatarDescription?: string;
     backgroundDescription?: string;
+    userScript?: string; // Optional user provided script
 }
 
 /**
@@ -166,13 +167,54 @@ export async function generateScriptPlan(
         tone = "authentic, relatable, and enthusiastic",
         avatarDescription,
         backgroundDescription,
+        userScript,
     } = input;
 
     const sceneConfig = getSceneConfig(targetLength);
 
     console.log(`[ScriptPlanner] Generating ${sceneConfig.sceneCount}-scene script for ${targetLength}s video`);
 
-    const userPrompt = `
+    // If User Script is provided, bypass AI and manually split
+    if (userScript && userScript.trim().length > 10) {
+        console.log("[ScriptPlanner] User script provided - Bypassing AI planning");
+
+        // Simple manual split based on sentence/chunking strategy
+        // This is a "dumb" splitter but guarantees no rewrites
+        const fullScript = userScript.trim();
+        const sentences = fullScript.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [fullScript];
+
+        // Distribute sentences across scenes
+        const chunks: string[] = Array(sceneConfig.sceneCount).fill("");
+
+        // Distribute sentences evenly
+        sentences.forEach((sentence, index) => {
+            const chunkIndex = index % sceneConfig.sceneCount;
+            // Append with space if needed
+            chunks[chunkIndex] += (chunks[chunkIndex] ? " " : "") + sentence.trim();
+        });
+
+        // Construct scenes
+        const scenes: ScenePlan[] = chunks.map((chunk, index) => ({
+            sceneIndex: index,
+            duration: sceneConfig.sceneDurations[index] || 8,
+            script: chunk || "...", // Fallback for safety
+            visualPrompt: `Action scene ${index + 1}: The person gestures naturally while speaking.`, // Generic action only
+            motionDescription: "Natural talking motion, consistent with reference."
+        }));
+
+        const manualPlan: VideoGenerationPlan = {
+            fullScript,
+            scenes,
+            totalDuration: scenes.reduce((sum, s) => sum + s.duration, 0)
+        };
+
+        console.log(`[ScriptPlanner] Manually split into ${scenes.length} scenes`);
+        return manualPlan;
+    }
+
+    // --- AI Generation path (Only used when generating from scratch) ---
+
+ const userPrompt = `
 Create a ${targetLength}-second UGC video script with exactly ${sceneConfig.sceneCount} scenes.
 
 PRODUCT NAME: ${productName}
@@ -202,7 +244,7 @@ Generate the complete script and ${sceneConfig.sceneCount} scene breakdown now.`
         const result = await ai.models.generateContent({
             model: MODEL_NAME,
             config: {
-                temperature: 0.7, // Slightly lower for more consistency
+                temperature: 0.7,
                 maxOutputTokens: 4096,
                 responseMimeType: "application/json",
                 systemInstruction: getScriptPlannerSystemPrompt(sceneConfig),
@@ -211,7 +253,12 @@ Generate the complete script and ${sceneConfig.sceneCount} scene breakdown now.`
         });
 
         // Extract text response
-        const responseText = result.text || "";
+        let responseText = result.text || "";
+
+        // Strip Markdown code blocks if present (Gemini often adds them despite MIME type)
+        responseText = responseText.replace(/```json\n?|\n?```/g, "").trim();
+
+        console.log("[ScriptPlanner] Raw AI Response:", responseText);
 
         if (!responseText) {
             throw new Error("Empty response from Gemini");
@@ -233,6 +280,7 @@ Generate the complete script and ${sceneConfig.sceneCount} scene breakdown now.`
         );
     }
 }
+
 
 /**
  * Validate and fix script plan to meet requirements

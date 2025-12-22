@@ -82,6 +82,17 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Get user email from Clerk
+        let userEmail: string | null = null;
+        try {
+            const { clerkClient } = await import("@clerk/nextjs/server");
+            const client = await clerkClient();
+            const user = await client.users.getUser(userId);
+            userEmail = user.emailAddresses?.[0]?.emailAddress || null;
+        } catch (e) {
+            console.error("[API] Failed to get user email:", e);
+        }
+
         const body: CreateJobRequest = await request.json();
 
         // Validate required fields
@@ -129,6 +140,7 @@ export async function POST(request: NextRequest) {
             .values({
                 id: jobId,
                 userId,
+                userEmail, // Store user's email
                 status: "CREATED",
                 productName: body.productName.trim(),
                 productDescription: body.productDescription.trim(),
