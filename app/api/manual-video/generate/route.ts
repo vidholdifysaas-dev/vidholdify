@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Update targetLength if provided (User might change it in Step 2)
-        if (targetLength && ["15", "30", "45"].includes(targetLength)) {
+        if (targetLength && ["15", "30", "45", "60"].includes(targetLength)) {
             await db
                 .update(videoJobs)
                 .set({ targetLength: targetLength })

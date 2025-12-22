@@ -122,6 +122,7 @@
 | **15s** | 2 scenes | 8s + 8s (trim) | Hook + Product Showcase |
 | **30s** | 4 scenes | 8s + 8s + 8s + 6s | Hook + Problem + Solution + CTA |
 | **45s** | 5 scenes | 8s + 8s + 8s + 8s + 8s | Hook + Problem + Solution Demo + Benefits + CTA |
+| **60s** | 7 scenes | 8s × 7 (≈56s) | Hook + Problem + Solution + Demo + Testimonial + Benefits + Strong CTA |
 
 ---
 
@@ -207,7 +208,7 @@ POST /api/manual-video/create
 {
   "productName": "Amazing Product",
   "productDescription": "Description here...",
-  "targetLength": "30",  // "15" | "30" | "45"
+  "targetLength": "30",  // "15" | "30" | "45" | "60"
   "platform": "tiktok",
   "avatarDescription": "Friendly person",
   "backgroundDescription": "Modern living room"

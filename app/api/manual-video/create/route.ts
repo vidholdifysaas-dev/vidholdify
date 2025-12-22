@@ -16,7 +16,7 @@
  * {
  *   productName: string (required) - Name of the product
  *   productDescription: string (required) - Description of the product
- *   targetLength: "15" | "30" | "45" (required) - Video length in seconds
+ *   targetLength: "15" | "30" | "45" | "60" (required) - Video length in seconds
  *   platform: "tiktok" | "instagram_reels" | "youtube_shorts" | "general" (optional)
  *   avatarDescription: string (optional) - Description of the person/avatar
  *   avatarImageUrl: string (optional) - URL of uploaded avatar image
@@ -110,9 +110,9 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        if (!["15", "30", "45"].includes(body.targetLength)) {
+        if (!["15", "30", "45", "60"].includes(body.targetLength)) {
             return NextResponse.json(
-                { success: false, error: "Target length must be 15, 30, or 45 seconds" },
+                { success: false, error: "Target length must be 15, 30, 45, or 60 seconds" },
                 { status: 400 }
             );
         }

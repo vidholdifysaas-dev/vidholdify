@@ -120,6 +120,7 @@ const VIDEO_LENGTHS = [
     { id: "15", name: "15 seconds", description: "Quick hook", scenes: 2 },
     { id: "30", name: "30 seconds", description: "Standard UGC", scenes: 4 },
     { id: "45", name: "45 seconds", description: "Detailed showcase", scenes: 5 },
+    { id: "60", name: "60 seconds", description: "Extended content", scenes: 7 },
 ];
 
 const ASPECT_RATIOS = [
@@ -1275,7 +1276,7 @@ export default function ManualVideoForm({
 
                     {/* Action Buttons */}
                     <div className="pt-4 border-t border-border space-y-3 flex justify-between">
-                       
+
 
                         <button
                             onClick={() => setCurrentStep(1)}
@@ -1284,7 +1285,7 @@ export default function ManualVideoForm({
                         >
                             Back
                         </button>
-                         <button
+                        <button
                             onClick={handleGenerateVideo}
                             disabled={loading || isProcessing || !generatedImageUrl || !userScript.trim()}
                             className={cn(

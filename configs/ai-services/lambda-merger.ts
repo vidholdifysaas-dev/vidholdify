@@ -111,7 +111,7 @@ export async function invokeMergerLambda(
             jobId: request.jobId,
             clips: request.clips,
             outputKey: request.outputKey,
-            crossfadeDuration: request.crossfadeDuration || 0.3,
+            crossfadeDuration: 0,
             bucket: process.env.AWS_S3_BUCKET_NAME,
         };
 
@@ -195,7 +195,7 @@ export async function invokeMergerLambdaAsync(
             jobId: request.jobId,
             clips: request.clips,
             outputKey: request.outputKey,
-            crossfadeDuration: request.crossfadeDuration || 0.3,
+            crossfadeDuration: 0,
             bucket: process.env.AWS_S3_BUCKET_NAME,
         };
 

@@ -41,92 +41,6 @@ interface VideoJob {
 // STATUS BADGE
 // ============================================
 
-function StatusBadge({ status }: { status: string }) {
-    const statusConfig: Record<
-        string,
-        { color: string; bgColor: string; label: string; Icon: React.ComponentType<{ className?: string }> }
-    > = {
-        CREATED: {
-            color: "text-blue-500",
-            bgColor: "bg-blue-500/10 border-blue-500/20",
-            label: "Created",
-            Icon: Clock,
-        },
-        GENERATING_IMAGE: {
-            color: "text-yellow-500",
-            bgColor: "bg-yellow-500/10 border-yellow-500/20",
-            label: "Generating Image",
-            Icon: Loader2,
-        },
-        IMAGE_READY: {
-            color: "text-yellow-500",
-            bgColor: "bg-yellow-500/10 border-yellow-500/20",
-            label: "Image Ready",
-            Icon: Clock,
-        },
-        PLANNED: {
-            color: "text-purple-500",
-            bgColor: "bg-purple-500/10 border-purple-500/20",
-            label: "Planned",
-            Icon: Clock,
-        },
-        SCENES_GENERATING: {
-            color: "text-orange-500",
-            bgColor: "bg-orange-500/10 border-orange-500/20",
-            label: "Generating Scenes",
-            Icon: Loader2,
-        },
-        SCENES_READY: {
-            color: "text-orange-500",
-            bgColor: "bg-orange-500/10 border-orange-500/20",
-            label: "Scenes Ready",
-            Icon: Clock,
-        },
-        STITCHING: {
-            color: "text-cyan-500",
-            bgColor: "bg-cyan-500/10 border-cyan-500/20",
-            label: "Stitching",
-            Icon: Loader2,
-        },
-        DONE: {
-            color: "text-green-500",
-            bgColor: "bg-green-500/10 border-green-500/20",
-            label: "Complete",
-            Icon: CheckCircle2,
-        },
-        FAILED: {
-            color: "text-red-500",
-            bgColor: "bg-red-500/10 border-red-500/20",
-            label: "Failed",
-            Icon: XCircle,
-        },
-    };
-
-    const config = statusConfig[status] || statusConfig.CREATED;
-    const { Icon } = config;
-
-    return (
-        <div
-            className={cn(
-                "inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-xs font-medium",
-                config.bgColor,
-                config.color
-            )}
-        >
-            <Icon
-                className={cn(
-                    "w-3 h-3",
-                    (status === "GENERATING_IMAGE" ||
-                        status === "SCENES_GENERATING" ||
-                        status === "STITCHING") &&
-                    "animate-spin"
-                )}
-            />
-            {config.label}
-        </div>
-    );
-}
-
 // ============================================
 // VIDEO CARD
 // ============================================
@@ -179,10 +93,7 @@ function VideoCard({
                     </button>
                 )}
 
-                {/* Status Badge */}
-                <div className="absolute top-2 left-2">
-                    <StatusBadge status={job.status} />
-                </div>
+              
             </div>
 
             {/* Info */}

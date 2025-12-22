@@ -22,7 +22,7 @@ export const Users = pgTable('users', {
   credits_used: integer('credits_used').default(0),
   carryover: integer('carryover').default(0),
   carryover_expiry: timestamp('carryover_expiry'),
-  
+
   // Credit reset tracking
   credit_reset_day: integer('credit_reset_day'),
   next_credit_reset: timestamp('next_credit_reset'),
@@ -120,7 +120,7 @@ export const videoPlatformEnum = pgEnum("video_platform", [
 /**
  * Target video lengths in seconds
  */
-export const videoLengthEnum = pgEnum("video_length", ["15", "30", "45"]);
+export const videoLengthEnum = pgEnum("video_length", ["15", "30", "45", "60"]);
 
 export const videoJobs = pgTable("video_jobs", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -278,7 +278,7 @@ export type VideoPlatform =
   | "youtube_shorts"
   | "general";
 
-export type VideoLength = "15" | "30" | "45";
+export type VideoLength = "15" | "30" | "45" | "60";
 
 // ============================================
 // SCENE PLAN TYPE (for AI planner output)

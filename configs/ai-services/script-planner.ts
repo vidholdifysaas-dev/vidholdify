@@ -6,6 +6,7 @@
  * - 15s → 2-3 scenes
  * - 30s → 4-5 scenes
  * - 45s → 5-6 scenes
+ * - 60s → 7-8 scenes
  *
  * Key features:
  * - Consistent avatar/character throughout all scenes
@@ -65,6 +66,13 @@ export function getSceneConfig(targetLength: VideoLength): {
                 sceneCount: 5,
                 sceneDurations: [8, 8, 8, 8, 8], // ~40s, can add one more or extend
                 description: "Hook + Problem + Solution Demo + Benefits + CTA",
+            };
+        case "60":
+            // 60s = 8 + 8 + 8 + 8 + 8 + 8 + 8 + 4 = 7-8 scenes
+            return {
+                sceneCount: 7,
+                sceneDurations: [8, 8, 8, 8, 8, 8, 8], // ~56s + can trim or extend
+                description: "Hook + Problem + Solution + Demo + Testimonial + Benefits + Strong CTA",
             };
         default:
             return {
@@ -178,27 +186,52 @@ export async function generateScriptPlan(
     if (userScript && userScript.trim().length > 10) {
         console.log("[ScriptPlanner] User script provided - Bypassing AI planning");
 
-        // Simple manual split based on sentence/chunking strategy
-        // This is a "dumb" splitter but guarantees no rewrites
+        // Smart manual split algorithm
         const fullScript = userScript.trim();
+        let chunks: string[] = [];
+
+        // 1. Try splitting by major punctuation
         const sentences = fullScript.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [fullScript];
 
-        // Distribute sentences across scenes
-        const chunks: string[] = Array(sceneConfig.sceneCount).fill("");
+        if (sentences.length >= sceneConfig.sceneCount) {
+            // We have enough sentences, distribute them
+            const buckets: string[] = Array(sceneConfig.sceneCount).fill("");
+            sentences.forEach((sentence, index) => {
+                const bucketIndex = index % sceneConfig.sceneCount;
+                buckets[bucketIndex] += (buckets[bucketIndex] ? " " : "") + sentence.trim();
+            });
+            chunks = buckets;
+        } else {
+            // 2. Not enough sentences, try splitting by clauses (commas)
+            const clauses = fullScript.split(/[,;]/g).map(s => s.trim()).filter(s => s.length > 0);
 
-        // Distribute sentences evenly
-        sentences.forEach((sentence, index) => {
-            const chunkIndex = index % sceneConfig.sceneCount;
-            // Append with space if needed
-            chunks[chunkIndex] += (chunks[chunkIndex] ? " " : "") + sentence.trim();
-        });
+            if (clauses.length >= sceneConfig.sceneCount) {
+                const buckets: string[] = Array(sceneConfig.sceneCount).fill("");
+                clauses.forEach((clause, index) => {
+                    const bucketIndex = index % sceneConfig.sceneCount;
+                    buckets[bucketIndex] += (buckets[bucketIndex] ? " " : "") + clause.trim();
+                });
+                chunks = buckets;
+            } else {
+                // 3. Last resort: Split by word count roughly evenly
+                const words = fullScript.split(/\s+/);
+                const wordsPerScene = Math.ceil(words.length / sceneConfig.sceneCount);
 
-        // Construct scenes
+                for (let i = 0; i < sceneConfig.sceneCount; i++) {
+                    const start = i * wordsPerScene;
+                    const end = start + wordsPerScene;
+                    const chunkText = words.slice(start, end).join(" ");
+                    chunks.push(chunkText || "..."); // Fallback if empty
+                }
+            }
+        }
+
+        // Construct scenes from chunks
         const scenes: ScenePlan[] = chunks.map((chunk, index) => ({
             sceneIndex: index,
             duration: sceneConfig.sceneDurations[index] || 8,
-            script: chunk || "...", // Fallback for safety
-            visualPrompt: `Action scene ${index + 1}: The person gestures naturally while speaking.`, // Generic action only
+            script: chunk || "...",
+            visualPrompt: `Action scene ${index + 1}: The person gestures naturally while speaking about ${productName}.`,
             motionDescription: "Natural talking motion, consistent with reference."
         }));
 
@@ -214,7 +247,7 @@ export async function generateScriptPlan(
 
     // --- AI Generation path (Only used when generating from scratch) ---
 
- const userPrompt = `
+    const userPrompt = `
 Create a ${targetLength}-second UGC video script with exactly ${sceneConfig.sceneCount} scenes.
 
 PRODUCT NAME: ${productName}
