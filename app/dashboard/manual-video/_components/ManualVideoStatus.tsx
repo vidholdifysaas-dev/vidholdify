@@ -3,17 +3,10 @@
 import { useState, useEffect, useCallback } from "react";
 import {
     Loader2,
-    CheckCircle2,
     XCircle,
-    Clock,
-    ImageIcon,
-    FileText,
-    Video,
-    Scissors,
-    Download,
     RefreshCw,
-    ExternalLink,
 } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 import axios from "axios";
 

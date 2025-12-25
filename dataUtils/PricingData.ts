@@ -32,6 +32,7 @@ export const pricingData: PricingPlan[] = [
     description: "Perfect for individuals starting out.",
     features: [
       "10 UGC videos (30 sec)",
+      "40 VEO3 credits (15s max)",
       "400+ UGC Avatars (8 ethnicities)",
       "15 Languages",
       "50+ Voices with accents",
@@ -61,6 +62,7 @@ export const pricingData: PricingPlan[] = [
     description: "For creators who need more power.",
     features: [
       "33 UGC videos (60 sec)",
+      "120 VEO3 credits (30s max)",
       "400+ UGC Avatars (8 ethnicities)",
       "15 Languages",
       "50+ Voices with accents",
@@ -90,6 +92,7 @@ export const pricingData: PricingPlan[] = [
     description: "Scale your video production.",
     features: [
       "67 UGC videos (90 sec)",
+      "240 VEO3 credits (45s max)",
       "400+ UGC Avatars (8 ethnicities)",
       "15 Languages",
       "50+ Voices with accents",
@@ -121,6 +124,7 @@ export const pricingData: PricingPlan[] = [
     description: "For agencies and high volume.",
     features: [
       "136 UGC videos (90 sec)",
+      "480 VEO3 credits (60s max)",
       "400+ UGC Avatars (8 ethnicities)",
       "15 Languages",
       "50+ Voices with accents",
@@ -138,4 +142,3 @@ export const pricingData: PricingPlan[] = [
     isPopular: false,
   },
 ];
-

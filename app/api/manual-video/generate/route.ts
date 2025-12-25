@@ -23,9 +23,9 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { db } from "@/configs/db";
-import { videoJobs, scenes, VideoLength, generatedVideos } from "@/configs/schema";
+import { videoJobs, scenes, VideoLength, generatedVideos, Users } from "@/configs/schema";
 import { eq, and } from "drizzle-orm";
 import { generateScriptPlan, getSceneConfig } from "@/configs/ai-services/script-planner";
 import {
@@ -45,6 +45,12 @@ import {
     getFinalVideoS3Key,
     isLambdaMergerConfigured,
 } from "@/configs/ai-services/lambda-merger";
+import {
+    getAvailableVeoCredits,
+    deductVeoCredits,
+    getVeoCreditsForDuration,
+} from "@/utils/creditHelpers";
+import { planLimits, PlanTier } from "@/dataUtils/planLimits";
 
 export const runtime = "nodejs";
 export const maxDuration = 300; // 5 minutes - Veo generation can take time
@@ -170,6 +176,73 @@ export async function POST(request: NextRequest) {
         console.log(`[API] Starting video generation for job: ${jobId}`);
         console.log(`[API] Duration: ${job.targetLength}s → ${sceneConfig.sceneCount} scenes`);
         console.log(`[API] ========================================`);
+
+        // ========================================
+        // CREDIT CHECK: Verify user has enough VEO3 credits
+        // ========================================
+        const targetDuration = parseInt(job.targetLength);
+        const creditsRequired = getVeoCreditsForDuration(targetDuration);
+
+        // Get user from database
+        const clerk = await clerkClient();
+        const clerkUser = await clerk.users.getUser(userId);
+        const userEmail = clerkUser.emailAddresses.find(
+            (e: { id: string; emailAddress: string }) =>
+                e.id === clerkUser.primaryEmailAddressId
+        )?.emailAddress;
+
+        if (!userEmail) {
+            return NextResponse.json(
+                { success: false, error: "User email not found" },
+                { status: 404 }
+            );
+        }
+
+        const [user] = await db
+            .select()
+            .from(Users)
+            .where(eq(Users.email, userEmail))
+            .limit(1);
+
+        if (!user) {
+            return NextResponse.json(
+                { success: false, error: "User not found in database" },
+                { status: 404 }
+            );
+        }
+
+        // Check max duration limit per plan
+        const userPlan = (user.plan_tier || "free") as PlanTier;
+        const planConfig = planLimits[userPlan] || planLimits.free;
+        const maxDurationVeo = planConfig.maxDuration_veo;
+
+        if (targetDuration > maxDurationVeo) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: `Your ${userPlan} plan allows maximum ${maxDurationVeo}s videos. Please upgrade to generate ${targetDuration}s videos.`,
+                    maxDuration: maxDurationVeo,
+                    requested: targetDuration,
+                },
+                { status: 402 }
+            );
+        }
+
+        // Check VEO3 credits
+        const availableCredits = getAvailableVeoCredits(user);
+        if (availableCredits.available < creditsRequired) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: `Insufficient VEO3 credits. You need ${creditsRequired} credits for a ${targetDuration}s video, but only have ${availableCredits.available} available.`,
+                    required: creditsRequired,
+                    available: availableCredits.available,
+                },
+                { status: 402 }
+            );
+        }
+
+        console.log(`[API] Credit check passed: ${creditsRequired} credits required, ${availableCredits.available} available`);
 
         // ========================================
         // STEP 1: Generate Reference Image (if needed)
@@ -482,6 +555,28 @@ export async function POST(request: NextRequest) {
             duration: Math.round(finalDuration),
             aspectRatio: job.aspectRatio || "9:16",
         });
+
+        // ========================================
+        // DEDUCT VEO3 CREDITS
+        // ========================================
+        try {
+            const deductedCredits = deductVeoCredits(user, creditsRequired);
+
+            await db
+                .update(Users)
+                .set({
+                    credits_used_veo: deductedCredits.credits_used_veo,
+                    carryover_veo: deductedCredits.carryover_veo,
+                    updated_at: new Date(),
+                })
+                .where(eq(Users.email, userEmail));
+
+            console.log(`[API] 💳 Deducted ${creditsRequired} VEO3 credits from user: ${userEmail}`);
+        } catch (creditError: unknown) {
+            const err = creditError as Error;
+            console.error(`[API] ❌ Failed to deduct VEO3 credits:`, err.message);
+            // Continue anyway since video was generated successfully
+        }
 
         console.log(`[API] ========================================`);
         console.log(`[API] Job ${jobId} COMPLETED SUCCESSFULLY`);

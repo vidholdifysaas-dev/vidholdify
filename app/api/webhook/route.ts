@@ -166,12 +166,12 @@ export async function POST(req: Request) {
                 // Preserve existing reset day for plan changes, but ensure next_credit_reset is in the future
                 const now = new Date();
                 let nextReset = currentUser.next_credit_reset;
-                
+
                 // If next_credit_reset is in the past, calculate the next valid reset date
                 if (nextReset && nextReset < now) {
                     const resetDay = currentUser.credit_reset_day ?? now.getDate();
                     const nextResetDate = new Date(now.getFullYear(), now.getMonth(), resetDay, 0, 0, 0);
-                    
+
                     // If the reset day this month has passed, move to next month
                     if (nextResetDate <= now) {
                         nextResetDate.setMonth(nextResetDate.getMonth() + 1);
@@ -179,7 +179,7 @@ export async function POST(req: Request) {
                     nextReset = nextResetDate;
                     console.log(`🔄 Reset date was in past, updated to: ${nextReset.toISOString()}`);
                 }
-                
+
                 resetInfo = {
                     credit_reset_day: currentUser.credit_reset_day ?? now.getDate(),
                     next_credit_reset: nextReset,
@@ -207,15 +207,19 @@ export async function POST(req: Request) {
                 subscription_status: subscription.status ?? "active",
                 subscription_active: subscription.status === "active",
                 plan_tier: planTier,
-                
 
-                // Update NEW plan's MONTHLY credit allowance
+                // Update NEW plan's MONTHLY credit allowance (TopView)
                 credits_allowed: limits.credits,
+
+                // Update NEW plan's VEO3 credit allowance
+                credits_allowed_veo: limits.credits_veo,
 
                 // For new subscriptions, reset used credits to 0
                 // For plan changes, preserve current usage
                 ...(isPlanChange ? {} : {
-                    credits_used: 0
+                    credits_used: 0,
+                    credits_used_veo: 0,
+                    carryover_veo: 0,
                 }),
 
                 // credit reset tracking
@@ -297,8 +301,14 @@ export async function POST(req: Request) {
                         subscription_active: subscription.status === "active",
                         plan_tier: planTier,
 
+                        // TopView credits
                         credits_allowed: limits.credits,
                         credits_used: 0,
+
+                        // VEO3 credits
+                        credits_allowed_veo: limits.credits_veo,
+                        credits_used_veo: 0,
+                        carryover_veo: 0,
 
                         credit_reset_day: resetInfo.credit_reset_day,
                         next_credit_reset: resetInfo.next_credit_reset,
@@ -320,25 +330,25 @@ export async function POST(req: Request) {
         // 3) invoice.payment_succeeded -> renewal (reset used credits)
         if (event.type === "invoice.payment_succeeded") {
             const invoice = event.data.object as StripeInvoiceWithSubscription;
-            const subscriptionId = (typeof invoice.subscription === 'string' 
-                ? invoice.subscription 
+            const subscriptionId = (typeof invoice.subscription === 'string'
+                ? invoice.subscription
                 : invoice.subscription?.id) as string | undefined;
 
             if (subscriptionId) {
                 // Fetch current user data to check if reset is needed
                 const [currentUser] = await db
                     .select({
-                    id: Users.id,
-                    credits_allowed: Users.credits_allowed,
-                    credits_used: Users.credits_used,
-                    next_credit_reset: Users.next_credit_reset,
-                    credit_reset_day: Users.credit_reset_day,
-                    carryover: Users.carryover,
-                    carryover_expiry: Users.carryover_expiry,
-                    current_period_start: Users.current_period_start,
-                })
-                .from(Users)
-                .where(eq(Users.stripe_subscription_id, subscriptionId));
+                        id: Users.id,
+                        credits_allowed: Users.credits_allowed,
+                        credits_used: Users.credits_used,
+                        next_credit_reset: Users.next_credit_reset,
+                        credit_reset_day: Users.credit_reset_day,
+                        carryover: Users.carryover,
+                        carryover_expiry: Users.carryover_expiry,
+                        current_period_start: Users.current_period_start,
+                    })
+                    .from(Users)
+                    .where(eq(Users.stripe_subscription_id, subscriptionId));
 
                 const subscription = await stripe.subscriptions.retrieve(
                     subscriptionId
@@ -378,8 +388,9 @@ export async function POST(req: Request) {
                         // apply reset data if needed
                         ...resetData,
 
-                        // ensure allowed credits reflect current plan
+                        // ensure allowed credits reflect current plan (TopView + VEO3)
                         credits_allowed: limits.credits,
+                        credits_allowed_veo: limits.credits_veo,
 
                         current_period_start: periodStart,
                         current_period_end: periodEnd,
@@ -402,11 +413,13 @@ export async function POST(req: Request) {
                     subscription_status: "canceled",
                     plan_tier: "none",
 
-                    // zero out allowed credits
+                    // zero out allowed credits (TopView + VEO3)
                     credits_allowed: 0,
+                    credits_allowed_veo: 0,
 
                     // clear carryover
                     carryover: 0,
+                    carryover_veo: 0,
                     carryover_expiry: null,
 
                     updated_at: new Date(),
@@ -419,8 +432,8 @@ export async function POST(req: Request) {
         // 5) invoice.payment_failed -> mark past_due
         if (event.type === "invoice.payment_failed") {
             const invoice = event.data.object as StripeInvoiceWithSubscription;
-            const subscriptionId = (typeof invoice.subscription === 'string' 
-                ? invoice.subscription 
+            const subscriptionId = (typeof invoice.subscription === 'string'
+                ? invoice.subscription
                 : invoice.subscription?.id) as string | undefined;
 
             if (subscriptionId) {

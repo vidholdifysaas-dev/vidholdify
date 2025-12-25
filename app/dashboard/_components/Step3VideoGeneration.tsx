@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Loader2, ChevronLeft, ChevronRight, Sparkles, X } from "lucide-react";
 import { useVideoCreator } from "../../context/VideoCreatorContext";
+import { useCredits } from "@/app/context/CreditContext";
 import { toast } from "sonner";
 import axios from "axios";
 import {
@@ -57,6 +58,8 @@ export default function Step3VideoGeneration() {
     setCachedResources,
     isCacheValid,
   } = useVideoCreator();
+
+  const { refreshCredits } = useCredits();
 
   const taskRecordId = workflowData.taskRecordId!;
   const selectedImageId = workflowData.selectedImageId!;
@@ -392,6 +395,9 @@ export default function Step3VideoGeneration() {
           setSaving(false);
           toast.success("Video generated successfully!");
 
+          // Refresh sidebar credits via context
+          refreshCredits();
+
           // Move to next step (VideoResult)
           nextStep();
         } else if (data.status === "failed" || data.status === "error") {
@@ -496,7 +502,7 @@ export default function Step3VideoGeneration() {
 
           {/* Settings Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          
+
             {/* Language */}
             <div className="space-y-2">
               <label className="text-foreground text-sm font-medium mb-2 block">
@@ -548,7 +554,7 @@ export default function Step3VideoGeneration() {
               </Select>
             </div>
 
-              {/* Video Length */}
+            {/* Video Length */}
             <div className="space-y-2">
               <label className="text-foreground text-sm font-medium mb-2 block">
                 Video Length

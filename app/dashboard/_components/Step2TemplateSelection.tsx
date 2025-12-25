@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { useVideoCreator } from "../../context/VideoCreatorContext";
+import { useCredits } from "@/app/context/CreditContext";
 
 interface ReplaceProductResult {
   imageId: string;
@@ -93,6 +94,8 @@ export default function Step2TemplateSelection() {
     setCachedResources,
     isCacheValid,
   } = useVideoCreator();
+
+  const { refreshCredits } = useCredits();
 
   const taskRecordId = workflowData.taskRecordId!;
   const [selectedAvatar, setSelectedAvatar] = useState<Avatar | null>(null);
@@ -342,6 +345,8 @@ export default function Step2TemplateSelection() {
           setResults(data.replaceProductResult);
           // Save results to context for persistence
           setWorkflowData({ replaceProductResults: data.replaceProductResult });
+          // Refresh sidebar credits
+          refreshCredits();
         } else if (data.status === "failed" || data.status === "error") {
           console.error("❌ Image replacement failed:", data);
           setProcessing(false);

@@ -22,7 +22,7 @@ export function getAvailableCredits(user: UserCreditData): AvailableCredits {
 
   let carryover = 0;
   const now = new Date();
-  
+
   // Include carryover credits if:
   // 1. No expiry is set (undefined/null) - treat as non-expiring
   // 2. OR expiry exists and hasn't passed yet
@@ -56,16 +56,16 @@ export function calculateNextResetDate(currentDate: Date, resetDay: number): Dat
   // Work in UTC to avoid timezone issues
   const year = currentDate.getUTCFullYear();
   const month = currentDate.getUTCMonth();
-  
+
   // Next month in UTC
   const nextMonth = month + 1;
   const nextYear = nextMonth > 11 ? year + 1 : year;
   const normalizedMonth = nextMonth % 12;
-  
+
   // Get the last day of next month
   const lastDayOfNext = new Date(Date.UTC(nextYear, normalizedMonth + 1, 0)).getUTCDate();
   const day = Math.min(resetDay, lastDayOfNext);
-  
+
   // Create date at midnight UTC on the reset day
   return new Date(Date.UTC(nextYear, normalizedMonth, day, 0, 0, 0));
 }
@@ -81,7 +81,7 @@ export function resetMonthlyCredits(user: UserCreditData): {
 } {
   const now = new Date();
   const carryExpired = !user.carryover_expiry || now >= user.carryover_expiry;
-  
+
   let resetDay = user.credit_reset_day;
   if (user.current_period_start) {
     resetDay = new Date(user.current_period_start).getDate();
@@ -92,11 +92,11 @@ export function resetMonthlyCredits(user: UserCreditData): {
 
   const candidate = new Date(now);
   const currentMonthIndices = now.getDate() < resetDay ? 0 : 1;
-  
+
   candidate.setMonth(candidate.getMonth() + currentMonthIndices);
   const totalDaysInMonth = new Date(candidate.getFullYear(), candidate.getMonth() + 1, 0).getDate();
   const actualDay = Math.min(resetDay, totalDaysInMonth);
-  
+
   candidate.setDate(actualDay);
   candidate.setHours(0, 0, 0, 0);
 
@@ -122,7 +122,7 @@ export function calculateCarryover(
   carryoverExpiry: Date | null;
 } {
   const remaining = Math.max(0, (oldAllowed || 0) - (oldUsed || 0));
-  
+
   const now = new Date();
   let validExisting = 0;
   if (existingExpiry && existingExpiry > now) {
@@ -192,7 +192,7 @@ export function deductCredits(
     newCarryover -= fromCarryover;
     remainingToDeduct -= fromCarryover;
   }
-  
+
   // Then deduct from actual credits
   if (remainingToDeduct > 0) {
     newUsed += remainingToDeduct;
@@ -202,4 +202,91 @@ export function deductCredits(
     credits_used: newUsed,
     carryover: newCarryover,
   };
+}
+
+// ============================================
+// VEO3 CREDIT SYSTEM (Manual Video)
+// ============================================
+
+export interface UserVeoCreditData {
+  credits_allowed_veo: number | null;
+  credits_used_veo: number | null;
+  carryover_veo: number | null;
+  carryover_expiry: Date | null;
+}
+
+/**
+ * Get available VEO3 credits including non-expired carryover.
+ */
+export function getAvailableVeoCredits(user: UserVeoCreditData): AvailableCredits {
+  const base = Math.max(0, (user.credits_allowed_veo || 0) - (user.credits_used_veo || 0));
+
+  let carryover = 0;
+  const now = new Date();
+
+  // Include carryover credits if:
+  // 1. No expiry is set (undefined/null) - treat as non-expiring
+  // 2. OR expiry exists and hasn't passed yet
+  if (!user.carryover_expiry || now < user.carryover_expiry) {
+    carryover = user.carryover_veo || 0;
+  }
+
+  return {
+    available: base + carryover,
+    total: base + carryover,
+  };
+}
+
+/**
+ * Deduct VEO3 credits from user account (carryover first, then actual).
+ * Returns updated credit values to persist to DB.
+ */
+export function deductVeoCredits(
+  user: UserVeoCreditData,
+  amount: number
+): {
+  credits_used_veo: number;
+  carryover_veo: number;
+} {
+  const available = getAvailableVeoCredits(user);
+
+  if (available.available < amount) {
+    throw new Error(`Insufficient VEO3 credits. Required: ${amount}, Available: ${available.available}`);
+  }
+
+  let remainingToDeduct = amount;
+  let newCarryover = user.carryover_veo || 0;
+  let newUsed = user.credits_used_veo || 0;
+
+  // Check if carryover is still valid
+  const now = new Date();
+  const carryoverValid = !user.carryover_expiry || now < user.carryover_expiry;
+
+  // First deduct from carryover if available and valid
+  if (carryoverValid && newCarryover > 0) {
+    const fromCarryover = Math.min(remainingToDeduct, newCarryover);
+    newCarryover -= fromCarryover;
+    remainingToDeduct -= fromCarryover;
+  }
+
+  // Then deduct from actual credits
+  if (remainingToDeduct > 0) {
+    newUsed += remainingToDeduct;
+  }
+
+  return {
+    credits_used_veo: newUsed,
+    carryover_veo: newCarryover,
+  };
+}
+
+/**
+ * Calculate VEO3 credits to deduct based on video duration
+ * 15s = 1 credit, 30s = 2 credits, 45s = 3 credits, 60s = 4 credits
+ */
+export function getVeoCreditsForDuration(durationSeconds: number): number {
+  if (durationSeconds <= 15) return 1;
+  if (durationSeconds <= 30) return 2;
+  if (durationSeconds <= 45) return 3;
+  return 4; // 60s or more
 }

@@ -16,8 +16,10 @@ import {
     ArrowRight,
     RefreshCw,
     FileText,
+    CheckCircle2,
     X,
 } from "lucide-react";
+
 import {
     Select,
     SelectContent,
@@ -30,7 +32,7 @@ import axios from "axios";
 import Image from "next/image";
 import { toast } from "sonner";
 import { useManualVideoContext } from "./ManualVideoContext";
-import LambdaTestPanel from "./LambdaTestPanel";
+import { useCredits } from "@/app/context/CreditContext";
 
 // ============================================
 // TYPES
@@ -331,7 +333,6 @@ function AvatarCard({
 // STEP INDICATOR COMPONENT
 // ============================================
 
-import { CheckCircle2 } from "lucide-react";
 
 function StepIndicator({
     currentStep,
@@ -481,6 +482,9 @@ export default function ManualVideoForm({
         setCurrentStep,
     } = useManualVideoContext();
 
+    // Credit context for refreshing sidebar
+    const { refreshCredits } = useCredits();
+
     // Destructure form state for easier access
     const {
         avatarMode,
@@ -516,27 +520,50 @@ export default function ManualVideoForm({
     >("idle");
     const [loadingPercentage, setLoadingPercentage] = useState(0);
 
-    // Credits
+    // Credits & Plan
     const [credits, setCredits] = useState<number | null>(null);
     const [loadingCredits, setLoadingCredits] = useState(true);
+    const [maxDurationVeo, setMaxDurationVeo] = useState<number>(15); // Default to free plan limit
 
     // AI Script Modal State
     const [showScriptModal, setShowScriptModal] = useState(false);
     const [aiScriptPrompt, setAiScriptPrompt] = useState("");
     const [isGeneratingScript, setIsGeneratingScript] = useState(false);
 
+    // Filter video lengths based on plan
+    const availableVideoLengths = useMemo(() => {
+        return VIDEO_LENGTHS.filter(v => parseInt(v.id) <= maxDurationVeo);
+    }, [maxDurationVeo]);
+
+    // Ensure selected video length is valid for the plan
+    useEffect(() => {
+        if (availableVideoLengths.length > 0) {
+            const isCurrentValid = availableVideoLengths.some(v => v.id === videoLength);
+            if (!isCurrentValid) {
+                // Reset to first available option
+                setVideoLength(availableVideoLengths[0].id);
+            }
+        }
+    }, [availableVideoLengths, videoLength, setVideoLength]);
+
     // ==================
-    // Fetch Credits
+    // Fetch Credits & Plan Limits (VEO3)
     // ==================
     useEffect(() => {
         const fetchCredits = async () => {
             try {
                 const response = await axios.get("/api/user/plan");
-                const available =
-                    (response.data.credits_allowed || 0) - (response.data.credits_used || 0);
+                // Use VEO3 credits for Manual Video
+                const allowedVeo = response.data.credits_allowed_veo || 0;
+                const usedVeo = response.data.credits_used_veo || 0;
+                const carryoverVeo = response.data.carryover_veo || 0;
+                const available = (allowedVeo - usedVeo) + carryoverVeo;
                 setCredits(available);
+
+                // Set max duration for VEO based on plan
+                setMaxDurationVeo(response.data.maxDuration_veo || 15);
             } catch (err) {
-                console.error("Failed to fetch credits:", err);
+                console.error("Failed to fetch VEO3 credits:", err);
             } finally {
                 setLoadingCredits(false);
             }
@@ -656,12 +683,16 @@ export default function ManualVideoForm({
                     setGeneratedImageUrl(response.data.referenceImageUrl);
                     setLoadingStep("done");
                     setCurrentStep(2);
+                    // Refresh sidebar credits
+                    refreshCredits();
                 } else {
                     // Wait for image generation
                     await pollForImage(response.data.jobId);
                     progressRef.current = 100;
                     setLoadingPercentage(100);
                     clearInterval(progressInterval);
+                    // Refresh sidebar credits after polling completes
+                    refreshCredits();
                 }
             } else {
                 clearInterval(progressInterval);
@@ -826,19 +857,6 @@ export default function ManualVideoForm({
                     </p>
                 </div>
             </div>
-
-            {/* Credit Warning */}
-            {hasInsufficientCredits && (
-                <div className="flex items-center gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20">
-                    <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
-                    <div>
-                        <p className="text-sm font-medium text-red-500">Insufficient Credits</p>
-                        <p className="text-xs text-red-400">
-                            Please upgrade your plan to generate videos.
-                        </p>
-                    </div>
-                </div>
-            )}
 
             {/* Premium Loading Overlay - ONLY for Step 1 (Image Generation) */}
             {loading && currentStep === 1 && (
@@ -1092,30 +1110,7 @@ export default function ManualVideoForm({
                     </div>
 
                     {/* Generate Image Button */}
-                    <div className="pt-4 border-t border-border">
-                        <button
-                            onClick={handleGenerateImage}
-                            disabled={!isStep1Valid() || loading || isProcessing || hasInsufficientCredits}
-                            className={cn(
-                                "w-full py-4 rounded-xl font-semibold text-white transition-all flex items-center justify-center gap-2",
-                                isStep1Valid() && !hasInsufficientCredits
-                                    ? "bg-gradient-to-r from-brand-primary to-brand-primary/80 hover:opacity-90"
-                                    : "bg-muted cursor-not-allowed opacity-50"
-                            )}
-                        >
-                            {loading ? (
-                                <>
-                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                    Generating Preview Image...
-                                </>
-                            ) : (
-                                <>
-                                    <ImageIcon className="w-5 h-5" />
-                                    Generate Preview Image
-                                    <ArrowRight className="w-4 h-4 ml-1" />
-                                </>
-                            )}
-                        </button>
+                    <div className="pt-4 border-t border-border flex gap-3 justify-end">
 
                         <div className="mt-3 text-center text-sm text-muted-foreground">
                             {loadingCredits ? (
@@ -1137,6 +1132,31 @@ export default function ManualVideoForm({
                                 </span>
                             )}
                         </div>
+                        <button
+                            onClick={handleGenerateImage}
+                            disabled={!isStep1Valid() || loading || isProcessing || hasInsufficientCredits}
+                            className={cn(
+                                "px-3 py-3 rounded-xl font-semibold text-white transition-all flex items-center justify-center gap-2",
+                                isStep1Valid() && !hasInsufficientCredits
+                                    ? "bg-gradient-to-r from-brand-primary to-brand-primary/80 hover:opacity-90"
+                                    : "bg-muted cursor-not-allowed opacity-50"
+                            )}
+                        >
+                            {loading ? (
+                                <>
+                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                    Generating Preview Image...
+                                </>
+                            ) : (
+                                <>
+                                    <ImageIcon className="w-5 h-5" />
+                                    Generate Preview Image
+                                    <ArrowRight className="w-4 h-4 ml-1" />
+                                </>
+                            )}
+                        </button>
+
+
                     </div>
                 </>
             )}
@@ -1207,7 +1227,7 @@ export default function ManualVideoForm({
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {VIDEO_LENGTHS.map((v) => (
+                                    {availableVideoLengths.map((v) => (
                                         <SelectItem key={v.id} value={v.id}>
                                             {v.name}
                                         </SelectItem>
@@ -1414,8 +1434,6 @@ export default function ManualVideoForm({
                 ))}
             </div>
 
-            {/* Lambda Test Panel (Debug) */}
-            <LambdaTestPanel />
         </div>
     );
 }
@@ -1444,6 +1462,7 @@ function Step3Result({ jobId, onReset }: { jobId: string | null; onReset: () => 
     const [status, setStatus] = useState<"loading" | "done" | "failed">("loading");
     const [videoUrl, setVideoUrl] = useState<string | null>(null);
     const [progress, setProgress] = useState(0);
+    const { refreshCredits } = useCredits();
 
     useEffect(() => {
         if (!jobId) return;
@@ -1474,6 +1493,8 @@ function Step3Result({ jobId, onReset }: { jobId: string | null; onReset: () => 
                     clearInterval(progressInterval);
                     clearInterval(pollInterval);
                     toast.success("Your video is ready! 🎉");
+                    // Refresh sidebar credits via context
+                    refreshCredits();
                 } else if (job.status === "FAILED") {
                     setStatus("failed");
                     clearInterval(progressInterval);
@@ -1496,7 +1517,7 @@ function Step3Result({ jobId, onReset }: { jobId: string | null; onReset: () => 
             clearInterval(pollInterval);
             clearInterval(progressInterval);
         };
-    }, [jobId]);
+    }, [jobId, refreshCredits]);
 
     if (status === "loading") {
         return (

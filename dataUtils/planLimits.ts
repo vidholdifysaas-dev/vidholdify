@@ -1,26 +1,34 @@
 export const planLimits = {
   starter: {
-    credits: 80,
+    credits: 40,
+    credits_veo: 40,
     maxDuration: 30,
+    maxDuration_veo: 15,
   },
   professional: {
-    credits: 240,
+    credits: 120,
+    credits_veo: 120,
     maxDuration: 60,
+    maxDuration_veo: 30,
   },
   business: {
-    credits: 480,
+    credits: 240,
+    credits_veo: 240,
     maxDuration: 90,
+    maxDuration_veo: 45,
   },
   scale: {
-    credits: 960,
+    credits: 480,
+    credits_veo: 480,
     maxDuration: 90,
+    maxDuration_veo: 60,
   },
   free: {
     credits: 0,
+    credits_veo: 0,
     maxDuration: 15,
-  },
-  none: {
-    credits: 0,
-    maxDuration: 0,
+    maxDuration_veo: 15,
   },
 };
+
+export type PlanTier = keyof typeof planLimits;
