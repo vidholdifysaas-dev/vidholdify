@@ -14,7 +14,6 @@ import {
     Upload,
     Trash2,
     ArrowRight,
-    ArrowLeft,
     RefreshCw,
     FileText,
     X,
@@ -31,6 +30,7 @@ import axios from "axios";
 import Image from "next/image";
 import { toast } from "sonner";
 import { useManualVideoContext } from "./ManualVideoContext";
+import LambdaTestPanel from "./LambdaTestPanel";
 
 // ============================================
 // TYPES
@@ -120,7 +120,6 @@ const VIDEO_LENGTHS = [
     { id: "15", name: "15 seconds", description: "Quick hook", scenes: 2 },
     { id: "30", name: "30 seconds", description: "Standard UGC", scenes: 4 },
     { id: "45", name: "45 seconds", description: "Detailed showcase", scenes: 5 },
-    { id: "60", name: "60 seconds", description: "Extended content", scenes: 7 },
 ];
 
 const ASPECT_RATIOS = [
@@ -721,10 +720,12 @@ export default function ManualVideoForm({
             return;
         }
 
-        setLoading(true);
+        // Move to Step 3 IMMEDIATELY so loading shows inline (not in modal)
+        setCurrentStep(3);
+        onJobCreated(jobId);
 
         try {
-            // Update job with final options and start full pipeline
+            // Start the video generation pipeline
             const response = await axios.post("/api/manual-video/generate", {
                 jobId,
                 backgroundDescription,
@@ -733,17 +734,15 @@ export default function ManualVideoForm({
                 userScript, // Send the user's script
             });
 
-            if (response.data.success) {
-                onJobCreated(jobId);
-                setCurrentStep(3); // Move to Step 3 (Result)
-            } else {
+            if (!response.data.success) {
                 throw new Error(response.data.error || "Failed to start video generation");
             }
+            // Step3Result component will handle polling and show progress
         } catch (err) {
             console.error("Generate video error:", err);
             toast.error(err instanceof Error ? err.message : "Failed to generate video");
-        } finally {
-            setLoading(false);
+            // Go back to Step 2 on error
+            setCurrentStep(2);
         }
     };
 
@@ -841,8 +840,8 @@ export default function ManualVideoForm({
                 </div>
             )}
 
-            {/* Premium Loading Overlay */}
-            {loading && (
+            {/* Premium Loading Overlay - ONLY for Step 1 (Image Generation) */}
+            {loading && currentStep === 1 && (
                 <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center">
                     <div className="bg-gradient-to-br from-card via-card to-card/95 border border-border/50 rounded-3xl p-10 max-w-sm w-full mx-4 shadow-2xl">
                         <div className="text-center space-y-8">
@@ -1281,15 +1280,15 @@ export default function ManualVideoForm({
                         <button
                             onClick={() => setCurrentStep(1)}
                             disabled={loading}
-                            className="py-2 px-4 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition flex items-center justify-center gap-2"
+                            className="py-1 px-4 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition flex items-center justify-center gap-2"
                         >
                             Back
                         </button>
                         <button
                             onClick={handleGenerateVideo}
-                            disabled={loading || isProcessing || !generatedImageUrl || !userScript.trim()}
+                            disabled={loading || !generatedImageUrl || !userScript.trim()}
                             className={cn(
-                                " py-3 rounded-xl font-semibold text-white transition-all flex items-center justify-center gap-2",
+                                " py-1 px-3 rounded-lg font-semibold text-white transition-all flex items-center justify-center gap-2",
                                 generatedImageUrl && userScript.trim()
                                     ? "bg-gradient-to-r from-brand-primary to-brand-primary/80 hover:opacity-90"
                                     : "bg-muted cursor-not-allowed opacity-50"
@@ -1304,7 +1303,6 @@ export default function ManualVideoForm({
                                 <>
                                     <Zap className="w-5 h-5" />
                                     Generate Video
-                                    <span className="ml-1 text-sm opacity-70">(1 credit)</span>
                                 </>
                             )}
                         </button>
@@ -1415,6 +1413,9 @@ export default function ManualVideoForm({
                     />
                 ))}
             </div>
+
+            {/* Lambda Test Panel (Debug) */}
+            <LambdaTestPanel />
         </div>
     );
 }
@@ -1440,32 +1441,28 @@ function QuickNavButton({ stepNumber, setStep, currentStep }: { stepNumber: 1 | 
 // STEP 3 RESULT COMPONENT
 // ============================================
 function Step3Result({ jobId, onReset }: { jobId: string | null; onReset: () => void }) {
-    // ... existing Step3Result code ...
     const [status, setStatus] = useState<"loading" | "done" | "failed">("loading");
     const [videoUrl, setVideoUrl] = useState<string | null>(null);
-    const [error, setError] = useState<string | null>(null);
     const [progress, setProgress] = useState(0);
 
     useEffect(() => {
         if (!jobId) return;
 
-        let pollInterval: NodeJS.Timeout;
-        let progressInterval: NodeJS.Timeout;
+        let isMounted = true;
 
         // Fake progress for improved UX
-        const startProgress = () => {
-            setProgress(0);
-            progressInterval = setInterval(() => {
-                setProgress(prev => {
-                    // Slow down as we approach 90%
-                    if (prev >= 90) return 90;
-                    const increment = prev < 50 ? 2 : prev < 80 ? 1 : 0.5;
-                    return prev + increment;
-                });
-            }, 800);
-        };
+        const progressInterval = setInterval(() => {
+            setProgress(prev => {
+                // Slow down as we approach 90%
+                if (prev >= 90) return 90;
+                const increment = prev < 50 ? 2 : prev < 80 ? 1 : 0.5;
+                return prev + increment;
+            });
+        }, 800);
 
         const checkStatus = async () => {
+            if (!isMounted) return;
+
             try {
                 const response = await axios.get(`/api/manual-video/status?jobId=${jobId}`);
                 const job = response.data.job;
@@ -1474,27 +1471,28 @@ function Step3Result({ jobId, onReset }: { jobId: string | null; onReset: () => 
                     setVideoUrl(job.finalVideoUrl);
                     setStatus("done");
                     setProgress(100);
-                    clearInterval(pollInterval);
                     clearInterval(progressInterval);
+                    clearInterval(pollInterval);
+                    toast.success("Your video is ready! 🎉");
                 } else if (job.status === "FAILED") {
-                    setError(job.errorMessage || "Video generation failed");
                     setStatus("failed");
-                    clearInterval(pollInterval);
                     clearInterval(progressInterval);
-                } else {
-                    // Still processing
+                    clearInterval(pollInterval);
+                    // Show error toast
+                    toast.error(job.errorMessage || "Video generation failed. Please try again.");
                 }
+                // else: Still processing, continue polling
             } catch (err) {
                 console.error("Poll status error:", err);
             }
         };
 
-        startProgress();
         // Check immediately then poll
         checkStatus();
-        pollInterval = setInterval(checkStatus, 5000);
+        const pollInterval = setInterval(checkStatus, 5000);
 
         return () => {
+            isMounted = false;
             clearInterval(pollInterval);
             clearInterval(progressInterval);
         };
@@ -1502,11 +1500,30 @@ function Step3Result({ jobId, onReset }: { jobId: string | null; onReset: () => 
 
     if (status === "loading") {
         return (
-            <div className="flex flex-col items-center justify-center py-12 space-y-6">
-                <div className="relative w-24 h-24">
+            <div className="flex flex-col items-center justify-center py-16 space-y-8">
+                {/* Circular Progress */}
+                <div className="relative w-32 h-32">
                     <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                        <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="6" className="text-border/30" />
-                        <circle cx="50" cy="50" r="45" fill="none" stroke="url(#gradient-step3)" strokeWidth="6" strokeLinecap="round" strokeDasharray={`${progress * 2.83} 283`} className="transition-all duration-300 ease-out" />
+                        <circle
+                            cx="50"
+                            cy="50"
+                            r="45"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="6"
+                            className="text-border/30"
+                        />
+                        <circle
+                            cx="50"
+                            cy="50"
+                            r="45"
+                            fill="none"
+                            stroke="url(#gradient-step3)"
+                            strokeWidth="6"
+                            strokeLinecap="round"
+                            strokeDasharray={`${progress * 2.83} 283`}
+                            className="transition-all duration-300 ease-out"
+                        />
                         <defs>
                             <linearGradient id="gradient-step3" x1="0%" y1="0%" x2="100%" y2="0%">
                                 <stop offset="0%" stopColor="hsl(var(--brand-primary))" />
@@ -1514,29 +1531,53 @@ function Step3Result({ jobId, onReset }: { jobId: string | null; onReset: () => 
                             </linearGradient>
                         </defs>
                     </svg>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-xl font-bold">{Math.round(progress)}%</span>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="text-3xl font-bold text-foreground">{Math.round(progress)}%</span>
                     </div>
                 </div>
-                <div className="text-center space-y-2">
-                    <h3 className="text-xl font-semibold animate-pulse">Generating Video...</h3>
-                    <p className="text-muted-foreground text-sm max-w-xs mx-auto">
-                        Please wait for while. This may take a few minutes.
+
+                {/* Title & Description */}
+                <div className="text-center space-y-3">
+                    <h3 className="text-xl font-semibold text-foreground flex items-center justify-center gap-2">
+                        <Video className="w-5 h-5 text-brand-primary animate-pulse" />
+                        Generating Video
+                    </h3>
+                    <p className="text-muted-foreground text-sm max-w-sm mx-auto">
+                        AI is creating your UGC video with multiple scenes. This may take a few minutes.
                     </p>
                 </div>
+
+                {/* Animated dots */}
+                <div className="flex items-center justify-center gap-1.5">
+                    <div className="w-2 h-2 rounded-full bg-brand-primary animate-bounce" style={{ animationDelay: "0ms" }} />
+                    <div className="w-2 h-2 rounded-full bg-brand-primary animate-bounce" style={{ animationDelay: "150ms" }} />
+                    <div className="w-2 h-2 rounded-full bg-brand-primary animate-bounce" style={{ animationDelay: "300ms" }} />
+                </div>
+
+                {/* Tip */}
+                <p className="text-xs text-muted-foreground/70">
+                    Estimated time: 2-5 minutes depending on video length
+                </p>
             </div>
         );
     }
 
     if (status === "failed") {
+        // Just show retry button - error is already shown via toast
         return (
             <div className="flex flex-col items-center justify-center py-12 space-y-4">
                 <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center">
                     <X className="w-8 h-8 text-red-500" />
                 </div>
                 <h3 className="text-xl font-semibold text-red-500">Generation Failed</h3>
-                <p className="text-muted-foreground text-sm text-center max-w-md">{error}</p>
-                <button onClick={onReset} className="px-6 py-2 rounded-lg bg-border hover:bg-sidebar-accent transition">
+                <p className="text-muted-foreground text-sm text-center max-w-md">
+                    Something went wrong. Please try again.
+                </p>
+                <button
+                    onClick={onReset}
+                    className="px-6 py-2 rounded-lg bg-brand-primary text-white hover:bg-brand-primary/90 transition flex items-center gap-2"
+                >
+                    <RefreshCw className="w-4 h-4" />
                     Try Again
                 </button>
             </div>

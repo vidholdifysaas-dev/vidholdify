@@ -20,7 +20,10 @@ export const Users = pgTable('users', {
   // Legacy fields (kept for backward compatibility)
   credits_allowed: integer('credits_allowed').default(0),
   credits_used: integer('credits_used').default(0),
+  credits_allowed_veo: integer('credits_allowed_veo').default(0),
+  credits_used_veo: integer('credits_used_veo').default(0),
   carryover: integer('carryover').default(0),
+  carryover_veo: integer('carryover_veo').default(0),
   carryover_expiry: timestamp('carryover_expiry'),
 
   // Credit reset tracking

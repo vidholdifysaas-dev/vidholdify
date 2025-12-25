@@ -6,7 +6,6 @@
  * - 15s → 2-3 scenes
  * - 30s → 4-5 scenes
  * - 45s → 5-6 scenes
- * - 60s → 7-8 scenes
  *
  * Key features:
  * - Consistent avatar/character throughout all scenes
@@ -66,13 +65,6 @@ export function getSceneConfig(targetLength: VideoLength): {
                 sceneCount: 5,
                 sceneDurations: [8, 8, 8, 8, 8], // ~40s, can add one more or extend
                 description: "Hook + Problem + Solution Demo + Benefits + CTA",
-            };
-        case "60":
-            // 60s = 8 + 8 + 8 + 8 + 8 + 8 + 8 + 4 = 7-8 scenes
-            return {
-                sceneCount: 7,
-                sceneDurations: [8, 8, 8, 8, 8, 8, 8], // ~56s + can trim or extend
-                description: "Hook + Problem + Solution + Demo + Testimonial + Benefits + Strong CTA",
             };
         default:
             return {
@@ -182,72 +174,39 @@ export async function generateScriptPlan(
 
     console.log(`[ScriptPlanner] Generating ${sceneConfig.sceneCount}-scene script for ${targetLength}s video`);
 
-    // If User Script is provided, bypass AI and manually split
+    let userPrompt = "";
+
     if (userScript && userScript.trim().length > 10) {
-        console.log("[ScriptPlanner] User script provided - Bypassing AI planning");
+        // Mode 1: Use User Script
+        console.log("[ScriptPlanner] Using user-provided script");
+        userPrompt = `
+You are given a pre-written script. Your task is to split this EXACT script into ${sceneConfig.sceneCount} scenes.
 
-        // Smart manual split algorithm
-        const fullScript = userScript.trim();
-        let chunks: string[] = [];
+USER SCRIPT:
+"${userScript}"
 
-        // 1. Try splitting by major punctuation
-        const sentences = fullScript.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [fullScript];
+PRODUCT NAME: ${productName}
+PRODUCT DESCRIPTION: ${productDescription}
 
-        if (sentences.length >= sceneConfig.sceneCount) {
-            // We have enough sentences, distribute them
-            const buckets: string[] = Array(sceneConfig.sceneCount).fill("");
-            sentences.forEach((sentence, index) => {
-                const bucketIndex = index % sceneConfig.sceneCount;
-                buckets[bucketIndex] += (buckets[bucketIndex] ? " " : "") + sentence.trim();
-            });
-            chunks = buckets;
-        } else {
-            // 2. Not enough sentences, try splitting by clauses (commas)
-            const clauses = fullScript.split(/[,;]/g).map(s => s.trim()).filter(s => s.length > 0);
+${avatarDescription ? `AVATAR DESCRIPTION (use this consistently): ${avatarDescription}` : "AVATAR: A friendly, relatable person (keep description generic for consistency)"}
+${backgroundDescription ? `BACKGROUND (use this consistently): ${backgroundDescription}` : "BACKGROUND: Clean, well-lit room with neutral decor (keep consistent across all scenes)"}
 
-            if (clauses.length >= sceneConfig.sceneCount) {
-                const buckets: string[] = Array(sceneConfig.sceneCount).fill("");
-                clauses.forEach((clause, index) => {
-                    const bucketIndex = index % sceneConfig.sceneCount;
-                    buckets[bucketIndex] += (buckets[bucketIndex] ? " " : "") + clause.trim();
-                });
-                chunks = buckets;
-            } else {
-                // 3. Last resort: Split by word count roughly evenly
-                const words = fullScript.split(/\s+/);
-                const wordsPerScene = Math.ceil(words.length / sceneConfig.sceneCount);
+TARGET SCENE DURATIONS: [${sceneConfig.sceneDurations.join(", ")}] seconds per scene
 
-                for (let i = 0; i < sceneConfig.sceneCount; i++) {
-                    const start = i * wordsPerScene;
-                    const end = start + wordsPerScene;
-                    const chunkText = words.slice(start, end).join(" ");
-                    chunks.push(chunkText || "..."); // Fallback if empty
-                }
-            }
-        }
+Requirements:
+1. Use the EXACT text from the USER SCRIPT.
+2. Split the script logicallly across ${sceneConfig.sceneCount} scenes.
+3. CRITICAL: NEVER split a sentence between scenes. Breaks must be at periods, commas, or natural pauses.
+4. Ensure the visual prompts match the script content for each scene.
+5. Each scene duration must be exactly 4, 6, or 8 seconds.
+5. Total should equal approximately ${targetLength} seconds.
+6. CRITICAL: Avatar appearance, background, and lighting must be IDENTICAL in every scene's visualPrompt.
 
-        // Construct scenes from chunks
-        const scenes: ScenePlan[] = chunks.map((chunk, index) => ({
-            sceneIndex: index,
-            duration: sceneConfig.sceneDurations[index] || 8,
-            script: chunk || "...",
-            visualPrompt: `Action scene ${index + 1}: The person gestures naturally while speaking about ${productName}.`,
-            motionDescription: "Natural talking motion, consistent with reference."
-        }));
+Generate the breakdown now.`;
 
-        const manualPlan: VideoGenerationPlan = {
-            fullScript,
-            scenes,
-            totalDuration: scenes.reduce((sum, s) => sum + s.duration, 0)
-        };
-
-        console.log(`[ScriptPlanner] Manually split into ${scenes.length} scenes`);
-        return manualPlan;
-    }
-
-    // --- AI Generation path (Only used when generating from scratch) ---
-
-    const userPrompt = `
+    } else {
+        // Mode 2: Generate New Script (Original Logic)
+        userPrompt = `
 Create a ${targetLength}-second UGC video script with exactly ${sceneConfig.sceneCount} scenes.
 
 PRODUCT NAME: ${productName}
@@ -272,12 +231,13 @@ Requirements:
 7. CRITICAL: Avatar appearance, background, and lighting must be IDENTICAL in every scene's visualPrompt
 
 Generate the complete script and ${sceneConfig.sceneCount} scene breakdown now.`;
+    }
 
     try {
         const result = await ai.models.generateContent({
             model: MODEL_NAME,
             config: {
-                temperature: 0.7,
+                temperature: 0.7, // Slightly lower for more consistency
                 maxOutputTokens: 4096,
                 responseMimeType: "application/json",
                 systemInstruction: getScriptPlannerSystemPrompt(sceneConfig),
@@ -288,17 +248,36 @@ Generate the complete script and ${sceneConfig.sceneCount} scene breakdown now.`
         // Extract text response
         let responseText = result.text || "";
 
-        // Strip Markdown code blocks if present (Gemini often adds them despite MIME type)
-        responseText = responseText.replace(/```json\n?|\n?```/g, "").trim();
-
-        console.log("[ScriptPlanner] Raw AI Response:", responseText);
-
         if (!responseText) {
             throw new Error("Empty response from Gemini");
         }
 
+        // Clean up the JSON response (remove control characters, fix common issues)
+        responseText = responseText
+            .replace(/[\x00-\x1F\x7F]/g, ' ') // Remove control characters
+            .replace(/\n/g, ' ')              // Replace newlines with spaces
+            .replace(/\r/g, '')               // Remove carriage returns
+            .replace(/\t/g, ' ')              // Replace tabs with spaces
+            .replace(/\s+/g, ' ')             // Collapse multiple spaces
+            .trim();
+
+        // Try to extract JSON if wrapped in markdown code blocks
+        const jsonMatch = responseText.match(/```json\s*([\s\S]*?)```/) ||
+            responseText.match(/```\s*([\s\S]*?)```/);
+        if (jsonMatch) {
+            responseText = jsonMatch[1].trim();
+        }
+
+        console.log(`[ScriptPlanner] Parsing response (${responseText.length} chars)`);
+
         // Parse the JSON response
-        const plan: VideoGenerationPlan = JSON.parse(responseText);
+        let plan: VideoGenerationPlan;
+        try {
+            plan = JSON.parse(responseText);
+        } catch (parseError) {
+            console.error("[ScriptPlanner] JSON parse error. Raw response:", responseText.substring(0, 500));
+            throw new Error(`Invalid JSON from Gemini: ${parseError instanceof Error ? parseError.message : 'Unknown parse error'}`);
+        }
 
         // Validate and fix the plan
         const validatedPlan = validateAndFixScriptPlan(plan, parseInt(targetLength), sceneConfig);
@@ -313,7 +292,6 @@ Generate the complete script and ${sceneConfig.sceneCount} scene breakdown now.`
         );
     }
 }
-
 
 /**
  * Validate and fix script plan to meet requirements
@@ -351,6 +329,8 @@ function validateAndFixScriptPlan(
             motionDescription: scene.motionDescription || "Natural talking motion",
         };
     });
+
+
 
     // Calculate actual duration
     const actualTotal = fixedScenes.reduce((sum, s) => sum + s.duration, 0);

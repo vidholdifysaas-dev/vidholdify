@@ -72,8 +72,6 @@ function getVeoAspectRatio(imageAspectRatio: string | null): "16:9" | "9:16" {
 }
 
 export async function POST(request: NextRequest) {
-    let jobId: string | null = null;
-
     try {
         // Authenticate user
         const { userId } = await auth();
@@ -85,8 +83,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        jobId = body.jobId;
-        const { userScript, targetLength } = body;
+        const { jobId, userScript } = body;
 
         if (!jobId) {
             return NextResponse.json(
@@ -119,22 +116,26 @@ export async function POST(request: NextRequest) {
             job.userScript = userScript.trim();
         }
 
-        // Update targetLength if provided (User might change it in Step 2)
-        if (targetLength && ["15", "30", "45", "60"].includes(targetLength)) {
-            await db
-                .update(videoJobs)
-                .set({ targetLength: targetLength })
-                .where(eq(videoJobs.id, jobId));
+        // Update targetLength if provided (in case user changed it after Step 1)
+        if (body.targetLength && ["15", "30", "45", "60"].includes(body.targetLength)) {
+            if (job.targetLength !== body.targetLength) {
+                console.log(`[API] Updating job targetLength: ${job.targetLength} -> ${body.targetLength}`);
 
-            // Update local object
-            job.targetLength = targetLength;
-            console.log(`[API] Updated job targetLength to ${targetLength}s`);
+                await db
+                    .update(videoJobs)
+                    .set({ targetLength: body.targetLength })
+                    .where(eq(videoJobs.id, jobId));
+
+                // Update local object
+                job.targetLength = body.targetLength;
+            }
         }
 
 
 
         // Validate job can be started (allow more statuses for resume/retry capability)
-        const validStatuses = ["CREATED", "PLANNED", "GENERATING_IMAGE", "PLANNING", "IMAGE_READY", "SCRIPT_READY", "SCENES_GENERATING"];
+        // "FAILED" is included to allow users to retry after an error
+        const validStatuses = ["CREATED", "PLANNED", "GENERATING_IMAGE", "PLANNING", "IMAGE_READY", "SCRIPT_READY", "SCENES_GENERATING", "FAILED"];
         if (!validStatuses.includes(job.status)) {
             console.log(`[API] Job ${jobId} has status: ${job.status} - cannot process`);
             return NextResponse.json(
@@ -285,7 +286,7 @@ export async function POST(request: NextRequest) {
 
         // Create scene records
         const sceneRecords = plan.scenes.map((scene) => ({
-            videoJobId: jobId!, // Assert non-null as we checked above
+            videoJobId: jobId,
             sceneIndex: scene.sceneIndex,
             plannedDuration: scene.duration,
             script: scene.script,
@@ -304,7 +305,7 @@ export async function POST(request: NextRequest) {
                 sceneCount: plan.scenes.length,
                 updatedAt: new Date(),
             })
-            .where(eq(videoJobs.id, jobId!));
+            .where(eq(videoJobs.id, jobId));
 
         // ========================================
         // STEP 3: Generate ALL Scene Videos with Veo
@@ -335,7 +336,7 @@ export async function POST(request: NextRequest) {
                     .from(scenes)
                     .where(
                         and(
-                            eq(scenes.videoJobId, jobId!),
+                            eq(scenes.videoJobId, jobId),
                             eq(scenes.sceneIndex, sceneIndex)
                         )
                     );
@@ -470,21 +471,17 @@ export async function POST(request: NextRequest) {
             .where(eq(videoJobs.id, jobId));
 
         // Also add to the generated_videos table for clean record keeping
-        try {
-            await db.insert(generatedVideos).values({
-                userId,
-                userEmail: job.userEmail,
-                videoJobId: jobId,
-                productName: job.productName,
-                productDescription: job.productDescription,
-                videoUrl: mergeResult.finalVideoUrl,
-                thumbnailUrl: job.referenceImageUrl, // Use the reference image as thumbnail
-                duration: Math.round(finalDuration),
-                aspectRatio: job.aspectRatio || "9:16",
-            });
-        } catch (recordError) {
-            console.warn("[API] Failed to add to generated_videos (non-critical):", recordError);
-        }
+        await db.insert(generatedVideos).values({
+            userId,
+            userEmail: job.userEmail,
+            videoJobId: jobId,
+            productName: job.productName,
+            productDescription: job.productDescription,
+            videoUrl: mergeResult.finalVideoUrl,
+            thumbnailUrl: job.referenceImageUrl, // Use the reference image as thumbnail
+            duration: Math.round(finalDuration),
+            aspectRatio: job.aspectRatio || "9:16",
+        });
 
         console.log(`[API] ========================================`);
         console.log(`[API] Job ${jobId} COMPLETED SUCCESSFULLY`);
@@ -506,7 +503,8 @@ export async function POST(request: NextRequest) {
         console.error("[API] Generate video error:", error);
 
         // Mark job as failed
-        if (jobId) {
+        const body = await request.clone().json().catch(() => ({}));
+        if (body.jobId) {
             try {
                 await db
                     .update(videoJobs)
@@ -516,7 +514,7 @@ export async function POST(request: NextRequest) {
                             error instanceof Error ? error.message : "Unknown error",
                         updatedAt: new Date(),
                     })
-                    .where(eq(videoJobs.id, jobId));
+                    .where(eq(videoJobs.id, body.jobId));
             } catch (dbError) {
                 console.error("[API] Failed to update job status:", dbError);
             }

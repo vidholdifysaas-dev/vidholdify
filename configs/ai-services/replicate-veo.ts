@@ -342,8 +342,11 @@ async function pollReplicatePrediction(
 }
 
 /**
- * Generate all scene videos in sequence
+ * Generate all scene videos in PARALLEL
  * Uses the SAME reference image for all scenes (consistency)
+ * 
+ * All API calls are made simultaneously to save time.
+ * Total time = time for slowest scene (instead of sum of all scenes)
  */
 export async function generateAllScenes(
     referenceImageUrl: string,
@@ -364,22 +367,18 @@ export async function generateAllScenes(
     }
 ): Promise<GenerateAllScenesResult> {
     console.log(`[Veo] ========================================`);
-    console.log(`[Veo] Starting generation of ${scenes.length} scenes`);
+    console.log(`[Veo] Starting PARALLEL generation of ${scenes.length} scenes`);
     console.log(`[Veo] Reference image (SAME for all): ${referenceImageUrl}`);
     console.log(`[Veo] ========================================`);
 
-    const results: Array<{
-        sceneIndex: number;
-        videoUrl: string;
-        duration: number;
-    }> = [];
+    // Mark all scenes as "generating" immediately
+    await Promise.allSettled(
+        scenes.map((scene) => onProgress?.(scene.sceneIndex, "generating"))
+    );
 
-    let totalDuration = 0;
-
-    for (const scene of scenes) {
-        await onProgress?.(scene.sceneIndex, "generating");
-
-        console.log(`[Veo] --- Scene ${scene.sceneIndex + 1}/${scenes.length} ---`);
+    // Generate all scenes in PARALLEL using Promise.all
+    const generationPromises = scenes.map(async (scene) => {
+        console.log(`[Veo] --- Starting Scene ${scene.sceneIndex + 1}/${scenes.length} (parallel) ---`);
 
         const result = await generateVeoScene({
             referenceImageUrl, // SAME image for ALL scenes
@@ -396,6 +395,31 @@ export async function generateAllScenes(
             resolution: options?.resolution,
         });
 
+        // Notify progress when this specific scene completes
+        await onProgress?.(scene.sceneIndex, "completed");
+        console.log(`[Veo] Scene ${scene.sceneIndex + 1} ✓ (completed)`);
+
+        return {
+            scene,
+            result,
+        };
+    });
+
+    // Wait for ALL scenes to complete in parallel
+    const allResults = await Promise.all(generationPromises);
+
+    // Process results and check for failures
+    const results: Array<{
+        sceneIndex: number;
+        videoUrl: string;
+        duration: number;
+    }> = [];
+    let totalDuration = 0;
+
+    // Sort by sceneIndex to maintain order
+    allResults.sort((a, b) => a.scene.sceneIndex - b.scene.sceneIndex);
+
+    for (const { scene, result } of allResults) {
         if (!result.success || !result.videoUrl) {
             console.error(`[Veo] Scene ${scene.sceneIndex + 1} FAILED: ${result.error}`);
             return {
@@ -412,13 +436,10 @@ export async function generateAllScenes(
         });
 
         totalDuration += scene.plannedDuration;
-
-        await onProgress?.(scene.sceneIndex, "completed");
-        console.log(`[Veo] Scene ${scene.sceneIndex + 1} ✓`);
     }
 
     console.log(`[Veo] ========================================`);
-    console.log(`[Veo] All ${scenes.length} scenes generated successfully!`);
+    console.log(`[Veo] All ${scenes.length} scenes generated successfully (PARALLEL)!`);
     console.log(`[Veo] Total planned duration: ${totalDuration}s`);
     console.log(`[Veo] ========================================`);
 

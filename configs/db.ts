@@ -7,9 +7,6 @@ if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL environment variable is not set");
 }
 
-// Required for serverless environments (fixes connection timeout/reset)
-neonConfig.fetchConnectionCache = true;
-
 // Create stateless Neon HTTP client (NO keepalive)
 const sql = neon(process.env.DATABASE_URL);
 

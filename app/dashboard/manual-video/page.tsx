@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import ManualVideoForm from "./_components/ManualVideoForm";
-import ManualVideoStatus from "./_components/ManualVideoStatus";
 import { ManualVideoProvider } from "./_components/ManualVideoContext";
 
 export default function ManualVideoPage() {
@@ -21,32 +20,12 @@ export default function ManualVideoPage() {
                     </p>
                 </div>
 
-                {/* Content */}
+                {/* Content - Always full width */}
                 <div className="w-full">
-                    {activeJobId ? (
-                        // Show status when a job is active
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
-                            <ManualVideoForm
-                                onJobCreated={(jobId) => setActiveJobId(jobId)}
-                                isProcessing={!!activeJobId}
-                            />
-                            <ManualVideoStatus
-                                jobId={activeJobId}
-                                onComplete={() => {
-                                    // Optionally switch to history or show completion message
-                                }}
-                                onReset={() => setActiveJobId(null)}
-                            />
-                        </div>
-                    ) : (
-                        // Full width form when no job is active
-                        <div className="w-full">
-                            <ManualVideoForm
-                                onJobCreated={(jobId) => setActiveJobId(jobId)}
-                                isProcessing={false}
-                            />
-                        </div>
-                    )}
+                    <ManualVideoForm
+                        onJobCreated={(jobId) => setActiveJobId(jobId)}
+                        isProcessing={!!activeJobId}
+                    />
                 </div>
             </div>
         </ManualVideoProvider>
