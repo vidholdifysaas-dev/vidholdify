@@ -198,7 +198,7 @@ export default function PricingPage() {
                             ))}
                         </ul>
 
-                        {currentPriceId === tier.priceId[billingCycle] ? (
+                        {currentPlanTier?.toLowerCase() === tier.id ? (
                             <div className="w-full py-2.5 px-4 rounded-lg font-bold text-sm bg-green-500/20 text-green-500 border border-green-500/30 relative z-10 mt-auto flex items-center justify-center gap-2">
                                 <Check className="w-4 h-4" />
                                 Current Plan
