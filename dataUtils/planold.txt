@@ -1,0 +1,76 @@
+## new Cost & Capacity Analysis
+
+**Cost Basis (UGC / TopView):**
+- **Cost per Credit:** ~$0.3625
+- **Cost per Video (5 credits):** 5 × $0.3625 = **$1.81 per video**
+
+**Cost Basis (VEO 30s):**
+- **Cost per Video:** **$5.24**
+
+---
+
+## Strategic Profitability Analysis (Dual Credit System)
+
+**Configuration:**
+- **TopView/UGC Credits:** Full Allowance (40 / 120 / 240 / 480)
+- **VEO3 AI Credits:** **Half Restricted** (20 / 60 / 120 / 240)
+- **Strategy:** Limit expensive VEO generation while allowing high volume for cheaper TopView/UGC.
+
+---
+
+### 🎯 **Starter Plan - $79/month**
+
+- **Allowance:** 40 TopView Credits OR 20 VEO Credits
+- **Scenario A (Max TopView):**
+    - Capacity: **8 Videos** (40 credits / 5)
+    - Cost: 8 × $1.81 = **$14.48**
+    - Profit: **$64.52** (Margin: **82%**) ✅
+- **Scenario B (Max VEO 30s):**
+    - Capacity: **~3 Videos** (20 credits / 6)
+    - Cost: 3 × $5.24 = **$15.72**
+    - Profit: **$63.28** (Margin: **80%**) ✅
+
+---
+
+### ⚡ **Professional Plan - $189/month**
+
+- **Allowance:** 120 TopView Credits OR 60 VEO Credits
+- **Scenario A (Max TopView):**
+    - Capacity: **24 Videos** (120 credits / 5)
+    - Cost: 24 × $1.81 = **$43.44**
+    - Profit: **$145.56** (Margin: **77%**) ✅
+- **Scenario B (Max VEO 30s):**
+    - Capacity: **10 Videos** (60 credits / 6)
+    - Cost: 10 × $5.24 = **$52.40**
+    - Profit: **$136.60** (Margin: **72%**) ✅
+
+---
+
+### 🚀 **Business Plan - $379/month**
+
+- **Allowance:** 240 TopView Credits OR 120 VEO Credits
+- **Scenario A (Max TopView):**
+    - Capacity: **48 Videos** (240 credits / 5)
+    - Cost: 48 × $1.81 = **$86.88**
+    - Profit: **$292.12** (Margin: **77%**) ✅
+- **Scenario B (Max VEO 30s):**
+    - Capacity: **20 Videos** (120 credits / 6)
+    - Cost: 20 × $5.24 = **$104.80**
+    - Profit: **$274.20** (Margin: **72%**) ✅
+
+---
+
+### 👑 **Scale Plan - $749/month**
+
+- **Allowance:** 480 TopView Credits OR 240 VEO Credits
+- **Scenario A (Max TopView):**
+    - Capacity: **96 Videos** (480 credits / 5)
+    - Cost: 96 × $1.81 = **$173.76**
+    - Profit: **$575.24** (Margin: **77%**) ✅
+- **Scenario B (Max VEO 30s):**
+    - Capacity: **40 Videos** (240 credits / 6)
+    - Cost: 40 × $5.24 = **$209.60**
+    - Profit: **$539.40** (Margin: **72%**) ✅
+
+---
+

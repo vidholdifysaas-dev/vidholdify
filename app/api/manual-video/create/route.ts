@@ -1,52 +1,15 @@
-/**
- * Create Video Job API Route
- * 
- * POST /api/manual-video/create
- * 
- * Creates a new video generation job with Nano Banana + Veo pipeline.
- * 
- * If `generateImageOnly: true`, it will:
- * 1. Create the job
- * 2. Start generating the reference image (async)
- * 3. Return immediately with jobId
- * 
- * Client should poll /api/manual-video/status to get the generated image URL.
- * 
- * INPUT:
- * {
- *   productName: string (required) - Name of the product
- *   productDescription: string (required) - Description of the product
- *   targetLength: "15" | "30" | "45" | "60" (required) - Video length in seconds
- *   platform: "tiktok" | "instagram_reels" | "youtube_shorts" | "general" (optional)
- *   avatarDescription: string (optional) - Description of the person/avatar
- *   avatarImageUrl: string (optional) - URL of uploaded avatar image
- *   productImageUrl: string (optional) - URL of uploaded product image
- *   productHoldingDescription: string (optional) - How they hold the product
- *   backgroundDescription: string (optional) - Background/scene description
- *   imagePrompt: string (optional) - Full custom prompt for Nano Banana
- *   generateImageOnly: boolean (optional) - If true, only generate reference image
- * }
- * 
- * OUTPUT:
- * {
- *   success: boolean,
- *   jobId: string - UUID of the created job
- *   referenceImageUrl?: string - If image already generated (sync)
- *   message: string
- * }
- */
-
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { getSignedUrlFromS3Url } from "@/configs/s3";
 import { db } from "@/configs/db";
-import { videoJobs, VideoLength, VideoPlatform } from "@/configs/schema";
+import { videoJobs, VideoLength, VideoPlatform, Users } from "@/configs/schema";
 import {
     buildImagePrompt,
     generateImage,
     pollUntilComplete,
     isConfigured as isNanoBananaConfigured,
 } from "@/configs/ai-services/nano-banana";
+import { getAvailableVeoCredits, deductVeoCredits } from "@/utils/creditHelpers";
 import { uploadToS3, getS3Paths, getSignedPlaybackUrl } from "@/configs/s3";
 import { randomUUID } from "crypto";
 import axios from "axios";
@@ -161,6 +124,35 @@ export async function POST(request: NextRequest) {
         // If generateImageOnly is true, generate the reference image now
         if (body.generateImageOnly) {
             console.log(`[API] Generating reference image for job: ${jobId}`);
+
+            // Credit Check
+            if (!userEmail) {
+                return NextResponse.json({ success: false, error: "User email not found" }, { status: 401 });
+            }
+
+            const userResult = await db
+                .select({
+                    credits_allowed_veo: Users.credits_allowed_veo,
+                    credits_used_veo: Users.credits_used_veo,
+                    carryover_veo: Users.carryover_veo,
+                    carryover_expiry: Users.carryover_expiry,
+                })
+                .from(Users)
+                .where(eq(Users.email, userEmail));
+
+            if (!userResult || userResult.length === 0) {
+                return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
+            }
+
+            const userCredits = userResult[0];
+            const available = getAvailableVeoCredits(userCredits);
+
+            if (available.available < 1) {
+                return NextResponse.json(
+                    { success: false, error: `Insufficient credits. Available: ${available.available}, Required: 1` },
+                    { status: 402 } // Payment Required
+                );
+            }
 
             // Update status
             await db
@@ -283,6 +275,22 @@ export async function POST(request: NextRequest) {
                     .where(eq(videoJobs.id, jobId));
 
                 console.log(`[API] Reference image ready for job: ${jobId}`);
+
+                // Deduct 1 Credit for successful image generation
+                try {
+                    const deduction = deductVeoCredits(userCredits, 1);
+                    await db
+                        .update(Users)
+                        .set({
+                            credits_used_veo: deduction.credits_used_veo,
+                            carryover_veo: deduction.carryover_veo,
+                        })
+                        .where(eq(Users.email, userEmail));
+                    console.log(`[API] Deducted 1 VEO credit for image generation. Remaining used: ${deduction.credits_used_veo}`);
+                } catch (creditError) {
+                    console.error("[API] Failed to deduct credits after success:", creditError);
+                    // We don't fail the request, but we log the error. In production, this might need manual reconciliation.
+                }
 
                 return NextResponse.json({
                     success: true,

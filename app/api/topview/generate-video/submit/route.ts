@@ -82,8 +82,8 @@ export async function POST(req: NextRequest) {
       userId: taskRecord.userId,
       currentStep: taskRecord.currentStep,
       hasReplaceProductResults: !!taskRecord.replaceProductResults,
-      replaceProductResultsCount: Array.isArray(taskRecord.replaceProductResults) 
-        ? taskRecord.replaceProductResults.length 
+      replaceProductResultsCount: Array.isArray(taskRecord.replaceProductResults)
+        ? taskRecord.replaceProductResults.length
         : 0,
     });
 
@@ -100,10 +100,10 @@ export async function POST(req: NextRequest) {
     const clerk = await clerkClient();
     const clerkUser = await clerk.users.getUser(userId);
     const userEmail = clerkUser.emailAddresses.find(
-      (e: { id: string; emailAddress: string }) => 
+      (e: { id: string; emailAddress: string }) =>
         e.id === clerkUser.primaryEmailAddressId
     )?.emailAddress;
-    
+
     console.log("👤 User lookup:", {
       clerkUserId: userId,
       userEmail,
@@ -130,7 +130,7 @@ export async function POST(req: NextRequest) {
     if (availableCredits.available < 5) {
       console.error("❌ Insufficient credits");
       return NextResponse.json(
-        { 
+        {
           error: "Insufficient credits. You need 5 credits to generate a video.",
           required: 5,
           available: availableCredits.available
@@ -207,7 +207,7 @@ export async function POST(req: NextRequest) {
     // Deduct 5 UGC credits after successful video generation submission
     try {
       const deductedCredits = deductCredits(user, 5);
-      
+
       await db
         .update(Users)
         .set({

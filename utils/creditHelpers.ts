@@ -285,8 +285,8 @@ export function deductVeoCredits(
  * 15s = 1 credit, 30s = 2 credits, 45s = 3 credits, 60s = 4 credits
  */
 export function getVeoCreditsForDuration(durationSeconds: number): number {
-  if (durationSeconds <= 15) return 1;
-  if (durationSeconds <= 30) return 2;
-  if (durationSeconds <= 45) return 3;
-  return 4; // 60s or more
+  if (durationSeconds <= 15) return 5; // Total 3 (1 image + 2 video)
+  if (durationSeconds <= 30) return 10; // Total 6 (1 image + 4 video)
+  if (durationSeconds <= 45) return 15; // Total 7 (1 image + 6 video)
+  return 20; // 60s - Total 8 (1 image + 7 video)
 }
