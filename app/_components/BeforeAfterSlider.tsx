@@ -3,7 +3,13 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 
-export default function BeforeAfterSlider() {
+export default function BeforeAfterSlider({
+    beforeImageSrc = "https://d1735p3aqhycef.cloudfront.net/official-website/public/landing-page/home/init_5.webp",
+    afterVideoSrc = "https://d1735p3aqhycef.cloudfront.net/official-website/public/landing-page/home/result_5.mp4"
+}: {
+    beforeImageSrc?: string;
+    afterVideoSrc?: string;
+}) {
     const [sliderPosition, setSliderPosition] = useState(50);
 
     const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,7 +84,8 @@ export default function BeforeAfterSlider() {
                 {/* After Video (Revealed by slider) */}
                 <div className="absolute inset-0">
                     <video
-                        src="https://d1735p3aqhycef.cloudfront.net/official-website/public/landing-page/home/result_5.mp4"
+                        key={afterVideoSrc} // Key forces re-render when src changes to ensure autoplay works
+                        src={afterVideoSrc}
                         autoPlay
                         loop
                         muted
@@ -93,7 +100,7 @@ export default function BeforeAfterSlider() {
                     style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
                 >
                     <img
-                        src="https://d1735p3aqhycef.cloudfront.net/official-website/public/landing-page/home/init_5.webp"
+                        src={beforeImageSrc}
                         alt="Before - Original Product"
                         className="w-full h-full object-cover"
                     />

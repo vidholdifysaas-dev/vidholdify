@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import { motion, useMotionValue, useTransform, animate, useInView } from "framer-motion";
 import BeforeAfterSlider from "./BeforeAfterSlider";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const stats = [
     { value: 450, suffix: "+", label: "Video Avatars" },
@@ -42,6 +42,21 @@ function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: strin
 }
 
 export default function HeroSection() {
+    const [activeComparison, setActiveComparison] = useState<'veo3' | 'standard'>('veo3');
+
+    const comparisons = {
+        veo3: {
+            before: "/veo_image.jpeg",
+            after: "/veo_video.mp4",
+            label: "Premium (Veo3)"
+        },
+        standard: {
+            before: "https://d1735p3aqhycef.cloudfront.net/official-website/public/landing-page/home/init_5.webp",
+            after: "https://d1735p3aqhycef.cloudfront.net/official-website/public/landing-page/home/result_5.mp4",
+            label: "Cost Effective"
+        }
+    };
+
     return (
         <div className="relative isolate overflow-hidden">
             {/* ✅ Premium Background Grid */}
@@ -51,7 +66,7 @@ export default function HeroSection() {
             {/* ✅ Premium Light Streak */}
             <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-brand-primary/60 to-transparent" />
 
-            <div className="pt-38">
+            <div className="pt-28">
                 <div className="mx-auto max-w-7xl px-6 lg:px-8">
 
                     {/* Two Column Layout */}
@@ -95,19 +110,59 @@ export default function HeroSection() {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.4, duration: 0.8 }}
-                                className="mt-6 sm:text-lg text-md leading-8 text-white/60 mb-10"
+                                className="mt-6 sm:text-lg text-md leading-8 text-white/60 mb-8"
                             >
                                 Upload your product image and instantly create an AI avatar showcasing it.
                                 <br className="hidden sm:block" />
                                 Create scroll-stopping UGC without ever picking up a camera.
                             </motion.p>
 
+                            {/* Toggle Switch (Left Side) */}
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.5, duration: 0.8 }}
+                                className="mb-8 flex justify-center md:justify-start"
+                            >
+                                <div className="bg-white/5 backdrop-blur-md p-0.5 rounded-full border border-white/10 relative flex z-10">
+                                    <button
+                                        onClick={() => setActiveComparison('veo3')}
+                                        className={`relative z-10 px-3 py-1.5 text-xs font-medium transition-colors duration-300 rounded-full ${activeComparison === 'veo3' ? 'text-white' : 'text-white/50 hover:text-white/80'
+                                            }`}
+                                    >
+                                        Premium (Veo3)
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveComparison('standard')}
+                                        className={`relative z-10 px-3 py-1.5 text-xs font-medium transition-colors duration-300 rounded-full ${activeComparison === 'standard' ? 'text-white' : 'text-white/50 hover:text-white/80'
+                                            }`}
+                                    >
+                                        Cost Effective
+                                    </button>
+                                    {/* Sliding Background */}
+                                    <motion.div
+                                        className="absolute top-0.5 bottom-0.5 left-0.5 bg-brand-primary rounded-full shadow-lg"
+                                        initial={false}
+                                        animate={{
+                                            x: activeComparison === 'veo3' ? 0 : '100%',
+                                            width: activeComparison === 'veo3' ? '50%' : '48%' // Adjust width slightly for padding
+                                        }}
+                                        style={{
+                                            left: activeComparison === 'veo3' ? '2px' : 'calc(50% - 2px)',
+                                            width: 'calc(50% - 2px)'
+                                        }}
+                                        layoutId="toggleHighlight"
+                                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                    />
+                                </div>
+                            </motion.div>
+
                             {/* ✅ Premium CTA Button */}
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.6, duration: 0.8 }}
-                                className="mt-10 flex items-center justify-center md:justify-start gap-x-6"
+                                className="flex items-center justify-center md:justify-start gap-x-6"
                             >
                                 <Link href="/dashboard">
                                     <button className="shiny-cta focus:outline-none">
@@ -125,7 +180,10 @@ export default function HeroSection() {
                             transition={{ delay: 0.4, duration: 0.9, ease: "easeOut" }}
                             className="relative order-2 md:order-2 flex items-center justify-center md:justify-end px-4 md:px-6 lg:px-10 min-h-[350px] md:min-h-[450px] lg:min-h-[550px]"
                         >
-                            <BeforeAfterSlider />
+                            <BeforeAfterSlider
+                                beforeImageSrc={comparisons[activeComparison].before}
+                                afterVideoSrc={comparisons[activeComparison].after}
+                            />
                         </motion.div>
 
                     </div>
