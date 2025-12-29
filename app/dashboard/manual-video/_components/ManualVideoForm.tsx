@@ -71,11 +71,11 @@ const VIDEO_LENGTHS = [
 ];
 
 const ASPECT_RATIOS = [
-    { id: "9:16", name: "9:16 Vertical", description: "TikTok, Reels, Shorts", icon: "📱" },
-    { id: "1:1", name: "1:1 Square", description: "Instagram Feed", icon: "⬛" },
-    { id: "16:9", name: "16:9 Horizontal", description: "YouTube, Web", icon: "🖥️" },
-    { id: "4:5", name: "4:5 Portrait", description: "Instagram Portrait", icon: "📷" },
-    { id: "3:4", name: "3:4 Portrait", description: "Pinterest Style", icon: "📌" },
+    { id: "9:16", name: "9:16 Vertical", description: "TikTok, Reels, Shorts"},
+    { id: "1:1", name: "1:1 Square", description: "Instagram Feed"},
+    { id: "16:9", name: "16:9 Horizontal", description: "YouTube, Web"},
+    { id: "4:5", name: "4:5 Portrait", description: "Instagram Portrait"},
+    { id: "3:4", name: "3:4 Portrait", description: "Pinterest Style"},
 ];
 
 const BACKGROUND_PRESETS = [
@@ -828,7 +828,7 @@ export default function ManualVideoForm({
     const hasInsufficientCredits = credits !== null && credits < 1;
 
     return (
-        <div className="bg-card border border-border rounded-xl p-6 space-y-6 w-full">
+        <div className="bg-card border border-border rounded-xl p-6 w-full">
             {/* Step Indicator - Click to navigate */}
             <StepIndicator
                 currentStep={currentStep}
@@ -931,7 +931,7 @@ export default function ManualVideoForm({
             {/* STEP 1: Product & Avatar */}
             {/* ==================== */}
             {currentStep === 1 && !loading && (
-                <div className="space-y-8">
+                <div className="space-y-2">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         {/* LEFT COLUMN - Avatar & Aspect Ratio */}
                         <div className="space-y-8">
@@ -942,7 +942,7 @@ export default function ManualVideoForm({
                                         <div className="flex items-center justify-center w-6 h-6 rounded-full bg-brand-primary/10 text-brand-primary text-xs font-bold">
                                             1
                                         </div>
-                                        <h3 className="font-medium text-foreground">Choose Avatar</h3>
+                                        <h3 className="font-medium text-foreground">Choose from 600+ Avatar</h3>
                                     </div>
                                     <div className="flex gap-1.5">
                                         {(["prebuilt", "upload", "describe"] as const).map((mode) => (
@@ -1028,7 +1028,7 @@ export default function ManualVideoForm({
 
                                             {/* Preset Buttons */}
                                             <div className="flex flex-wrap gap-2">
-                                                {BACKGROUND_PRESETS.slice(0, 4).map((preset) => ( // Show fewer presets to fit
+                                                {BACKGROUND_PRESETS.map((preset) => ( // Show fewer presets to fit
                                                     <button
                                                         key={preset.label}
                                                         type="button"
@@ -1125,7 +1125,7 @@ export default function ManualVideoForm({
                                             type="text"
                                             value={productName}
                                             onChange={(e) => setProductName(e.target.value)}
-                                            placeholder="Core protein powder"
+                                            placeholder="Eg:- Core protein powder"
                                             className="w-full px-4 py-3.5 rounded-xl  border border-border focus:border-brand-primary focus:ring-1 focus:ring-brand-primary/20 outline-none text-foreground placeholder:text-muted-foreground/50 text-sm shadow-sm"
                                         />
                                     </div>
@@ -1137,7 +1137,7 @@ export default function ManualVideoForm({
                                         <textarea
                                             value={productDescription}
                                             onChange={(e) => setProductDescription(e.target.value)}
-                                            placeholder="Core Power® Elite Chocolate Shake.
+                                            placeholder="Eg:- Core Power® Elite Chocolate Shake.
                                                 Core Power® Elite Chocolate is a delicious, high protein milkshake that’s lactose free and packed with 42 grams of protein per bottle. Fueled by fairlife® ultrafiltered milk, our Core Power® products are proudly made with 100% quality Canadian milk – and without any added protein powders. Our quality protein from milk helps you recover better after every workout."
                                             className="w-full flex-1 min-h-[160px] px-4 py-3.5 rounded-xl border border-border focus:border-brand-primary focus:ring-1 focus:ring-brand-primary/20 outline-none resize-none text-foreground placeholder:text-muted-foreground/50 text-sm shadow-sm"
                                         />
@@ -1148,7 +1148,7 @@ export default function ManualVideoForm({
                     </div>
 
                     {/* Generate Image Button */}
-                    <div className="pt-6 border-t border-border flex flex-col sm:flex-row gap-4 justify-between items-center">
+                    <div className="pt-3 border-t border-border flex flex-col sm:flex-row gap-4 justify-between items-center">
 
                         <div className="text-sm text-muted-foreground">
                             {loadingCredits ? (
@@ -1309,7 +1309,7 @@ export default function ManualVideoForm({
                                 <textarea
                                     value={userScript}
                                     onChange={(e) => setUserScript(e.target.value)}
-                                    placeholder={"Okay, so I just tried 'this product' core protein powder and seriously, I'm hooked. It mixes perfectly, tastes amazing, and I feel so good after my workouts. This is definitely my new go-to."}
+                                    placeholder={"Eg:- Okay, so I just tried 'this product' core protein powder and seriously, I'm hooked. It mixes perfectly, tastes amazing, and I feel so good after my workouts. This is definitely my new go-to."}
                                     className="w-full flex-1 min-h-[150px] p-4 rounded-xl bg-sidebar/30 border border-border focus:border-brand-primary focus:ring-1 focus:ring-brand-primary/20 outline-none text-foreground placeholder:text-muted-foreground/50 text-sm resize-none"
                                 />
 
@@ -1421,7 +1421,7 @@ export default function ManualVideoForm({
                                     className="w-full bg-sidebar border border-border text-foreground rounded-lg min-h-[120px] p-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none resize-none"
                                     value={aiScriptPrompt}
                                     onChange={(e) => setAiScriptPrompt(e.target.value)}
-                                    placeholder={"Write script for Core protiene powder."}
+                                    placeholder={"Eg:- Write script for Core protiene powder."}
                                 />
                             </div>
 

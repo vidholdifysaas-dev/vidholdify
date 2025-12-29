@@ -9,14 +9,7 @@ export default function ManualVideoPage() {
 
     return (
         <ManualVideoProvider>
-            <div className="w-full space-y-6">
-                {/* Header */}
-                <div className="flex flex-col gap-2">
-                    <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-                        VEO3 Video Generator
-                    </h1>
-                </div>
-
+            <div className="w-full">
                 {/* Content - Always full width */}
                 <div className="w-full">
                     <ManualVideoForm

@@ -40,8 +40,8 @@ function VideoCreatorContent() {
 
   const steps = [
     { number: 1, title: "Upload Product", description: "Remove background" },
-    { number: 2, title: "Choose Template", description: "Replace product" },
-    { number: 3, title: "Generate Video", description: "Add script & voice" },
+    { number: 2, title: "Choose Template", description: "Replace product(1 credit used)" },
+    { number: 3, title: "Generate Video", description: "Add script & voice (5 credit used)" },
     { number: 4, title: "Download Video", description: "Video ready" },
   ];
 
