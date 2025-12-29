@@ -100,6 +100,14 @@ export async function GET(req: Request) {
       if (shouldResetCredits(user, now)) {
         const resetData = resetMonthlyCredits(user);
 
+        // Calculate TopView carryover (Adding unused credits from this month)
+        const topViewAllowed = user.credits_allowed || 0;
+        const topViewUsed = user.credits_used || 0;
+        const topViewRemaining = Math.max(0, topViewAllowed - topViewUsed);
+
+        // resetData.carryover already handles expiry of OLD carryover
+        const newTopViewCarryover = topViewRemaining + resetData.carryover;
+
         // Get plan limits to reset the "allowed" amounts
         const planTier = (user.plan_tier as keyof typeof planLimits) || 'free';
         const limits = planLimits[planTier];
@@ -120,9 +128,9 @@ export async function GET(req: Request) {
         await db
           .update(Users)
           .set({
-            // TopView credits reset
+            // TopView credits reset with carryover
             credits_used: resetData.credits_used,
-            carryover: resetData.carryover,
+            carryover: newTopViewCarryover, // Updated to include rollover
             carryover_expiry: resetData.carryover_expiry,
             next_credit_reset: resetData.next_credit_reset,
             // Reset credits_allowed to plan level (important for yearly plans getting monthly credits)
