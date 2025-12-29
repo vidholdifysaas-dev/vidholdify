@@ -100,45 +100,30 @@ export async function GET(req: Request) {
       if (shouldResetCredits(user, now)) {
         const resetData = resetMonthlyCredits(user);
 
-        // Calculate TopView carryover (Adding unused credits from this month)
-        const topViewAllowed = user.credits_allowed || 0;
-        const topViewUsed = user.credits_used || 0;
-        const topViewRemaining = Math.max(0, topViewAllowed - topViewUsed);
-
-        // resetData.carryover already handles expiry of OLD carryover
-        const newTopViewCarryover = topViewRemaining + resetData.carryover;
-
         // Get plan limits to reset the "allowed" amounts
         const planTier = (user.plan_tier as keyof typeof planLimits) || 'free';
         const limits = planLimits[planTier];
 
-        // Calculate VEO3 carryover (similar to TopView)
-        // Carry over unused VEO3 credits from this period
-        const veoAllowed = user.credits_allowed_veo || 0;
-        const veoUsed = user.credits_used_veo || 0;
-        const veoRemaining = Math.max(0, veoAllowed - veoUsed);
-
-        // Check if existing VEO3 carryover is still valid
+        // Ensure we preserve existing carryover if it hasn't expired, but do NOT add new carryover
+        // from the just-finished month (as per user request: monthly updates do not rollover)
         const carryExpired = !user.carryover_expiry || now >= user.carryover_expiry;
         const existingVeoCarryover = carryExpired ? 0 : (user.carryover_veo || 0);
-
-        // New VEO3 carryover = unused credits + existing valid carryover
-        const newVeoCarryover = veoRemaining + existingVeoCarryover;
 
         await db
           .update(Users)
           .set({
-            // TopView credits reset with carryover
+            // TopView credits logic should match request: no rollover for monthly reset
+            // resetData.carryover contains the preserved carryover (if valid), but we don't add new unused credits
             credits_used: resetData.credits_used,
-            carryover: newTopViewCarryover, // Updated to include rollover
+            carryover: resetData.carryover,
             carryover_expiry: resetData.carryover_expiry,
             next_credit_reset: resetData.next_credit_reset,
-            // Reset credits_allowed to plan level (important for yearly plans getting monthly credits)
+            // Reset credits_allowed to plan level
             credits_allowed: limits?.credits ?? user.credits_allowed,
 
-            // VEO3 credits reset with carryover
+            // VEO3 credits reset
             credits_used_veo: 0,
-            carryover_veo: newVeoCarryover,
+            carryover_veo: existingVeoCarryover, // Just keep old carryover (if valid), don't add new
             credits_allowed_veo: limits?.credits_veo ?? 0,
 
             updated_at: new Date(),
@@ -151,7 +136,7 @@ export async function GET(req: Request) {
           newReset: resetData.next_credit_reset
         });
 
-        console.log(`🔄 Cron: Reset credits for ${user.email}. Next reset: ${resetData.next_credit_reset.toISOString()}. VEO3 carryover: ${newVeoCarryover}`);
+        console.log(`🔄 Cron: Reset credits for ${user.email}. Next reset: ${resetData.next_credit_reset.toISOString()}. VEO3 carryover: ${existingVeoCarryover}`);
       }
     }
 
