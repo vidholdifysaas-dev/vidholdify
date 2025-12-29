@@ -12,8 +12,8 @@ import { CreditProvider } from "@/app/context/CreditContext";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Essential Video", href: "/dashboard/create", icon: Video },
-  { name: "Premium (Veo3) Video", href: "/dashboard/manual-video", icon: Wand2 },
+  { name: "Essential Video generator", href: "/dashboard/create", icon: Video },
+  { name: "Premium (Veo3) Video generator", href: "/dashboard/manual-video", icon: Wand2 },
   { name: "Video Gallery", href: "/dashboard/videos", icon: Sparkles },
   { name: "Pricing", href: "/dashboard/pricing", icon: ShieldPlus },
   { name: "Billing", href: "/dashboard/billing", icon: CreditCard },
@@ -45,13 +45,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         >
           {/* Logo/Header */}
           <div className="h-16 flex items-center justify-between px-6 border-b border-sidebar-border">
-            <Link href="/dashboard" className="flex items-center">
+            <Link href="/" className="flex items-center">
               <Image
                 src="/Full_logo.svg"
                 alt="Vidholdify Logo"
-                width={150}
-                height={32}
-                className="h-8 w-auto object-contain"
+                width={140}
+                height={40}
               />
             </Link>
 
