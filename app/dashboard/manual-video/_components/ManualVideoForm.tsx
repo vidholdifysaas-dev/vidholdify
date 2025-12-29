@@ -52,60 +52,6 @@ interface ManualVideoFormProps {
     isProcessing: boolean;
 }
 
-// ============================================
-// PREBUILT AVATARS
-// ============================================
-
-const PREBUILT_AVATARS: PrebuiltAvatar[] = [
-    {
-        id: "avatar-1",
-        name: "Sarah",
-        description: "Young professional woman, casual style",
-        imageUrl: "/avatars/sarah.webp",
-        gender: "female",
-        style: "casual",
-    },
-    {
-        id: "avatar-2",
-        name: "Marcus",
-        description: "Athletic man, fitness influencer style",
-        imageUrl: "/avatars/marcus.webp",
-        gender: "male",
-        style: "fitness",
-    },
-    {
-        id: "avatar-3",
-        name: "Emily",
-        description: "Lifestyle blogger, elegant aesthetic",
-        imageUrl: "/avatars/emily.webp",
-        gender: "female",
-        style: "elegant",
-    },
-    {
-        id: "avatar-4",
-        name: "James",
-        description: "Tech reviewer, modern professional",
-        imageUrl: "/avatars/james.webp",
-        gender: "male",
-        style: "professional",
-    },
-    {
-        id: "avatar-5",
-        name: "Zara",
-        description: "Beauty influencer, glamorous look",
-        imageUrl: "/avatars/zara.webp",
-        gender: "female",
-        style: "glamorous",
-    },
-    {
-        id: "avatar-6",
-        name: "David",
-        description: "Casual everyday person, relatable",
-        imageUrl: "/avatars/david.webp",
-        gender: "male",
-        style: "casual",
-    },
-];
 
 // ============================================
 // PLATFORMS & DURATIONS & BACKGROUNDS
@@ -283,18 +229,17 @@ function AvatarCard({
             className={cn(
                 "relative group cursor-pointer rounded-lg overflow-hidden border-2 transition-all duration-200",
                 isSelected
-                    ? "border-brand-primary shadow-md shadow-brand-primary/20 scale-[1.02]"
+                    ? "border-brand-primary shadow-md shadow-brand-primary/20"
                     : "border-border/50 hover:border-brand-primary/50 hover:shadow-sm"
             )}
         >
-            <div className="aspect-square relative bg-sidebar">
+            <div className="aspect-[9/16] relative bg-sidebar">
                 {!imageError ? (
-                    <Image
+                    <img
                         src={avatar.imageUrl}
                         alt={avatar.name}
-                        fill
                         className={cn(
-                            "object-cover transition-opacity duration-300",
+                            "w-full h-full object-cover transition-opacity duration-300",
                             imageLoaded ? "opacity-100" : "opacity-0"
                         )}
                         onLoad={() => setImageLoaded(true)}
@@ -317,13 +262,6 @@ function AvatarCard({
                         <Check className="w-3 h-3 text-white" />
                     </div>
                 )}
-            </div>
-
-            <div className="p-2 bg-card">
-                <p className="font-medium text-foreground text-xs">{avatar.name}</p>
-                <p className="text-[10px] text-muted-foreground line-clamp-1">
-                    {avatar.description}
-                </p>
             </div>
         </div>
     );
@@ -507,10 +445,63 @@ export default function ManualVideoForm({
         currentStep,
     } = formState;
 
+    // ==================
+    // Fetch Prebuilt Avatars from S3 (Paginated)
+    // ==================
+    const [s3Avatars, setS3Avatars] = useState<PrebuiltAvatar[]>([]);
+    const [avatarPage, setAvatarPage] = useState(1);
+    const [hasMoreAvatars, setHasMoreAvatars] = useState(true);
+    const [isAvatarLoading, setIsAvatarLoading] = useState(false);
+
+    const fetchAvatars = useCallback(async (page: number) => {
+        if (isAvatarLoading) return;
+        setIsAvatarLoading(true);
+        try {
+            const res = await axios.get(`/api/avatars/prebuilt?page=${page}&limit=24`);
+            if (res.data.avatars) {
+                const mapped: PrebuiltAvatar[] = res.data.avatars.map((item: { key: string; url: string; fileName: string }, idx: number) => {
+                    // Clean filename for display name
+                    const fileName = item.fileName.split('/').pop() || "";
+                    const name = fileName.split('.')[0].replace(/[-_]/g, ' ');
+
+                    return {
+                        id: item.key || `s3-avatar-${page}-${idx}`,
+                        imageUrl: item.url,
+                        gender: "female",
+                        style: "casual"
+                    };
+                });
+
+                setS3Avatars(prev => page === 1 ? mapped : [...prev, ...mapped]);
+                setHasMoreAvatars(mapped.length === 24); // If < limit, no more
+            }
+        } catch (error) {
+            console.error("Failed to fetch S3 avatars:", error);
+        } finally {
+            setIsAvatarLoading(false);
+        }
+    }, []);
+
+    // Initial load
+    useEffect(() => {
+        fetchAvatars(1);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const loadMoreAvatars = () => {
+        if (!hasMoreAvatars || isAvatarLoading) return;
+        const nextPage = avatarPage + 1;
+        setAvatarPage(nextPage);
+        fetchAvatars(nextPage);
+    };
+
+    const allAvatars = useMemo(() => {
+        return [...s3Avatars];
+    }, [s3Avatars]);
+
     // Find selected avatar from prebuilt list
     const selectedAvatar = useMemo(() => {
-        return PREBUILT_AVATARS.find(a => a.id === selectedAvatarId) || null;
-    }, [selectedAvatarId]);
+        return allAvatars.find(a => a.id === selectedAvatarId) || null;
+    }, [selectedAvatarId, allAvatars]);
 
     // UI State (not persisted - local only)
     const [loading, setLoading] = useState(false);
@@ -570,6 +561,9 @@ export default function ManualVideoForm({
         };
         fetchCredits();
     }, []);
+
+
+
 
     // ==================
     // Upload Image to S3
@@ -652,6 +646,7 @@ export default function ManualVideoForm({
             let finalAvatarDescription: string | undefined;
             if (avatarMode === "prebuilt" && selectedAvatar) {
                 finalAvatarDescription = selectedAvatar.description;
+                avatarImageUrl = selectedAvatar.imageUrl; // Use the fetched S3 URL
             } else if (avatarMode === "describe") {
                 finalAvatarDescription = avatarDescription;
             }
@@ -961,15 +956,31 @@ export default function ManualVideoForm({
                         </div>
 
                         {avatarMode === "prebuilt" && (
-                            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                                {PREBUILT_AVATARS.map((avatar) => (
-                                    <AvatarCard
-                                        key={avatar.id}
-                                        avatar={avatar}
-                                        isSelected={selectedAvatar?.id === avatar.id}
-                                        onSelect={() => setSelectedAvatarId(avatar.id)}
-                                    />
-                                ))}
+                            <div
+                                className="h-[360px] overflow-y-auto pr-2 pb-2 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent animate-in fade-in duration-500"
+                                onScroll={(e) => {
+                                    const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
+                                    if (scrollHeight - scrollTop <= clientHeight + 50) {
+                                        loadMoreAvatars();
+                                    }
+                                }}
+                            >
+                                <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-3">
+                                    {allAvatars.map((avatar) => (
+                                        <AvatarCard
+                                            key={avatar.id}
+                                            avatar={avatar}
+                                            isSelected={selectedAvatar?.id === avatar.id}
+                                            onSelect={() => setSelectedAvatarId(avatar.id)}
+                                        />
+                                    ))}
+                                </div>
+
+                                {!hasMoreAvatars && allAvatars.length > 0 && (
+                                    <p className="text-center text-xs text-muted-foreground mt-4 pb-2">
+                                        End of list
+                                    </p>
+                                )}
                             </div>
                         )}
 
@@ -1189,6 +1200,11 @@ export default function ManualVideoForm({
                                         src={generatedImageUrl}
                                         alt="Generated Reference"
                                         className="w-full h-full object-contain"
+                                        onError={(e) => {
+                                            console.error("Failed to load generated image:", generatedImageUrl);
+                                            e.currentTarget.style.display = 'none'; // Optional: hide if broken
+                                        }}
+                                        onLoad={() => console.log("Generated image loaded successfully!")}
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
                                     <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
@@ -1421,7 +1437,7 @@ export default function ManualVideoForm({
                 <Step3Result jobId={jobId} onReset={handleRegenerateImage} />
             )}
 
-            {/* Quick Nav (Testing) */}
+            {/* Quick Nav (Testing)
             <div className="pt-6 mt-6 border-t border-dashed border-border/50 flex justify-center gap-2 opacity-50 hover:opacity-100 transition-opacity">
                 <span className="text-xs text-muted-foreground self-center mr-2">Debug:</span>
                 {[1, 2, 3].map(s => (
@@ -1432,7 +1448,7 @@ export default function ManualVideoForm({
                         currentStep={currentStep}
                     />
                 ))}
-            </div>
+            </div> */}
 
         </div>
     );

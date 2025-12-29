@@ -4,6 +4,7 @@ import {
     GetObjectCommand,
     DeleteObjectCommand,
     HeadObjectCommand,
+    ListObjectsV2Command,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
@@ -250,7 +251,8 @@ export async function getSignedUrlFromS3Url(
     expiresIn: number = 3600
 ): Promise<string> {
     const url = new URL(s3Url);
-    const key = url.pathname.slice(1);
+    // Decode key to handle special characters (e.g. parens, spaces)
+    const key = decodeURIComponent(url.pathname.slice(1));
 
     return getSignedPlaybackUrl(key, expiresIn);
 }
@@ -322,6 +324,27 @@ export async function deleteFromS3(key: string): Promise<void> {
     });
 
     await getS3Client().send(command);
+}
+
+/**
+ * List objects in a specific folder (prefix)
+ */
+export async function listS3Folder(prefix: string): Promise<string[]> {
+    const command = new ListObjectsV2Command({
+        Bucket: getBucketName(),
+        Prefix: prefix,
+    });
+
+    const response = await getS3Client().send(command);
+
+    if (!response.Contents) {
+        return [];
+    }
+
+    // Filter out directories (keys ending with /) and map to keys
+    return response.Contents
+        .map((item) => item.Key || "")
+        .filter((key) => key && !key.endsWith("/"));
 }
 
 /**

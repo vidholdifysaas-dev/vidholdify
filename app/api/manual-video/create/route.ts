@@ -250,10 +250,11 @@ export async function POST(request: NextRequest) {
                             responseType: "arraybuffer",
                         });
                         const imageBuffer = Buffer.from(imageResponse.data);
-                        const s3Key = `${getS3Paths(jobId).reference}/reference.png`;
+                        // Nano Banana returns JPG
+                        const s3Key = `${getS3Paths(jobId).reference}/reference.jpg`;
 
                         // Upload to S3 (without public access)
-                        await uploadToS3(s3Key, imageBuffer, "image/png", false);
+                        await uploadToS3(s3Key, imageBuffer, "image/jpeg", false);
                         console.log(`[API] Reference image uploaded to S3: ${s3Key}`);
 
                         // Generate a signed URL for display (valid for 7 days)
