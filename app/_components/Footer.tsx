@@ -16,13 +16,13 @@ export default function Footer() {
             <div className="max-w-7xl mx-auto grid grid-cols-3 md:grid-cols-4 gap-6 md:gap-10">
                 {/* Logo - Full width on mobile, 1 col on md+ */}
                 <div className="col-span-3 md:col-span-1">
-                        <Image
-                            src="/Full_logo.svg"
-                            alt="Vidholdify Logo"
-                            width={100}
-                            height={0}
-                            className="object-contain"
-                        />
+                    <Image
+                        src="/Full_logo.svg"
+                        alt="Vidholdify Logo"
+                        width={150}
+                        height={0}
+                        className="object-contain"
+                    />
                     <p className="text-white/70 text-sm mb-4">
                         The fastest AI Avatar marketing video generator.
                     </p>

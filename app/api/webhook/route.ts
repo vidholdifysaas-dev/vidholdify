@@ -9,8 +9,7 @@ import { planLimits } from "@/dataUtils/planLimits";
 import {
     initializeCreditReset,
     calculateCarryover,
-    resetMonthlyCredits,
-    shouldResetCredits
+    resetMonthlyCredits
 } from "@/utils/creditHelpers";
 
 // Extended Stripe types to include properties that exist at runtime
@@ -58,6 +57,7 @@ function getPlanTier(priceId: string) {
 
 export async function POST(req: Request) {
     try {
+        console.log("🚀 Webhook received!");
         const body = await req.text();
         const signature = (await headers()).get("stripe-signature");
 
@@ -341,6 +341,9 @@ export async function POST(req: Request) {
                         id: Users.id,
                         credits_allowed: Users.credits_allowed,
                         credits_used: Users.credits_used,
+                        credits_allowed_veo: Users.credits_allowed_veo,
+                        credits_used_veo: Users.credits_used_veo,
+                        carryover_veo: Users.carryover_veo,
                         next_credit_reset: Users.next_credit_reset,
                         credit_reset_day: Users.credit_reset_day,
                         carryover: Users.carryover,
@@ -365,18 +368,39 @@ export async function POST(req: Request) {
                     ? new Date(subscription.current_period_end * 1000)
                     : null;
 
-                // Check if we need to reset credits
+                // Check if we need to reset credits (typically yes for monthly renewal)
                 const now = new Date();
-                let resetData: { credits_used?: number; carryover?: number; next_credit_reset?: Date } = {};
+                let resetData: {
+                    credits_used?: number;
+                    carryover?: number;
+                    next_credit_reset?: Date;
+                    credits_used_veo?: number;
+                    carryover_veo?: number;
+                } = {};
 
-                if (currentUser && shouldResetCredits(currentUser, now)) {
+                // For monthly renewals, we always reset if payment succeeded
+                // But we use helper to calculate dates and carryover
+                if (currentUser) {
                     const reset = resetMonthlyCredits(currentUser);
+
+                    // Calculate VEO3 carryover manually since helper doesn't do it yet
+                    const veoAllowed = currentUser.credits_allowed_veo || 0;
+                    const veoUsed = currentUser.credits_used_veo || 0;
+                    const veoRemaining = Math.max(0, veoAllowed - veoUsed);
+
+                    // Check valid carryover
+                    const carryExpired = !currentUser.carryover_expiry || now >= currentUser.carryover_expiry;
+                    const existingVeoCarryover = carryExpired ? 0 : (currentUser.carryover_veo || 0);
+                    const newVeoCarryover = veoRemaining + existingVeoCarryover;
+
                     resetData = {
-                        credits_used: reset.credits_used,
+                        credits_used: reset.credits_used, // 0
                         carryover: reset.carryover,
                         next_credit_reset: reset.next_credit_reset,
+                        credits_used_veo: 0,
+                        carryover_veo: newVeoCarryover
                     };
-                    console.log("🔄 Monthly credits reset for subscription:", subscriptionId);
+                    console.log("🔄 Monthly credits (TopView + VEO) reset for subscription:", subscriptionId);
                 }
 
                 await db

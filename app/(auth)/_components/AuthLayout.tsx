@@ -40,7 +40,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
                         {/* Badge */}
                         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-muted-foreground text-sm font-medium mb-6 w-fit backdrop-blur-sm">
                             <Sparkles className="w-4 h-4 text-brand-primary" />
-                            <span>AI-Powered Product Videos</span>
+                            <span>AI-Powered Product Holding Videos</span>
                         </div>
 
                         {/* Headline */}

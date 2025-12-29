@@ -49,7 +49,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               <Image
                 src="/Full_logo.svg"
                 alt="Vidholdify Logo"
-                width={140}
+                width={150}
                 height={32}
                 className="h-8 w-auto object-contain"
               />
