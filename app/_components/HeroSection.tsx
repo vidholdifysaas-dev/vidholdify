@@ -98,12 +98,6 @@ export default function HeroSection() {
 
                                 return (
                                     <>
-                                        {/* ✅ Dynamic Badge */}
-                                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted/60 border border-border/50 text-muted-foreground text-sm font-medium mb-4 sm:mb-8 backdrop-blur-sm">
-                                            <Sparkles className="w-4 h-4 text-brand-primary" />
-                                            <span>Product Holding videos</span>
-                                        </div>
-
                                         {/* ✅ Animated Headline */}
                                         <motion.h1
                                             key={activeComparison} // Key change triggers re-animation
