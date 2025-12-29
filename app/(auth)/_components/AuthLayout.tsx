@@ -33,13 +33,13 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     return (
         <div className="min-h-screen w-full flex flex-col lg:flex-row bg-background overflow-x-hidden relative">
             {/* GLOBAL LOGO - TOP LEFT */}
-            <div className="absolute top-6 left-6 z-50">
+            <div className="absolute top-6 left-6 z-50 sm:block hidden">
                 <Link href="/" className="transition-opacity hover:opacity-80">
                     <Image
                         src="/Full_logo.svg"
                         alt="Vidholdify Logo"
                         width={150}
-                        height={50}
+                        height={0}
                         className="w-auto h-8 lg:h-10"
                     />
                 </Link>

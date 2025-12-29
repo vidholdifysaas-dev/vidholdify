@@ -8,8 +8,9 @@ export default function Page() {
     <AuthLayout>
 
       <div className="mb-4 text-center">
+        <img src="Full_logo.svg" width={150} className="mx-auto pb-3 block sm:hidden" />
         <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">Join Vidholdify</h2>
-        <p className="text-gray-400 text-sm sm:text-base">Create your account to start generating videos</p>
+        <p className="text-gray-400 text-sm sm:text-base">Create your account to start generating videos.</p>
       </div>
 
       <SignUp
