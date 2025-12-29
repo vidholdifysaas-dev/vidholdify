@@ -31,8 +31,8 @@ export const pricingData: PricingPlan[] = [
     },
     description: "Perfect for individuals starting out.",
     features: [
-      "5 Essential videos (30 sec, 5 credits/video)",
-      "20 VEO3 credits (Max 15s = 5 credits)",
+      "5 Essential videos (30s, 5 credits)",
+      "20 VEO3 credits (15s, 5 credits)",
       "Image Generation (1 credit)",
       "1000+ UGC Avatars (8 ethnicities)",
       "15 Languages",
@@ -62,8 +62,8 @@ export const pricingData: PricingPlan[] = [
     },
     description: "For creators who need more power.",
     features: [
-      "15 Essential videos (60 sec, 5 credits/video)",
-      "60 VEO3 credits (Max 30s = 10 credits)",
+      "15 Essential (60s, 5 credits)",
+      "60 VEO3 credits (30s, 10 credits)",
       "Image Generation (1 credit)",
       "1000+ UGC Avatars (8 ethnicities)",
       "15 Languages",
@@ -93,8 +93,8 @@ export const pricingData: PricingPlan[] = [
     },
     description: "Scale your video production.",
     features: [
-      "30 Essential videos (90 sec, 5 credits/video)",
-      "120 VEO3 credits (Max 45s = 15 credits)",
+      "30 Essential (90s, 5 credit)",
+      "120 VEO3 credits (45s, 15 credit)",
       "Image Generation (1 credit)",
       "1000+ UGC Avatars (8 ethnicities)",
       "15 Languages",
@@ -126,8 +126,8 @@ export const pricingData: PricingPlan[] = [
     },
     description: "For agencies and high volume.",
     features: [
-      "60 Essential videos (90 sec, 5 credits/video)",
-      "240 VEO3 credits (Max 60s = 20 credits)",
+      "60 Essential (90s, 5 credits)",
+      "240 VEO3 credits (60s, 20 credits)",
       "Image Generation (1 credit)",
       "1000+ UGC Avatars (8 ethnicities)",
       "15 Languages",

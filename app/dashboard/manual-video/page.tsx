@@ -13,11 +13,8 @@ export default function ManualVideoPage() {
                 {/* Header */}
                 <div className="flex flex-col gap-2">
                     <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-                        Manual Video Generator
+                        VEO3 Video Generator
                     </h1>
-                    <p className="text-muted-foreground">
-                        Create AI-powered UGC videos with Nano Banana + Veo pipeline
-                    </p>
                 </div>
 
                 {/* Content - Always full width */}
