@@ -115,7 +115,7 @@ export default function PrivacyPolicy() {
                         <h2 className="text-2xl font-semibold text-white mb-4">Contact Us</h2>
                         <p>For requests, concerns, or data-related questions:</p>
                         <p className="mt-2">
-                            📩 <a href="mailto:vidholdify@gmail.com" className="text-brand-primary hover:underline">vidholdify@gmail.com</a>
+                            📩 <a href="mailto:vidholdifysaas@gmail.com" className="text-brand-primary hover:underline">vidholdifysaas@gmail.com</a>
                         </p>
                     </section>
 

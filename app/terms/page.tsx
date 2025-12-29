@@ -127,7 +127,7 @@ export default function TermsOfService() {
                     <section>
                         <h2 className="text-2xl font-semibold text-white mb-4">Governing Law</h2>
                         <p>
-                            These Terms are governed by the laws of <strong className="text-white">New South Wales, Australia</strong>, excluding conflict-of-law principles.
+                            These Terms are governed by the laws of Toronto, Canada excluding conflict-of-law principles.
                         </p>
                     </section>
 
