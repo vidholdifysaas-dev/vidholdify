@@ -31,7 +31,19 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     const activeContent = comparisons[activeComparison];
 
     return (
-        <div className="min-h-screen w-full flex flex-col lg:flex-row bg-background overflow-x-hidden">
+        <div className="min-h-screen w-full flex flex-col lg:flex-row bg-background overflow-x-hidden relative">
+            {/* GLOBAL LOGO - TOP LEFT */}
+            <div className="absolute top-6 left-6 z-50">
+                <Link href="/" className="transition-opacity hover:opacity-80">
+                    <Image
+                        src="/Full_logo.svg"
+                        alt="Vidholdify Logo"
+                        width={150}
+                        height={50}
+                        className="w-auto h-8 lg:h-10"
+                    />
+                </Link>
+            </div>
             {/* LEFT SIDE - BRANDING & VISUALS */}
             <div className="hidden lg:flex w-1/2 relative flex-col p-4 h-screen overflow-hidden justify-center">
                 {/* Background Effects */}
@@ -170,29 +182,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-brand-primary/10 rounded-full blur-[120px] -z-10" />
 
                 <div className="w-full max-w-[calc(100%-8px)] sm:max-w-md mx-auto bg-black/30 backdrop-blur-xl border border-white/10 p-3 sm:p-8 rounded-2xl sm:rounded-3xl shadow-2xl animate-in fade-in duration-500 box-border">
-                    {/* Mobile Logo (visible only on small screens) */}
-                    <div className="lg:hidden flex justify-center mb-6 sm:mb-8">
-                        <Link href="/" className="flex items-center gap-2">
-                            <Image
-                                src="/Full_logo.svg"
-                                alt="Vidholdify Logo"
-                                width={120}
-                                height={32}
-                                className="h-8 w-auto object-contain"
-                            />
-                        </Link>
-                    </div>
 
-                    {/* Desktop Logo (centered at top, visible only on large screens) */}
-                    <div className="hidden lg:flex items-center justify-center gap-2 mb-8">
-                        <Image
-                            src="/Full_logo.svg"
-                            alt="Vidholdify Logo"
-                            width={150}
-                            height={40}
-                            className="object-contain h-10 w-auto"
-                        />
-                    </div>
+
+
 
                     {children}
                 </div>
