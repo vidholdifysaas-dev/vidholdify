@@ -8,7 +8,7 @@ const STEPS = [
     {
         id: "01",
         title: "Choose Your Aesthetic",
-        heading: "Start with a Premium Template",
+        heading: "Start with a Premium Template or Upload your own Avatar or Describe your own Avatar",
         description: "Browse our curated collection of high-converting product video templates. From sleek tech showcases to vibrant lifestyle sets, find the perfect match for your brand identity.",
         imageSrc: "/process1.png",
         icon: Wand2,

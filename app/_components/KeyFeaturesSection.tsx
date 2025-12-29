@@ -21,7 +21,7 @@ const FEATURES = [
         icon: Languages,
     },
     {
-        title: "400+ Avatars & Customizable",
+        title: "1000+ Avatars & Customizable",
         description: "Choose from over 400 ready-to-use avatars or create your own custom designs tailored to your brand.",
         icon: Users,
     },

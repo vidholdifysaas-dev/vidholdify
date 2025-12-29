@@ -7,7 +7,7 @@ import BeforeAfterSlider from "./BeforeAfterSlider";
 import { useEffect, useRef, useState } from "react";
 
 const stats = [
-    { value: 450, suffix: "+", label: "Video Avatars" },
+    { value: 1000, suffix: "+", label: "Video Avatars" },
     { value: 15, suffix: "+", label: "Languages" },
     { value: 50, suffix: "+", label: "Voices with Accents" },
     { value: 10, suffix: "+", label: "Subtitle Styles" },
@@ -53,7 +53,7 @@ export default function HeroSection() {
         standard: {
             before: "https://d1735p3aqhycef.cloudfront.net/official-website/public/landing-page/home/init_5.webp",
             after: "https://d1735p3aqhycef.cloudfront.net/official-website/public/landing-page/home/result_5.mp4",
-            label: "Cost Effective"
+            label: "Essential"
         }
     };
 
@@ -80,80 +80,111 @@ export default function HeroSection() {
                             className="text-center md:text-left order-1 md:order-1"
                         >
 
-                            {/* ✅ Premium Badge */}
+                            {/* ✅ Dynamic Content Configuration */}
+                            {(() => {
+                                const content = {
+                                    veo3: {
+                                        headlineTop: "Product-Holding VEO3",
+                                        headlineBottom: "The Only AI Tool Delivering 60-Second Product Videos",
+                                        subtitle: "Turn any product image into a professional AI UGC video in minutes."
+                                    },
+                                    standard: {
+                                        headlineTop: "Product-Holding AI",
+                                        headlineBottom: "Fast, Affordable & Ready to Convert",
+                                        subtitle: "AI-powered product holding videos that deliver results at the most competitive price."
+                                    }
+                                };
+                                const activeContent = content[activeComparison];
 
-                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted/60 border border-border/50 text-muted-foreground text-sm font-medium mb-4 sm:mb-8 backdrop-blur-sm">
-                                <Sparkles className="w-4 h-4 text-brand-primary" />
-                                <span>AI-Powered Product Holding Videos</span>
-                            </div>
-                            {/* ✅ Animated Headline */}
-                            <motion.h1
-                                initial={{ opacity: 0, y: 30 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.2, duration: 0.8 }}
-                                className="text-3xl md:text-5xl lg:text-6xl font-bold tracking-tighter font-geist mt-2 mb-6 text-white/95 leading-tight"
-                            >
-                                Product-Holding AI {"  "}
-                                <span
-                                    className="relative inline-block px-3 py-1 bg-gradient-to-r from-brand-primary to-purple-600 text-white rounded-lg shadow-lg shadow-brand-primary/40 transform -rotate-3 hover:rotate-0 transition-transform duration-300"
-                                    style={{
-                                        textShadow: '0 2px 10px rgba(65, 59, 250, 0.5)',
-                                    }}
-                                >
-                                    UGC
-                                </span>{" "}
-                                Videos That Win
-                            </motion.h1>
+                                return (
+                                    <>
+                                        {/* ✅ Dynamic Badge */}
+                                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted/60 border border-border/50 text-muted-foreground text-sm font-medium mb-4 sm:mb-8 backdrop-blur-sm">
+                                            <Sparkles className="w-4 h-4 text-brand-primary" />
+                                            <span>Product Holding videos</span>
+                                        </div>
 
-                            {/* ✅ Subtitle Fade-Up */}
-                            <motion.p
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.4, duration: 0.8 }}
-                                className="mt-6 sm:text-lg text-md leading-8 text-white/60 mb-8"
-                            >
-                                Upload your product image and instantly create an AI avatar showcasing it.
-                                <br className="hidden sm:block" />
-                                Create scroll-stopping UGC without ever picking up a camera.
-                            </motion.p>
+                                        {/* ✅ Animated Headline */}
+                                        <motion.h1
+                                            key={activeComparison} // Key change triggers re-animation
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.5 }}
+                                            className="text-3xl md:text-5xl lg:text-6xl font-bold tracking-tighter font-geist mt-2 mb-2 text-white/95 leading-tight"
+                                        >
+                                            {activeContent.headlineTop} {"  "}
+                                            <br className="hidden md:block" />
+                                            <span
+                                                className="relative inline-block px-3 py-1 bg-gradient-to-r from-brand-primary to-purple-600 text-white rounded-lg shadow-lg shadow-brand-primary/40 transform -rotate-3 hover:rotate-0 transition-transform duration-300 my-2"
+                                                style={{
+                                                    textShadow: '0 2px 10px rgba(65, 59, 250, 0.5)',
+                                                }}
+                                            >
+                                                UGC
+                                            </span>{" "}
+                                            Videos That Win
+                                        </motion.h1>
 
-                            {/* Toggle Switch (Left Side) */}
+                                        <motion.div
+                                            key={`headline-bottom-${activeComparison}`}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.5, delay: 0.1 }}
+                                            className="text-lg md:text-2xl lg:text-3xl mt-2 mb-6 font-medium text-white/80 tracking-normal"
+                                        >
+                                            {activeContent.headlineBottom}
+                                        </motion.div>
+
+                                        {/* ✅ Subtitle Fade-Up */}
+                                        <motion.p
+                                            key={`sub-${activeComparison}`}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.5, delay: 0.1 }}
+                                            className="mt-2 sm:mt-6 sm:text-lg text-md leading-8 text-white/60 mb-6 sm:mb-8"
+                                        >
+                                            {activeContent.subtitle}
+                                        </motion.p>
+                                    </>
+                                );
+                            })()}
+
+                            {/* Toggle Switch (Left Side - Mobile Only) */}
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.5, duration: 0.8 }}
-                                className="mb-8 flex justify-center md:justify-start"
+                                className="mb-8 flex justify-center md:justify-start sm:hidden"
                             >
-                                <div className="bg-white/5 backdrop-blur-md p-0.5 rounded-full border border-white/10 relative flex z-10">
+                                <div className="bg-white/5 backdrop-blur-md p-0.5 rounded-full border border-white/10 relative flex z-10 w-fit">
                                     <button
                                         onClick={() => setActiveComparison('veo3')}
-                                        className={`relative z-10 px-3 py-1.5 text-xs font-medium transition-colors duration-300 rounded-full ${activeComparison === 'veo3' ? 'text-white' : 'text-white/50 hover:text-white/80'
+                                        className={`relative z-10 px-8 py-2 text-xs font-medium transition-colors duration-300 rounded-full ${activeComparison === 'veo3' ? 'text-white' : 'text-white/50 hover:text-white/80'
                                             }`}
                                     >
-                                        Premium (Veo3)
+                                        <span className="relative z-10">Premium (Veo3)</span>
+                                        {activeComparison === 'veo3' && (
+                                            <motion.div
+                                                layoutId="toggleHighlightMobile"
+                                                className="absolute inset-0 bg-brand-primary rounded-full shadow-lg"
+                                                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                            />
+                                        )}
                                     </button>
                                     <button
                                         onClick={() => setActiveComparison('standard')}
-                                        className={`relative z-10 px-3 py-1.5 text-xs font-medium transition-colors duration-300 rounded-full ${activeComparison === 'standard' ? 'text-white' : 'text-white/50 hover:text-white/80'
+                                        className={`relative z-10 px-3 py-2 text-xs font-medium transition-colors duration-300 rounded-full ${activeComparison === 'standard' ? 'text-white' : 'text-white/50 hover:text-white/80'
                                             }`}
                                     >
-                                        Cost Effective
+                                        <span className="relative z-10">Essential</span>
+                                        {activeComparison === 'standard' && (
+                                            <motion.div
+                                                layoutId="toggleHighlightMobile"
+                                                className="absolute inset-0 bg-brand-primary rounded-full shadow-lg"
+                                                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                            />
+                                        )}
                                     </button>
-                                    {/* Sliding Background */}
-                                    <motion.div
-                                        className="absolute top-0.5 bottom-0.5 left-0.5 bg-brand-primary rounded-full shadow-lg"
-                                        initial={false}
-                                        animate={{
-                                            x: activeComparison === 'veo3' ? 0 : '100%',
-                                            width: activeComparison === 'veo3' ? '50%' : '48%' // Adjust width slightly for padding
-                                        }}
-                                        style={{
-                                            left: activeComparison === 'veo3' ? '2px' : 'calc(50% - 2px)',
-                                            width: 'calc(50% - 2px)'
-                                        }}
-                                        layoutId="toggleHighlight"
-                                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                                    />
                                 </div>
                             </motion.div>
 
@@ -180,6 +211,40 @@ export default function HeroSection() {
                             transition={{ delay: 0.4, duration: 0.9, ease: "easeOut" }}
                             className="relative order-2 md:order-2 flex items-center justify-center md:justify-end px-4 md:px-6 lg:px-10 min-h-[350px] md:min-h-[450px] lg:min-h-[550px]"
                         >
+                            {/* Toggle Switch (Top Right Overlay - Desktop Only) */}
+                            <div className="absolute bottom-10 md:right-26 z-20 hidden sm:block">
+                                <div className="bg-black/60 backdrop-blur-lg p-0.5 rounded-full border border-white/10 relative flex shadow-2xl">
+                                    <button
+                                        onClick={() => setActiveComparison('veo3')}
+                                        className={`relative z-10 px-6 py-1.5 text-xs font-medium transition-colors duration-300 rounded-full ${activeComparison === 'veo3' ? 'text-white' : 'text-white/50 hover:text-white/80'
+                                            }`}
+                                    >
+                                        <span className="relative z-10">Premium (Veo3)</span>
+                                        {activeComparison === 'veo3' && (
+                                            <motion.div
+                                                layoutId="toggleHighlightRight"
+                                                className="absolute inset-0 bg-brand-primary rounded-full shadow-lg"
+                                                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                            />
+                                        )}
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveComparison('standard')}
+                                        className={`relative z-10 px-2 py-1.5 text-xs font-medium transition-colors duration-300 rounded-full ${activeComparison === 'standard' ? 'text-white' : 'text-white/50 hover:text-white/80'
+                                            }`}
+                                    >
+                                        <span className="relative z-10">Essential</span>
+                                        {activeComparison === 'standard' && (
+                                            <motion.div
+                                                layoutId="toggleHighlightRight"
+                                                className="absolute inset-0 bg-brand-primary rounded-full shadow-lg"
+                                                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                            />
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+
                             <BeforeAfterSlider
                                 beforeImageSrc={comparisons[activeComparison].before}
                                 afterVideoSrc={comparisons[activeComparison].after}
@@ -211,7 +276,7 @@ export default function HeroSection() {
 
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
 

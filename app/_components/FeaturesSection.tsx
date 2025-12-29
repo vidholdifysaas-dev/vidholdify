@@ -88,7 +88,7 @@ const FEATURES = [
     },
     {
         title: "Video Avatar Generator",
-        description: "Generate avatar videos from 400+ different Avatars.",
+        description: "Generate avatar videos from 1000+ different Avatars or upload or describe your own Avatar.",
         imageSrc: "/Image4.png",
         link: "/dashboard",
         icon: Play,

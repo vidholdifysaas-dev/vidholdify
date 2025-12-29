@@ -49,31 +49,59 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Credits Used */}
+        {/* Credit Usage */}
         <div className="rounded-xl bg-card border border-border p-6 hover:border-brand-primary/50 transition-all">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 rounded-lg bg-sidebar-accent flex items-center justify-center">
               <Sparkles className="w-6 h-6 text-brand-primary" />
             </div>
             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Credits Used
+              Credit Usage
             </span>
           </div>
-          <div className="space-y-1">
-            <p className="text-3xl font-bold text-foreground">{stats.credits.used} / {stats.credits.allowed}</p>
-            <p className="text-sm text-muted-foreground">
-              {stats.credits.allowed - stats.credits.used} credits remaining
-            </p>
-            {stats.credits.carryover > 0 && (
-              <p className="text-xs text-brand-primary mt-2">
-                +{stats.credits.carryover} carryover
-                {stats.credits.carryoverExpiry && (
-                  <span className="text-muted-foreground ml-1">
-                    (expires {new Date(stats.credits.carryoverExpiry).toLocaleDateString()})
-                  </span>
-                )}
-              </p>
-            )}
+
+          <div className="space-y-5">
+            {/* Essential/UGC Credits */}
+            <div>
+              <div className="flex justify-between items-baseline mb-1">
+                <span className="text-sm font-medium text-muted-foreground">Essential Credits</span>
+                <span className="text-lg font-bold text-foreground">
+                  {stats.credits.used} <span className="text-muted-foreground text-sm font-normal">/ {stats.credits.allowed}</span>
+                </span>
+              </div>
+              <div className="w-full bg-sidebar-accent/50 rounded-full h-1.5 overflow-hidden">
+                <div
+                  className="bg-brand-primary h-full rounded-full transition-all duration-500"
+                  style={{ width: `${Math.min((stats.credits.used / (stats.credits.allowed || 1)) * 100, 100)}%` }}
+                ></div>
+              </div>
+              {stats.credits.carryover > 0 && (
+                <p className="text-[10px] text-brand-primary mt-1 font-medium">
+                  +{stats.credits.carryover} carryover
+                </p>
+              )}
+            </div>
+
+            {/* Veo3 Credits */}
+            <div>
+              <div className="flex justify-between items-baseline mb-1">
+                <span className="text-sm font-medium text-muted-foreground">Veo3 Credits</span>
+                <span className="text-lg font-bold text-foreground">
+                  {stats.credits.usedVeo} <span className="text-muted-foreground text-sm font-normal">/ {stats.credits.allowedVeo}</span>
+                </span>
+              </div>
+              <div className="w-full bg-sidebar-accent/50 rounded-full h-1.5 overflow-hidden">
+                <div
+                  className="bg-purple-500 h-full rounded-full transition-all duration-500"
+                  style={{ width: `${Math.min((stats.credits.usedVeo / (stats.credits.allowedVeo || 1)) * 100, 100)}%` }}
+                ></div>
+              </div>
+              {stats.credits.carryoverVeo > 0 && (
+                <p className="text-[10px] text-purple-400 mt-1 font-medium">
+                  +{stats.credits.carryoverVeo} carryover
+                </p>
+              )}
+            </div>
           </div>
         </div>
 
@@ -171,7 +199,7 @@ export default async function DashboardPage() {
               <Video className="w-6 h-6 text-white" />
             </div>
             <h3 className="text-lg font-semibold text-foreground mb-2">
-              Create from Template
+              Essential Video
             </h3>
             <p className="text-sm text-muted-foreground">
               Choose from our pre-made templates to get started quickly

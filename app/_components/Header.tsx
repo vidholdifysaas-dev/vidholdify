@@ -26,7 +26,7 @@ export default function Header() {
                         <Image
                             src="/Full_logo.svg"
                             alt="Vidholdify Logo"
-                            width={150}
+                            width={158}
                             height={40}
                             className="object-contain"
                             priority

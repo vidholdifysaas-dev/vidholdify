@@ -41,7 +41,7 @@ export default function VideoGrid({ videos }: VideoGridProps) {
                         : "text-muted-foreground hover:text-foreground"
                         }`}
                 >
-                    Manual Videos
+                    Premium (Veo3)
                     <span className="ml-2 px-1.5 py-0.5 rounded-full bg-sidebar-accent text-xs">
                         {manualCount}
                     </span>
@@ -56,7 +56,7 @@ export default function VideoGrid({ videos }: VideoGridProps) {
                         : "text-muted-foreground hover:text-foreground"
                         }`}
                 >
-                    Created Videos
+                    Essential Videos
                     <span className="ml-2 px-1.5 py-0.5 rounded-full bg-sidebar-accent text-xs">
                         {legacyCount}
                     </span>
@@ -85,12 +85,12 @@ export default function VideoGrid({ videos }: VideoGridProps) {
                     <div className="col-span-full py-12 text-center text-muted-foreground bg-card border border-border rounded-xl flex flex-col items-center justify-center">
                         <Video className="w-12 h-12 text-muted-foreground/30 mb-3" />
                         <h3 className="font-medium text-lg text-foreground mb-1">
-                            No {activeTab === "manual" ? "Manual" : "Created"} Videos
+                            No {activeTab === "manual" ? "Premium (Veo3)" : "Essential"} Videos
                         </h3>
                         <p className="text-sm text-muted-foreground mb-4">
                             {activeTab === "manual"
-                                ? "You haven't created any manual AI videos yet."
-                                : "You haven't created any standard videos yet."}
+                                ? "You haven't created any Premium (Veo3) videos yet."
+                                : "You haven't created any Essential videos yet."}
                         </p>
                         <a
                             href={activeTab === "manual" ? "/dashboard/manual-video" : "/dashboard/create"}

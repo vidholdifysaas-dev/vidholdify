@@ -12,9 +12,9 @@ import { CreditProvider } from "@/app/context/CreditContext";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Create Video", href: "/dashboard/create", icon: Video },
-  { name: "Manual Video", href: "/dashboard/manual-video", icon: Wand2 },
-  { name: "My Videos", href: "/dashboard/videos", icon: Sparkles },
+  { name: "Essential Video", href: "/dashboard/create", icon: Video },
+  { name: "Premium (Veo3) Video", href: "/dashboard/manual-video", icon: Wand2 },
+  { name: "Video Gallery", href: "/dashboard/videos", icon: Sparkles },
   { name: "Pricing", href: "/dashboard/pricing", icon: ShieldPlus },
   { name: "Billing", href: "/dashboard/billing", icon: CreditCard },
 ];

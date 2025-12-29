@@ -9,7 +9,7 @@ const DATA_SOURCES = [
     { type: "home", id: "0" },
     { type: "home", id: "1" },
     { type: "home", id: "20" },
-    { type: "home", id: "15" },
+    { type: "home", id: "7" },
     { type: "home", id: "8" },
     { type: "home", id: "21" },
     { type: "home", id: "22" },

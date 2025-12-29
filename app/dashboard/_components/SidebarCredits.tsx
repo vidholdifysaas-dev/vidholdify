@@ -68,7 +68,7 @@ export default function SidebarCredits() {
 
             {/* TopView (UGC) Credits */}
             <CreditBar
-                label="Create Video"
+                label="Essential Credits"
                 icon={<Sparkles className="w-3.5 h-3.5" />}
                 allowed={credits.allowed}
                 used={credits.used}
@@ -80,7 +80,7 @@ export default function SidebarCredits() {
 
             {/* VEO3 (Manual Video) Credits */}
             <CreditBar
-                label="Manual Video"
+                label="Veo3 Credits"
                 icon={<Video className="w-3.5 h-3.5" />}
                 allowed={credits.allowedVeo}
                 used={credits.usedVeo}
