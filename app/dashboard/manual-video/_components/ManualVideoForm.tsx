@@ -1689,7 +1689,7 @@ function Step3Result({ jobId, onReset }: { jobId: string | null; onReset: () => 
                 )}
             </div>
 
-            <div className="flex gap-3 pt-4">
+            <div className="flex justify-between gap-3 pt-4">
                 <a
                     href={videoUrl || "#"}
                     download
