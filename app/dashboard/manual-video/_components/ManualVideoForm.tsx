@@ -1080,7 +1080,7 @@ export default function ManualVideoForm({
                                                     : "border-border hover:border-brand-primary/50 text-muted-foreground hover:text-foreground bg-sidebar/30"
                                             )}
                                         >
-                                            <div className="text-lg mb-1">{ratio.icon}</div>
+                                           
                                             <div className="text-[10px] font-bold mb-0 leading-tight">{ratio.name}</div>
                                             <div className="text-[9px] opacity-70 font-medium leading-tight">{ratio.description}</div>
                                             {aspectRatio === ratio.id && (
