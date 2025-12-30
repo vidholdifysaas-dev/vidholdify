@@ -18,7 +18,6 @@ interface JobStatus {
     id: string;
     status: string;
     productName: string;
-    productDescription: string;
     referenceImageUrl?: string;
     finalVideoUrl?: string;
     fullScript?: string;

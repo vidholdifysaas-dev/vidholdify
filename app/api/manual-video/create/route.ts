@@ -21,7 +21,6 @@ export const maxDuration = 120; // 2 minutes to allow for image generation
 // Validation types
 interface CreateJobRequest {
     productName: string;
-    productDescription: string;
     targetLength: VideoLength;
     platform?: VideoPlatform;
     avatarDescription?: string;
@@ -66,12 +65,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        if (!body.productDescription || body.productDescription.trim().length < 10) {
-            return NextResponse.json(
-                { success: false, error: "Product description is required (min 10 characters)" },
-                { status: 400 }
-            );
-        }
+
 
         if (!["15", "30", "45", "60"].includes(body.targetLength)) {
             return NextResponse.json(
@@ -87,7 +81,7 @@ export async function POST(request: NextRequest) {
         // Include flags for uploaded images so prompt is tailored appropriately
         const imagePrompt = body.imagePrompt || buildImagePrompt({
             productName: body.productName,
-            productDescription: body.productDescription,
+            // productDescription: body.productDescription, // Removed
             avatarDescription: body.avatarDescription,
             productHoldingDescription: body.productHoldingDescription,
             backgroundDescription: body.backgroundDescription,
@@ -106,7 +100,6 @@ export async function POST(request: NextRequest) {
                 userEmail, // Store user's email
                 status: "CREATED",
                 productName: body.productName.trim(),
-                productDescription: body.productDescription.trim(),
                 targetLength: body.targetLength,
                 platform: body.platform || "tiktok",
                 avatarDescription: body.avatarDescription?.trim(),
@@ -208,7 +201,7 @@ export async function POST(request: NextRequest) {
                 const imageResult = await generateImage({
                     prompt: imagePrompt,
                     avatarDescription: body.avatarDescription,
-                    productDescription: body.productDescription,
+                    // productDescription removed
                     backgroundDescription: body.backgroundDescription,
                     avatarImageUrl: signedAvatarUrl,    // Signed URL
                     productImageUrl: signedProductUrl,  // Signed URL

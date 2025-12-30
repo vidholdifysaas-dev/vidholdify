@@ -29,7 +29,10 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { db } from "@/configs/db";
 import { generatedVideos, VideoJobStatus } from "@/configs/schema";
 import { eq, desc, count } from "drizzle-orm";
-import { getSignedUrlFromS3Url } from "@/configs/s3";
+import {
+    getFinalVideoS3Key,
+} from "@/configs/ai-services/lambda-merger";
+import { getSignedUrlFromS3Url, getSignedPlaybackUrl } from "@/configs/s3";
 
 export const runtime = "nodejs";
 
@@ -106,7 +109,13 @@ export async function GET(request: NextRequest) {
 
                 if (video.videoUrl) {
                     try {
-                        signedVideoUrl = await getSignedUrlFromS3Url(video.videoUrl, 604800); // 7 days (max allowed)
+                        if (video.videoJobId) {
+                            const videoKey = getFinalVideoS3Key(video.videoJobId);
+                            signedVideoUrl = await getSignedPlaybackUrl(videoKey, 604800);
+                        } else {
+                            // Fallback for old records or missing jobId
+                            signedVideoUrl = await getSignedUrlFromS3Url(video.videoUrl, 604800);
+                        }
                     } catch {
                         signedVideoUrl = video.videoUrl;
                     }
@@ -125,7 +134,7 @@ export async function GET(request: NextRequest) {
                     id: video.videoJobId || video.id, // Use link to job if available, else video ID
                     status: "DONE" as VideoJobStatus,
                     productName: video.productName,
-                    productDescription: video.productDescription || "",
+                    // productDescription removed
                     targetLength: 0, // Not stored in generatedVideos
                     platform: "tiktok", // Default
                     referenceImageUrl: signedImageUrl,

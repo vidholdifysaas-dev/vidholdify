@@ -264,7 +264,7 @@ export async function POST(request: NextRequest) {
             const imageResult = await generateImage({
                 prompt: job.imagePrompt,
                 avatarDescription: job.avatarDescription || undefined,
-                productDescription: job.productDescription,
+                // productDescription removed
                 backgroundDescription: job.backgroundDescription || undefined,
                 aspectRatio: "9:16",
                 style: "photorealistic",
@@ -347,7 +347,7 @@ export async function POST(request: NextRequest) {
 
         const plan = await generateScriptPlan({
             productName: job.productName,
-            productDescription: job.productDescription,
+            // productDescription removed
             targetLength: job.targetLength as VideoLength,
             platform: job.platform || "TikTok",
             avatarDescription: job.avatarDescription || undefined,
@@ -549,7 +549,7 @@ export async function POST(request: NextRequest) {
             userEmail: job.userEmail,
             videoJobId: jobId,
             productName: job.productName,
-            productDescription: job.productDescription,
+            // productDescription removed
             videoUrl: mergeResult.finalVideoUrl,
             thumbnailUrl: job.referenceImageUrl, // Use the reference image as thumbnail
             duration: Math.round(finalDuration),

@@ -26,7 +26,7 @@ export const planLimits = {
   free: {
     credits: 0,
     credits_veo: 0,
-    maxDuration: 15,
+    maxDuration: 30,
     maxDuration_veo: 15,
   },
 };

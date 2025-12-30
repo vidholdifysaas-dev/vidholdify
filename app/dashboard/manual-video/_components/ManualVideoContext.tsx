@@ -17,7 +17,6 @@ interface ManualVideoFormState {
 
     // Product
     productName: string;
-    productDescription: string;
     productImage: File | null;
     productImagePreview: string | null; // Blob URL for preview
     productImageS3Url: string | null; // S3 URL after upload
@@ -53,7 +52,6 @@ interface ManualVideoContextType {
     setSelectedAvatarId: (id: string | null) => void;
 
     setProductName: (name: string) => void;
-    setProductDescription: (desc: string) => void;
     setProductImage: (file: File | null) => void;
     setProductImageS3Url: (url: string | null) => void;
     setProductHoldDescription: (desc: string) => void;
@@ -88,7 +86,6 @@ const initialFormState: ManualVideoFormState = {
     selectedAvatarId: null,
 
     productName: "",
-    productDescription: "",
     productImage: null,
     productImagePreview: null,
     productImageS3Url: null,
@@ -167,9 +164,7 @@ export function ManualVideoProvider({ children }: { children: ReactNode }) {
         updateField("productName", name);
     };
 
-    const setProductDescription = (desc: string) => {
-        updateField("productDescription", desc);
-    };
+
 
     const setProductImage = (file: File | null) => {
         // Revoke old preview URL if exists
@@ -255,7 +250,6 @@ export function ManualVideoProvider({ children }: { children: ReactNode }) {
                 setAvatarDescription,
                 setSelectedAvatarId,
                 setProductName,
-                setProductDescription,
                 setProductImage,
                 setProductImageS3Url,
                 setProductHoldDescription,

@@ -71,11 +71,10 @@ const VIDEO_LENGTHS = [
 ];
 
 const ASPECT_RATIOS = [
-    { id: "9:16", name: "9:16 Vertical", description: "TikTok, Reels, Shorts"},
-    { id: "1:1", name: "1:1 Square", description: "Instagram Feed"},
-    { id: "16:9", name: "16:9 Horizontal", description: "YouTube, Web"},
-    { id: "4:5", name: "4:5 Portrait", description: "Instagram Portrait"},
-    { id: "3:4", name: "3:4 Portrait", description: "Pinterest Style"},
+    { id: "9:16", name: "Vertical", description: "TikTok / Reels", width: 9, height: 16 },
+    { id: "1:1", name: "Square", description: "Insta Feed", width: 12, height: 12 },
+    { id: "16:9", name: "Horizontal", description: "YouTube", width: 16, height: 9 },
+    { id: "4:5", name: "Portrait", description: "Insta Post", width: 10, height: 12.5 },
 ];
 
 const BACKGROUND_PRESETS = [
@@ -411,7 +410,7 @@ export default function ManualVideoForm({
         setAvatarDescription,
         setSelectedAvatarId,
         setProductName,
-        setProductDescription,
+
         setProductImage,
         setBackgroundDescription,
         setVideoLength,
@@ -433,7 +432,6 @@ export default function ManualVideoForm({
         avatarDescription,
         selectedAvatarId,
         productName,
-        productDescription,
         productImage,
         productImagePreview,
         productHoldDescription,
@@ -586,19 +584,16 @@ export default function ManualVideoForm({
         return response.data.url;
     };
 
-    // ==================
-    // Step 1 Validation
-    // ==================
+    // Speed boost hook - only validates
     const isStep1Valid = useCallback(() => {
         if (!productName.trim()) return false;
-        if (!productDescription.trim()) return false;
 
         if (avatarMode === "prebuilt" && !selectedAvatar) return false;
         if (avatarMode === "upload" && !avatarImage) return false;
         if (avatarMode === "describe" && !avatarDescription.trim()) return false;
 
         return true;
-    }, [productName, productDescription, avatarMode, selectedAvatar, avatarImage, avatarDescription]);
+    }, [productName, avatarMode, selectedAvatar, avatarImage, avatarDescription]);
 
     // ==================
     // Step 1: Generate Reference Image
@@ -656,7 +651,7 @@ export default function ManualVideoForm({
             // Create job and generate reference image
             const response = await axios.post("/api/manual-video/create", {
                 productName,
-                productDescription,
+                // productDescription removed as per user request
                 avatarDescription: finalAvatarDescription,
                 avatarImageUrl,
                 productImageUrl,
@@ -799,7 +794,7 @@ export default function ManualVideoForm({
             const response = await axios.post(
                 "/api/topview/generate-script",
                 {
-                    prompt: `${aiScriptPrompt.trim()}. Product name: ${productName || "this product"}. Product description: ${productDescription || ""}`,
+                    prompt: `${aiScriptPrompt.trim()}. Product name: ${productName || "this product"}.`,
                     duration: `${Math.floor(duration * 0.7)}-${duration}s`,
                     language: "English",
                     scenes: sceneCount,
@@ -847,7 +842,7 @@ export default function ManualVideoForm({
                     </h2>
                     <p className="text-sm text-muted-foreground">
                         {currentStep === 1
-                            ? "Set up your product and choose an avatar style"
+                            ? ""
                             : currentStep === 2
                                 ? "Review the generated image and configure video options"
                                 : "Watch your generated video or create another one"}
@@ -887,8 +882,8 @@ export default function ManualVideoForm({
                                     />
                                     <defs>
                                         <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                            <stop offset="0%" stopColor="hsl(var(--brand-primary))" />
-                                            <stop offset="100%" stopColor="hsl(var(--brand-primary) / 0.6)" />
+                                            <stop offset="0%" stopColor="white" />
+                                            <stop offset="100%" stopColor="white" />
                                         </linearGradient>
                                     </defs>
                                 </svg>
@@ -1058,38 +1053,7 @@ export default function ManualVideoForm({
                                 )}
                             </div>
 
-                            {/* 3. Aspect Ratio Section */}
-                            <div className="space-y-4">
-                                <div className="flex items-center gap-2">
-                                    <div className="flex items-center justify-center w-6 h-6 rounded-full bg-brand-primary/10 text-brand-primary text-xs font-bold">
-                                        3
-                                    </div>
-                                    <h3 className="font-medium text-foreground">Image Aspect Ratio</h3>
-                                </div>
-
-                                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                                    {ASPECT_RATIOS.map((ratio) => (
-                                        <button
-                                            key={ratio.id}
-                                            type="button"
-                                            onClick={() => setAspectRatio(ratio.id)}
-                                            className={cn(
-                                                "p-2 rounded-xl border transition-all text-left group relative overflow-hidden",
-                                                aspectRatio === ratio.id
-                                                    ? "bg-brand-primary/10 border-brand-primary text-brand-primary ring-1 ring-brand-primary/20"
-                                                    : "border-border hover:border-brand-primary/50 text-muted-foreground hover:text-foreground bg-sidebar/30"
-                                            )}
-                                        >
-                                           
-                                            <div className="text-[10px] font-bold mb-0 leading-tight">{ratio.name}</div>
-                                            <div className="text-[9px] opacity-70 font-medium leading-tight">{ratio.description}</div>
-                                            {aspectRatio === ratio.id && (
-                                                <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-brand-primary shadow-[0_0_8px_rgba(var(--brand-primary),0.8)]" />
-                                            )}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
+                            {/* Aspect Ratio moved to Right Column */}
                         </div>
 
                         {/* RIGHT COLUMN - Product Details */}
@@ -1130,17 +1094,76 @@ export default function ManualVideoForm({
                                         />
                                     </div>
 
-                                    <div className="space-y-2 flex-1 flex flex-col">
-                                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                                            Product Description *
-                                        </label>
-                                        <textarea
-                                            value={productDescription}
-                                            onChange={(e) => setProductDescription(e.target.value)}
-                                            placeholder="Eg:- Core Power® Elite Chocolate Shake.
-                                                Core Power® Elite Chocolate is a delicious, high protein milkshake that’s lactose free and packed with 42 grams of protein per bottle. Fueled by fairlife® ultrafiltered milk, our Core Power® products are proudly made with 100% quality Canadian milk – and without any added protein powders. Our quality protein from milk helps you recover better after every workout."
-                                            className="w-full flex-1 min-h-[160px] px-4 py-3.5 rounded-xl border border-border focus:border-brand-primary focus:ring-1 focus:ring-brand-primary/20 outline-none resize-none text-foreground placeholder:text-muted-foreground/50 text-sm shadow-sm"
-                                        />
+                                </div>
+
+                                {/* 3. Aspect Ratio Section - Premium Redesigned */}
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex items-center justify-center w-6 h-6 rounded-full bg-brand-primary/10 text-brand-primary text-xs font-bold ring-1 ring-brand-primary/20">
+                                            3
+                                        </div>
+                                        <h3 className="font-medium text-foreground">Video Format</h3>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                        {ASPECT_RATIOS.map((ratio) => {
+                                            const isActive = aspectRatio === ratio.id;
+                                            return (
+                                                <button
+                                                    key={ratio.id}
+                                                    type="button"
+                                                    onClick={() => setAspectRatio(ratio.id)}
+                                                    className={cn(
+                                                        "relative flex flex-col items-center justify-center gap-3 p-4 rounded-xl border transition-all duration-300 group overflow-hidden",
+                                                        isActive
+                                                            ? "bg-brand-primary/5 border-brand-primary shadow-[0_0_20px_rgba(var(--brand-primary),0.15)] ring-1 ring-brand-primary/30"
+                                                            : "bg-sidebar/30 border-border/50 hover:border-brand-primary/30 hover:bg-sidebar-accent/50"
+                                                    )}
+                                                >
+                                                    {/* Visual Ratio Indicator */}
+                                                    <div className={cn(
+                                                        "relative bg-foreground/10 border-2 border-foreground/20 rounded-md transition-all duration-300 shadow-sm",
+                                                        isActive ? "bg-brand-primary/20 border-brand-primary shadow-inner" : "group-hover:bg-foreground/15 group-hover:border-foreground/30"
+                                                    )}
+                                                        style={{
+                                                            width: `${ratio.width * 2.5}px`,
+                                                            height: `${ratio.height * 2.5}px`
+                                                        }}
+                                                    >
+                                                        {isActive && (
+                                                            <div className="absolute inset-0 flex items-center justify-center">
+                                                                <div className="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse shadow-[0_0_8px_rgba(var(--brand-primary),0.8)]" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Text Info */}
+                                                    <div className="text-center space-y-0.5 z-10">
+                                                        <div className={cn(
+                                                            "text-xs font-bold transition-colors",
+                                                            isActive ? "text-brand-primary" : "text-foreground group-hover:text-foreground"
+                                                        )}>
+                                                            {ratio.name}
+                                                        </div>
+                                                        <div className="text-[9px] text-muted-foreground font-medium uppercase tracking-wide opacity-80">
+                                                            {ratio.description}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Active Corner Check */}
+                                                    {isActive && (
+                                                        <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-brand-primary flex items-center justify-center shadow-lg animate-in zoom-in duration-200">
+                                                            <Check className="w-2.5 h-2.5 text-white" />
+                                                        </div>
+                                                    )}
+
+                                                    {/* Subtle Gradient Background for Active State */}
+                                                    {isActive && (
+                                                        <div className="absolute inset-0 bg-gradient-to-tr from-brand-primary/5 via-transparent to-transparent pointer-events-none" />
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             </div>
@@ -1327,7 +1350,7 @@ export default function ManualVideoForm({
                     </div>
                     <>
                         {/* Action Buttons */}
-                        <div className="pt-4 border-t border-border flex justify-between items-center gap-3">
+                        <div className="mt-4 border-t border-border flex justify-between items-center gap-3">
                             <button
                                 onClick={() => setCurrentStep(1)}
                                 disabled={loading}
@@ -1455,7 +1478,7 @@ export default function ManualVideoForm({
                 <Step3Result jobId={jobId} onReset={handleRegenerateImage} />
             )}
 
-            {/* <div className="pt-6 mt-6 border-t border-dashed border-border/50 flex justify-center gap-2 opacity-50 hover:opacity-100 transition-opacity">
+            <div className="pt-6 mt-6 border-t border-dashed border-border/50 flex justify-center gap-2 opacity-50 hover:opacity-100 transition-opacity">
                 <span className="text-xs text-muted-foreground self-center mr-2">Debug:</span>
                 {[1, 2, 3].map(s => (
                     <QuickNavButton
@@ -1465,7 +1488,7 @@ export default function ManualVideoForm({
                         currentStep={currentStep}
                     />
                 ))}
-            </div> */}
+            </div>
 
         </div>
     );
@@ -1580,8 +1603,8 @@ function Step3Result({ jobId, onReset }: { jobId: string | null; onReset: () => 
                         />
                         <defs>
                             <linearGradient id="gradient-step3" x1="0%" y1="0%" x2="100%" y2="0%">
-                                <stop offset="0%" stopColor="hsl(var(--brand-primary))" />
-                                <stop offset="100%" stopColor="hsl(var(--brand-primary) / 0.6)" />
+                                <stop offset="0%" stopColor="white" />
+                                <stop offset="100%" stopColor="white" />
                             </linearGradient>
                         </defs>
                     </svg>
@@ -1610,7 +1633,7 @@ function Step3Result({ jobId, onReset }: { jobId: string | null; onReset: () => 
 
                 {/* Tip */}
                 <p className="text-xs text-muted-foreground/70">
-                    Estimated time: 2-5 minutes depending on video length
+                    Depending on video length it may take 2-5 minutes. Hold on!
                 </p>
             </div>
         );

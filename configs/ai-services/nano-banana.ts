@@ -7,7 +7,7 @@ const replicate = new Replicate({
 export interface NanoBananaRequest {
     prompt: string;                    // Full generation prompt
     avatarDescription?: string;        // Avatar/person description
-    productDescription?: string;       // Product being held
+    // productDescription removed
     backgroundDescription?: string;    // Scene/background
     aspectRatio?: "9:16" | "16:9" | "1:1" | "4:5" | "3:4"; // Video aspect ratio
     style?: string;                    // Art style (realistic, etc.)
@@ -32,7 +32,6 @@ export interface NanoBananaTaskStatus {
 
 export function buildImagePrompt(params: {
     productName: string;
-    productDescription: string;
     avatarDescription?: string;
     productHoldingDescription?: string;
     backgroundDescription?: string;
@@ -44,7 +43,6 @@ export function buildImagePrompt(params: {
 }): string {
     const {
         productName,
-        productDescription,
         avatarDescription = "a friendly, relatable person in their 20s-30s with a natural, authentic look",
         productHoldingDescription = "holding the product naturally, showing it to the camera",
         backgroundDescription = "a clean, real home environment with natural daytime lighting",
@@ -64,8 +62,7 @@ Requirements:
 - Use the exact product from the product reference image — same shape, label, logo, and color.
 - Photo should look realistic and natural, like a smartphone selfie
 - The person should be holding the product naturally and facing the camera with a friendly smile.
-- Aspect ratio: ${aspectRatio}
-`;
+- Aspect ratio: ${aspectRatio}`;
     }
 
     if (hasAvatarImage && !hasProductImage) {
@@ -75,7 +72,7 @@ The avatar from the reference image is ${productHoldingDescription}.
 
 REQUIREMENTS:
 - The person must look EXACTLY like the avatar reference image (same face, hair, clothing)
-- The person is holding a product called "${productName}" - ${productDescription}
+- The person is holding a product called "${productName}"
 - The person is looking directly at the camera with a natural, friendly smile
 - The product "${productName}" must be clearly visible and readable
 - Photo should look realistic and natural, like a smartphone selfie
@@ -89,7 +86,7 @@ This image will be used for UGC ad creation, so make it look authentic and engag
 
 PERSON: ${avatarDescription}
 ACTION: ${productHoldingDescription}
-PRODUCT: "${productName}" - ${productDescription}
+PRODUCT: "${productName}"
 
 REQUIREMENTS:
 - The person is looking directly at the camera with a natural, friendly smile
@@ -102,6 +99,7 @@ REQUIREMENTS:
 
 This image will be used for UGC ad creation, so make it look authentic and engaging.`;
 }
+
 
 export function isConfigured(): boolean {
     return !!process.env.REPLICATE_API_KEY;

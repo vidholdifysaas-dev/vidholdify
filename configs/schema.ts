@@ -137,8 +137,6 @@ export const videoJobs = pgTable("video_jobs", {
 
   // Product information
   productName: varchar("product_name", { length: 255 }).notNull(),
-  productDescription: text("product_description").notNull(),
-
   // Image Upload URLs (user uploaded images)
   avatarImageUrl: varchar("avatar_image_url", { length: 1000 }),       // Uploaded avatar image
   productImageUrl: varchar("product_image_url", { length: 1000 }),     // Uploaded product image
@@ -228,7 +226,7 @@ export const generatedVideos = pgTable("generated_videos", {
 
   // Product Info (denormalized for easier access)
   productName: varchar("product_name", { length: 255 }).notNull(),
-  productDescription: text("product_description"),
+
 
   // Video Metadata
   videoUrl: varchar("video_url", { length: 1000 }).notNull(), // The final S3 URL

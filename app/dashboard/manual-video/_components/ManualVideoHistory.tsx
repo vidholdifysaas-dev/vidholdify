@@ -25,7 +25,6 @@ interface VideoJob {
     id: string;
     status: string;
     productName: string;
-    productDescription: string;
     platform: string;
     targetLength: string;
     referenceImageUrl?: string;
@@ -93,7 +92,7 @@ function VideoCard({
                     </button>
                 )}
 
-              
+
             </div>
 
             {/* Info */}
@@ -102,9 +101,6 @@ function VideoCard({
                     <h3 className="font-semibold text-foreground line-clamp-1">
                         {job.productName}
                     </h3>
-                    <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
-                        {job.productDescription}
-                    </p>
                 </div>
 
                 <div className="flex items-center justify-between text-xs text-muted-foreground">

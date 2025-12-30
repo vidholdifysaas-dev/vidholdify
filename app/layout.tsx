@@ -29,7 +29,7 @@ export default function RootLayout({
       <body className={outfit.className}>
         <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!}>
           <Provider>{children}</Provider>
-          <Toaster />
+          <Toaster position="top-center" />
         </ClerkProvider>
       </body>
     </html>

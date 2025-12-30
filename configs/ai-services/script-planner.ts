@@ -140,7 +140,7 @@ SCRIPT FLOW GUIDELINES:
 
 interface ScriptPlannerInput {
     productName: string;
-    productDescription: string;
+    // productDescription removed
     targetLength: VideoLength;
     platform?: string;
     tone?: string;
@@ -161,7 +161,6 @@ export async function generateScriptPlan(
 ): Promise<VideoGenerationPlan> {
     const {
         productName,
-        productDescription,
         targetLength,
         platform = "TikTok",
         tone = "authentic, relatable, and enthusiastic",
@@ -186,7 +185,6 @@ USER SCRIPT:
 "${userScript}"
 
 PRODUCT NAME: ${productName}
-PRODUCT DESCRIPTION: ${productDescription}
 
 ${avatarDescription ? `AVATAR DESCRIPTION (use this consistently): ${avatarDescription}` : "AVATAR: A friendly, relatable person (keep description generic for consistency)"}
 ${backgroundDescription ? `BACKGROUND (use this consistently): ${backgroundDescription}` : "BACKGROUND: Clean, well-lit room with neutral decor (keep consistent across all scenes)"}
@@ -210,7 +208,6 @@ Generate the breakdown now.`;
 Create a ${targetLength}-second UGC video script with exactly ${sceneConfig.sceneCount} scenes.
 
 PRODUCT NAME: ${productName}
-PRODUCT DESCRIPTION: ${productDescription}
 PLATFORM: ${platform}
 TONE: ${tone}
 
@@ -232,6 +229,7 @@ Requirements:
 
 Generate the complete script and ${sceneConfig.sceneCount} scene breakdown now.`;
     }
+
 
     try {
         const result = await ai.models.generateContent({

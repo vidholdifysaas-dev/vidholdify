@@ -36,7 +36,10 @@ import { auth } from "@clerk/nextjs/server";
 import { db } from "@/configs/db";
 import { videoJobs, scenes } from "@/configs/schema";
 import { eq, and } from "drizzle-orm";
-import { getSignedUrlFromS3Url } from "@/configs/s3";
+import {
+    getFinalVideoS3Key,
+} from "@/configs/ai-services/lambda-merger";
+import { getSignedUrlFromS3Url, getSignedPlaybackUrl } from "@/configs/s3";
 
 export const runtime = "nodejs";
 
@@ -116,9 +119,16 @@ export async function GET(request: NextRequest) {
 
         if (job.status === "DONE" && job.finalVideoUrl) {
             try {
-                signedVideoUrl = await getSignedUrlFromS3Url(job.finalVideoUrl, 3600);
-            } catch {
-                signedVideoUrl = job.finalVideoUrl;
+                // Use deterministic key for reliability
+                const videoKey = getFinalVideoS3Key(job.id);
+                signedVideoUrl = await getSignedPlaybackUrl(videoKey, 3600);
+            } catch (err) {
+                console.warn("[API] Failed to sign video URL with key, falling back to parsing:", err);
+                try {
+                    signedVideoUrl = await getSignedUrlFromS3Url(job.finalVideoUrl, 3600);
+                } catch {
+                    signedVideoUrl = job.finalVideoUrl;
+                }
             }
         }
 
@@ -144,7 +154,7 @@ export async function GET(request: NextRequest) {
                 id: job.id,
                 status: job.status,
                 productName: job.productName,
-                productDescription: job.productDescription,
+                // productDescription removed
                 targetLength: parseInt(job.targetLength),
                 platform: job.platform,
                 avatarDescription: job.avatarDescription,

@@ -355,86 +355,16 @@ export default function Step3VideoGeneration() {
         videoTaskId: data.taskId,
       });
 
-      // Start polling for video completion using taskId
-      pollForVideoCompletion(data.taskId, data.videoRecordId);
+      // Move to Step 4 to handle polling and result
+      setSaving(false);
+      nextStep();
+
     } catch (error) {
       setSaving(false);
       setError(
         error instanceof Error ? error.message : "Failed to generate video"
       );
     }
-  };
-
-  const pollForVideoCompletion = async (taskId: string, videoRecordId: string) => {
-    const maxAttempts = 200; // 10 minutes max (200 * 3s = 600s)
-    let attempts = 0;
-
-    const poll = async () => {
-      try {
-        console.log(`🔍 Polling video status (attempt ${attempts + 1}/${maxAttempts})...`);
-
-        const response = await fetch(
-          `/api/topview/generate-video/status?taskId=${taskId}`
-        );
-        const data = await response.json();
-
-        console.log(`  Status: ${data.status}`);
-        console.log(`  Has finishedVideoUrl: ${!!data.finishedVideoUrl}`);
-        console.log(`  Credits deducted: ${data.creditsDeducted}`);
-
-        if (data.status === "success" && data.finishedVideoUrl) {
-          console.log("✅ Video generation completed successfully!");
-          console.log(`  Video URL: ${data.finishedVideoUrl}`);
-
-          // Store the finished video URL in workflow data
-          setWorkflowData({
-            finishedVideoUrl: data.finishedVideoUrl,
-            videoRecordId
-          });
-
-          setSaving(false);
-          toast.success("Video generated successfully!");
-
-          // Refresh sidebar credits via context
-          refreshCredits();
-
-          // Move to next step (VideoResult)
-          nextStep();
-        } else if (data.status === "failed" || data.status === "error") {
-          console.error("❌ Video generation failed:", data);
-          setSaving(false);
-          setError(data.message || "Video generation failed. Please try again.");
-        } else if (data.status === "running" || data.status === "processing" || data.status === "pending") {
-          // Task is still processing
-          console.log(`⏳ Video still ${data.status}, continuing to poll...`);
-          if (attempts < maxAttempts) {
-            attempts++;
-            setTimeout(poll, 3000); // Poll every 3 seconds
-          } else {
-            console.error("⏰ Polling timeout after", maxAttempts, "attempts");
-            setSaving(false);
-            setError("Video generation timed out. Please check your videos page or contact support.");
-          }
-        } else {
-          // Unknown status, continue polling
-          console.warn(`⚠️ Unknown status '${data.status}', continuing to poll...`);
-          if (attempts < maxAttempts) {
-            attempts++;
-            setTimeout(poll, 3000);
-          } else {
-            console.error("⏰ Polling timeout - status:", data.status);
-            setSaving(false);
-            setError("Video generation timed out. Please check your videos page.");
-          }
-        }
-      } catch (error) {
-        console.error("❌ Polling error:", error);
-        setSaving(false);
-        setError("Failed to check video status. Please try again.");
-      }
-    };
-
-    poll();
   };
 
   return (
@@ -473,15 +403,19 @@ export default function Step3VideoGeneration() {
         {/* RIGHT COLUMN - Form Controls */}
         <div className="space-y-6">
           {/* Script Input */}
-          <div className="space-y-3">
-            <div className="flex justify-between text-foreground">
-              <h3 className="text-sm font-semibold">Your Script</h3>
-              <span className="text-xs text-muted-foreground">
-                {script.length}/{MAX_CHARS}
-              </span>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center text-foreground">
+              <h3 className="text-sm font-semibold pb-0">Your Script</h3>
+               <button
+                onClick={() => setIsDialogOpen(true)}
+                className="bg-brand-primary hover:bg-brand-primary/90 text-white shadow-md rounded-lg px-2 py-1 flex items-center gap-1 transition-all text-xs rounded-sm"
+              >
+                <Sparkles className="w-3 h-3" />
+                AI Script Writer
+              </button>
             </div>
 
-            <div className="relative">
+            <div className="">
               <textarea
                 value={script}
                 onChange={(e) => setWorkflowData({ script: e.target.value })}
@@ -489,14 +423,6 @@ export default function Step3VideoGeneration() {
                 className="w-full min-h-[140px] bg-sidebar border border-border text-foreground rounded-lg p-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none resize-none"
                 placeholder="Enter your video script here..."
               />
-
-              <button
-                onClick={() => setIsDialogOpen(true)}
-                className="absolute bottom-6 left-3 bg-brand-primary hover:bg-brand-primary/90 text-white shadow-lg rounded-lg px-4 py-2 flex items-center gap-2 transition-all text-sm"
-              >
-                <Sparkles className="w-4 h-4" />
-                AI Script Writer
-              </button>
             </div>
           </div>
 
@@ -664,7 +590,7 @@ export default function Step3VideoGeneration() {
               Quality Mode
             </label>
             <div className="flex gap-3">
-              {(["lite", "avatar4Fast"] as const).map((m) => (
+              {(["avatar4", "avatar4Fast"] as const).map((m) => (
                 <button
                   key={m}
                   onClick={() => setWorkflowData({ mode: m })}
@@ -697,8 +623,8 @@ export default function Step3VideoGeneration() {
           className="px-4 sm:px-8 py-2 sm:py-3 text-sm sm:text-base bg-brand-primary hover:bg-brand-primary/90 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 sm:gap-2"
         >
           {saving && <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />}
-          <span className="hidden sm:inline">{saving ? "Generating Video... (This may take a few minutes)" : "Generate Video"}</span>
-          <span className="inline sm:hidden">{saving ? "Generating..." : "Generate Video"}</span>
+          <span className="hidden sm:inline">{saving ? "Starting..." : "Generate Video (5 credit)"}</span>
+          <span className="inline sm:hidden">{saving ? "Starting..." : "Generate Video"}</span>
         </button>
       </div>
 

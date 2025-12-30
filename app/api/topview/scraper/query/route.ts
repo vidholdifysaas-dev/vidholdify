@@ -65,7 +65,7 @@ export async function GET(request: Request) {
       errorMsg: result.errorMsg,
       productLink: result.productLink,
       productName: result.productName,
-      productDescription: result.productDescription,
+      // productDescription removed
       productImages: result.productImages || [],
       productVideos: result.productVideos || [],
     });
