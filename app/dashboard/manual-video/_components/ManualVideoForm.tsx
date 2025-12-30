@@ -1317,7 +1317,10 @@ export default function ManualVideoForm({
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <FileText className="w-5 h-5 text-brand-primary" />
-                                        <h3 className="font-medium text-foreground">Video Script</h3>
+                                        <div className="flex flex-col">
+                                            <h3 className="font-medium text-foreground leading-none">Video Script</h3>
+                                            <p className="text-[10px] text-muted-foreground font-medium mt-0.5">Use AI writer for the best result</p>
+                                        </div>
                                     </div>
                                     <button
                                         type="button"
