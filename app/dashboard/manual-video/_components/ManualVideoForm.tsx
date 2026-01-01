@@ -1478,7 +1478,7 @@ export default function ManualVideoForm({
                 <Step3Result jobId={jobId} onReset={handleRegenerateImage} onRetry={handleGenerateVideo} />
             )}
 
-            <div className="pt-6 mt-6 border-t border-dashed border-border/50 flex justify-center gap-2 opacity-50 hover:opacity-100 transition-opacity">
+            {/* <div className="pt-6 mt-6 border-t border-dashed border-border/50 flex justify-center gap-2 opacity-50 hover:opacity-100 transition-opacity">
                 <span className="text-xs text-muted-foreground self-center mr-2">Debug:</span>
                 {[1, 2, 3].map(s => (
                     <QuickNavButton
@@ -1488,7 +1488,7 @@ export default function ManualVideoForm({
                         currentStep={currentStep}
                     />
                 ))}
-            </div>
+            </div> */}
 
         </div>
     );
@@ -1497,19 +1497,19 @@ export default function ManualVideoForm({
 // ============================================
 // QUICK NAV BUTTON (TESTING)
 // ============================================
-function QuickNavButton({ stepNumber, setStep, currentStep }: { stepNumber: 1 | 2 | 3; setStep: (s: number) => void; currentStep: number }) {
-    return (
-        <button
-            onClick={() => setStep(stepNumber)}
-            className={`px-3 py-1 text-xs rounded border transition-all ${currentStep === stepNumber
-                ? "bg-brand-primary text-white border-brand-primary"
-                : "bg-sidebar border-border text-muted-foreground hover:bg-sidebar-accent"
-                }`}
-        >
-            Step {stepNumber}
-        </button>
-    );
-}
+// function QuickNavButton({ stepNumber, setStep, currentStep }: { stepNumber: 1 | 2 | 3; setStep: (s: number) => void; currentStep: number }) {
+//     return (
+//         <button
+//             onClick={() => setStep(stepNumber)}
+//             className={`px-3 py-1 text-xs rounded border transition-all ${currentStep === stepNumber
+//                 ? "bg-brand-primary text-white border-brand-primary"
+//                 : "bg-sidebar border-border text-muted-foreground hover:bg-sidebar-accent"
+//                 }`}
+//         >
+//             Step {stepNumber}
+//         </button>
+//     );
+// }
 
 // ============================================
 // STEP 3 RESULT COMPONENT
