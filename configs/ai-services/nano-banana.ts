@@ -62,6 +62,7 @@ Requirements:
 - Use the exact product from the product reference image — same shape, label, logo, and color.
 - Photo should look realistic and natural, like a smartphone selfie
 - The person should be holding the product naturally and facing the camera with a friendly smile.
+- HAND QUALITY: Detailed hands and fingers, holding the product firmly but naturally. No malformed hands.
 - Aspect ratio: ${aspectRatio}`;
     }
 
@@ -73,31 +74,33 @@ The avatar from the reference image is ${productHoldingDescription}.
 REQUIREMENTS:
 - The person must look EXACTLY like the avatar reference image (same face, hair, clothing)
 - The person is holding a product called "${productName}"
+- HANDS: Explicitly show detailed, natural hands holding the product securely. Fingers must be distinct and well-formed.
 - The person is looking directly at the camera with a natural, friendly smile
 - The product "${productName}" must be clearly visible and readable
 - Photo should look realistic and natural, like a smartphone selfie
 - Aspect ratio: ${aspectRatio}
 - Background: ${keepAvatarBackground ? "Keep the original background from the avatar image" : backgroundDescription}
 
-This image will be used for UGC ad creation, so make it look authentic and engaging.`;
+This image will be used for UGC ad creation, so make it look authentic and engaging. Negative prompt: (poorly drawn hands, missing fingers, extra fingers, malformed hands:1.5)`;
     }
 
     return `Generate a high-quality, realistic UGC-style photo for a ${platform} ad.
 
 PERSON: ${avatarDescription}
-ACTION: ${productHoldingDescription}
+ACTION: ${productHoldingDescription}, holding the product properly with detailed hands
 PRODUCT: "${productName}"
 
 REQUIREMENTS:
 - The person is looking directly at the camera with a natural, friendly smile
 - The product "${productName}" must be clearly visible and readable on the packaging
+- HAND QUALITY: Detailed fingers, natural grip, no floating product.
 - Photo should look realistic and natural, like a smartphone selfie
 - The image should feel authentic and spontaneous, not staged
 - Aspect ratio: ${aspectRatio}
 - Background: ${backgroundDescription}
 - Natural lighting, no harsh studio lights
 
-This image will be used for UGC ad creation, so make it look authentic and engaging.`;
+This image will be used for UGC ad creation, so make it look authentic and engaging. Negative prompt: (poorly drawn hands, missing fingers, extra fingers, malformed hands:1.5)`;
 }
 
 

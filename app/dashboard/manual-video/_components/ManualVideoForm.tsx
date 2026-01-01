@@ -10,7 +10,6 @@ import {
     Video,
     Zap,
     Check,
-    AlertCircle,
     Upload,
     Trash2,
     RefreshCw,
@@ -57,12 +56,9 @@ interface ManualVideoFormProps {
 // PLATFORMS & DURATIONS & BACKGROUNDS
 // ============================================
 
-const PLATFORMS = [
-    { id: "tiktok", name: "TikTok", icon: "📱" },
-    { id: "instagram_reels", name: "Instagram Reels", icon: "📸" },
-    { id: "youtube_shorts", name: "YouTube Shorts", icon: "▶️" },
-    { id: "general", name: "General", icon: "🎬" },
-];
+import LoadingMessages from "../../_components/LoadingMessages";
+
+
 
 const VIDEO_LENGTHS = [
     { id: "15", name: "15 seconds", description: "Quick hook", scenes: 2 },
@@ -466,6 +462,8 @@ export default function ManualVideoForm({
 
                     return {
                         id: item.key || `s3-avatar-${page}-${idx}`,
+                        name: name || "Avatar",
+                        description: "AI Generated Avatar",
                         imageUrl: item.url,
                         gender: "female",
                         style: "casual"
@@ -480,7 +478,7 @@ export default function ManualVideoForm({
         } finally {
             setIsAvatarLoading(false);
         }
-    }, []);
+    }, [isAvatarLoading]);
 
     // Initial load
     useEffect(() => {
@@ -626,18 +624,14 @@ export default function ManualVideoForm({
         }, 400);
 
         try {
-            // Upload images if provided
-            let avatarImageUrl: string | undefined;
-            let productImageUrl: string | undefined;
+            // Parallel uploads for better performance
+            const [uploadedAvatarUrl, uploadedProductUrl] = await Promise.all([
+                avatarImage ? uploadImage(avatarImage, "avatar") : Promise.resolve(undefined),
+                productImage ? uploadImage(productImage, "product") : Promise.resolve(undefined)
+            ]);
 
-            if (avatarImage) {
-                // Progress continues via interval, no manual override
-                avatarImageUrl = await uploadImage(avatarImage, "avatar");
-            }
-            if (productImage) {
-                // Progress continues via interval, no manual override
-                productImageUrl = await uploadImage(productImage, "product");
-            }
+            let avatarImageUrl = uploadedAvatarUrl;
+            const productImageUrl = uploadedProductUrl;
 
             // Build avatar description
             let finalAvatarDescription: string | undefined;
@@ -823,7 +817,7 @@ export default function ManualVideoForm({
     const hasInsufficientCredits = credits !== null && credits < 1;
 
     return (
-        <div className="bg-card border border-border rounded-xl p-6 w-full">
+        <div className="bg-card lg:h-full border border-border rounded-xl p-6 w-full">
             {/* Step Indicator - Click to navigate */}
             <StepIndicator
                 currentStep={currentStep}
@@ -840,13 +834,6 @@ export default function ManualVideoForm({
                     <h2 className="text-lg font-semibold text-foreground">
                         {currentStep === 1 ? "Configure Product & Avatar" : currentStep === 2 ? "Peview & Generate Video" : "Your Video is Ready!"}
                     </h2>
-                    <p className="text-sm text-muted-foreground">
-                        {currentStep === 1
-                            ? ""
-                            : currentStep === 2
-                                ? "Review the generated image and configure video options"
-                                : "Watch your generated video or create another one"}
-                    </p>
                 </div>
             </div>
 
@@ -927,7 +914,7 @@ export default function ManualVideoForm({
             {/* ==================== */}
             {currentStep === 1 && !loading && (
                 <div className="space-y-2">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 pt-2 lg:grid-cols-2 gap-8">
                         {/* LEFT COLUMN - Avatar & Aspect Ratio */}
                         <div className="space-y-8">
                             {/* 1. Avatar Section */}
@@ -959,7 +946,7 @@ export default function ManualVideoForm({
 
                                 {avatarMode === "prebuilt" && (
                                     <div
-                                        className="h-[400px] overflow-y-auto pr-2 pb-2 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent animate-in fade-in duration-500 bg-sidebar/50 rounded-xl border border-border/50 p-2"
+                                        className="h-[400px] lg:h-[calc(100vh-350px)] overflow-y-auto pr-2 pb-2 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent animate-in fade-in duration-500 bg-sidebar/50 rounded-xl border border-border/50 p-2"
                                         onScroll={(e) => {
                                             const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
                                             if (scrollHeight - scrollTop <= clientHeight + 50) {
@@ -1002,7 +989,7 @@ export default function ManualVideoForm({
                                 )}
 
                                 {avatarMode === "describe" && (
-                                    <div className="h-[400px] space-y-4 p-4 border border-border rounded-xl bg-sidebar/30">
+                                    <div className="h-[400px] lg:h-[calc(100vh-350px)] space-y-4 p-4 border border-border rounded-xl bg-sidebar/30">
                                         <div className="space-y-2">
                                             <label className="text-sm text-muted-foreground">
                                                 Describe your ideal avatar/person *
@@ -1171,7 +1158,7 @@ export default function ManualVideoForm({
                     </div>
 
                     {/* Generate Image Button */}
-                    <div className="pt-3 border-t border-border flex flex-col sm:flex-row gap-4 justify-between items-center">
+                    <div className="pt-3 flex flex-col sm:flex-row gap-4 justify-between items-center">
 
                         <div className="text-sm text-muted-foreground">
                             {loadingCredits ? (
@@ -1237,7 +1224,7 @@ export default function ManualVideoForm({
             {/* ==================== */}
             {currentStep === 2 && (
                 <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="grid grid-cols-1 pt-2 md:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
                         {/* LEFT COLUMN: Generated Image Preview */}
                         <div className="space-y-4">
@@ -1255,6 +1242,16 @@ export default function ManualVideoForm({
                                             className="w-full h-full object-contain"
                                         />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
+
+                                        {/* Regenerate Button Overlay */}
+                                        <button
+                                            onClick={handleRegenerateImage}
+                                            className="absolute top-4 right-4 z-10 px-3 py-1.5 rounded-lg bg-black/60 hover:bg-black/80 text-white text-xs font-medium backdrop-blur-md border border-white/20 transition-all flex items-center gap-1.5 hover:scale-105"
+                                        >
+                                            <RefreshCw className="w-3.5 h-3.5" />
+                                            Regenerate
+                                        </button>
+
                                         <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
                                             <span className="px-2 py-1 rounded-md bg-white/10 text-white text-xs backdrop-blur-md border border-white/10">
                                                 {productName}
@@ -1351,9 +1348,9 @@ export default function ManualVideoForm({
                         </div>
 
                     </div>
-                    <>
+                    <div>
                         {/* Action Buttons */}
-                        <div className="mt-4 border-t border-border flex justify-between items-center gap-3">
+                        <div className="mt-4 border-border flex justify-between items-center gap-3">
                             <button
                                 onClick={() => setCurrentStep(1)}
                                 disabled={loading}
@@ -1386,7 +1383,7 @@ export default function ManualVideoForm({
                                 )}
                             </button>
                         </div>
-                    </>
+                    </div>
                 </>
             )}
 
@@ -1478,10 +1475,10 @@ export default function ManualVideoForm({
             {/* STEP 3: Video Result */}
             {/* ==================== */}
             {currentStep === 3 && (
-                <Step3Result jobId={jobId} onReset={handleRegenerateImage} />
+                <Step3Result jobId={jobId} onReset={handleRegenerateImage} onRetry={handleGenerateVideo} />
             )}
 
-            {/* <div className="pt-6 mt-6 border-t border-dashed border-border/50 flex justify-center gap-2 opacity-50 hover:opacity-100 transition-opacity">
+            <div className="pt-6 mt-6 border-t border-dashed border-border/50 flex justify-center gap-2 opacity-50 hover:opacity-100 transition-opacity">
                 <span className="text-xs text-muted-foreground self-center mr-2">Debug:</span>
                 {[1, 2, 3].map(s => (
                     <QuickNavButton
@@ -1491,7 +1488,7 @@ export default function ManualVideoForm({
                         currentStep={currentStep}
                     />
                 ))}
-            </div> */}
+            </div>
 
         </div>
     );
@@ -1517,10 +1514,11 @@ function QuickNavButton({ stepNumber, setStep, currentStep }: { stepNumber: 1 | 
 // ============================================
 // STEP 3 RESULT COMPONENT
 // ============================================
-function Step3Result({ jobId, onReset }: { jobId: string | null; onReset: () => void }) {
+function Step3Result({ jobId, onReset, onRetry }: { jobId: string | null; onReset: () => void; onRetry?: () => void }) {
     const [status, setStatus] = useState<"loading" | "done" | "failed">("loading");
     const [videoUrl, setVideoUrl] = useState<string | null>(null);
     const [progress, setProgress] = useState(0);
+    const [retryCount, setRetryCount] = useState(0);
     const { refreshCredits } = useCredits();
 
     useEffect(() => {
@@ -1576,7 +1574,7 @@ function Step3Result({ jobId, onReset }: { jobId: string | null; onReset: () => 
             clearInterval(pollInterval);
             clearInterval(progressInterval);
         };
-    }, [jobId, refreshCredits]);
+    }, [jobId, refreshCredits, retryCount]);
 
     if (status === "loading") {
         return (
@@ -1627,17 +1625,7 @@ function Step3Result({ jobId, onReset }: { jobId: string | null; onReset: () => 
                     </p>
                 </div>
 
-                {/* Animated dots */}
-                <div className="flex items-center justify-center gap-1.5">
-                    <div className="w-2 h-2 rounded-full bg-brand-primary animate-bounce" style={{ animationDelay: "0ms" }} />
-                    <div className="w-2 h-2 rounded-full bg-brand-primary animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <div className="w-2 h-2 rounded-full bg-brand-primary animate-bounce" style={{ animationDelay: "300ms" }} />
-                </div>
-
-                {/* Tip */}
-                <p className="text-xs text-muted-foreground/70">
-                    Depending on video length it may take 2-5 minutes. Hold on!
-                </p>
+                <LoadingMessages />
             </div>
         );
     }
@@ -1654,7 +1642,15 @@ function Step3Result({ jobId, onReset }: { jobId: string | null; onReset: () => 
                     Something went wrong. Please try again.
                 </p>
                 <button
-                    onClick={onReset}
+                    onClick={() => {
+                        if (onRetry) {
+                            setStatus("loading");
+                            setRetryCount(c => c + 1);
+                            onRetry();
+                        } else {
+                            onReset();
+                        }
+                    }}
                     className="px-6 py-2 rounded-lg bg-brand-primary text-white hover:bg-brand-primary/90 transition flex items-center gap-2"
                 >
                     <RefreshCw className="w-4 h-4" />

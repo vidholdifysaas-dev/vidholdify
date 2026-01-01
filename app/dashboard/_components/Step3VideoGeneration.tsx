@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Loader2, ChevronLeft, ChevronRight, Sparkles, X } from "lucide-react";
 import { useVideoCreator } from "../../context/VideoCreatorContext";
-import { useCredits } from "@/app/context/CreditContext";
+
 import { toast } from "sonner";
 import axios from "axios";
 import {
@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import LoadingMessages from "./LoadingMessages";
 
 interface Voice {
   voiceId: string;
@@ -59,7 +60,7 @@ export default function Step3VideoGeneration() {
     isCacheValid,
   } = useVideoCreator();
 
-  const { refreshCredits } = useCredits();
+
 
   const taskRecordId = workflowData.taskRecordId!;
   const selectedImageId = workflowData.selectedImageId!;
@@ -88,7 +89,7 @@ export default function Step3VideoGeneration() {
   const voiceId = workflowData.voiceId || "";
   const captionStyleId = workflowData.captionStyleId || "";
   const videoLength = workflowData.videoLength || "15-30s";
-  const mode = workflowData.mode || "pro";
+  const mode = "avatar4fast";
 
   /* ------------------------------------------ */
   /*       FETCH PLAN LIMITS                    */
@@ -109,7 +110,7 @@ export default function Step3VideoGeneration() {
 
         const tier = planData.tier || "none";
         setMaxDuration(planLimits[tier]?.maxDuration || 30);
-      } catch (error) {
+      } catch (_error) {
         setMaxDuration(30);
       }
     };
@@ -120,30 +121,7 @@ export default function Step3VideoGeneration() {
   /* ------------------------------------------ */
   /*         LOAD VOICES & CAPTION STYLES       */
   /* ------------------------------------------ */
-  useEffect(() => {
-    fetchVoices();
-    fetchCaptionStyles();
-  }, []);
-
-  useEffect(() => {
-    if (!language) {
-      setFilteredVoices(allVoices);
-      return;
-    }
-
-    const filtered = allVoices.filter(
-      (v) => v.bestSupportLanguage?.toLowerCase() === language.toLowerCase()
-    );
-
-    setFilteredVoices(filtered);
-
-    // Auto-select first available voice
-    if (filtered.length > 0 && !voiceId) {
-      setWorkflowData({ voiceId: filtered[0].voiceId });
-    }
-  }, [language, allVoices]);
-
-  const fetchVoices = async () => {
+  const fetchVoices = useCallback(async () => {
     // Check if we have valid cached voices
     if (isCacheValid('voices')) {
       console.log('📦 Using cached voices');
@@ -173,14 +151,14 @@ export default function Step3VideoGeneration() {
           },
         });
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error("Failed to load voices");
     } finally {
       setLoadingVoices(false);
     }
-  };
+  }, [cachedResources, isCacheValid, setCachedResources]);
 
-  const fetchCaptionStyles = async () => {
+  const fetchCaptionStyles = useCallback(async () => {
     // Check if we have valid cached caption styles
     if (isCacheValid('captionStyles')) {
       console.log('📦 Using cached caption styles');
@@ -215,12 +193,36 @@ export default function Step3VideoGeneration() {
           },
         });
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error("Failed to load caption styles");
     } finally {
       setLoadingCaptionStyles(false);
     }
-  };
+  }, [cachedResources, isCacheValid, setCachedResources, captionStyleId, setWorkflowData]);
+  useEffect(() => {
+    fetchVoices();
+    fetchCaptionStyles();
+  }, [fetchVoices, fetchCaptionStyles]);
+
+  useEffect(() => {
+    if (!language) {
+      setFilteredVoices(allVoices);
+      return;
+    }
+
+    const filtered = allVoices.filter(
+      (v) => v.bestSupportLanguage?.toLowerCase() === language.toLowerCase()
+    );
+
+    setFilteredVoices(filtered);
+
+    // Auto-select first available voice
+    if (filtered.length > 0 && !voiceId) {
+      setWorkflowData({ voiceId: filtered[0].voiceId });
+    }
+  }, [language, allVoices, voiceId, setWorkflowData]);
+
+
 
   // Check scroll position for caption carousel
   const checkScroll = () => {
@@ -368,7 +370,7 @@ export default function Step3VideoGeneration() {
   };
 
   return (
-    <div className="bg-card border border-border rounded-xl p-4 sm:p-8">
+    <div className="bg-card min-h-[85vh] flex flex-col border border-border rounded-xl p-4 sm:p-8">
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
         <div>
@@ -380,22 +382,24 @@ export default function Step3VideoGeneration() {
       </div>
 
       {/* Two Column Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-1">
         {/* LEFT COLUMN - Selected Image Preview */}
-        <div className="space-y-4">
-          <div className="bg-sidebar border border-border rounded-xl p-4">
+        <div className="h-full">
+          <div className="bg-sidebar border border-border rounded-xl p-4 h-full flex flex-col">
             <h3 className="text-sm font-semibold text-foreground mb-3">Selected Image</h3>
-            <div className="relative aspect-square rounded-lg overflow-hidden bg-black/20">
+            <div className="relative w-full flex-1 min-h-[300px] rounded-lg overflow-hidden bg-black/20">
               <img
                 src={selectedImageUrl}
                 alt="Selected product"
-                className="w-full h-full object-contain"
+                className="absolute inset-0 w-full h-full object-contain"
               />
             </div>
-            <div className="mt-3 p-3 bg-sidebar-accent rounded-lg">
-              <p className="text-xs text-muted-foreground">
-                💡 This image will be used in your video generation
-              </p>
+            <div className="mt-auto pt-3">
+              <div className="p-3 bg-sidebar-accent rounded-lg">
+                <p className="text-xs text-muted-foreground">
+                  💡 This image will be used in your video generation
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -406,7 +410,7 @@ export default function Step3VideoGeneration() {
           <div className="space-y-2">
             <div className="flex justify-between items-center text-foreground">
               <h3 className="text-sm font-semibold pb-0">Your Script</h3>
-               <button
+              <button
                 onClick={() => setIsDialogOpen(true)}
                 className="bg-brand-primary hover:bg-brand-primary/90 text-white shadow-md rounded-lg px-2 py-1 flex items-center gap-1 transition-all text-xs rounded-sm"
               >
@@ -461,7 +465,7 @@ export default function Step3VideoGeneration() {
                 onValueChange={(value) => setWorkflowData({ voiceId: value })}
                 disabled={!language}
               >
-                <SelectTrigger className="w-full" disabled={!language}>
+                <SelectTrigger className="w-full" disabled={!language || loadingVoices}>
                   <SelectValue placeholder="Select voice" />
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px] overflow-y-auto">
@@ -584,26 +588,7 @@ export default function Step3VideoGeneration() {
             </div>
           </div>
 
-          {/* Quality Mode */}
-          <div className="space-y-2">
-            <label className="text-foreground text-sm font-medium mb-2 block">
-              Quality Mode
-            </label>
-            <div className="flex gap-3">
-              {(["avatar4", "avatar4Fast"] as const).map((m) => (
-                <button
-                  key={m}
-                  onClick={() => setWorkflowData({ mode: m })}
-                  className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-all ${mode === m
-                    ? "bg-brand-primary text-white shadow-lg"
-                    : "bg-sidebar border border-border text-foreground hover:border-brand-primary/50"
-                    }`}
-                >
-                  {m === "avatar4Fast" ? "pro" : "Standard"}
-                </button>
-              ))}
-            </div>
-          </div>
+
         </div>
 
       </div>
@@ -633,76 +618,82 @@ export default function Step3VideoGeneration() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="sm:max-w-[500px] w-full bg-card border border-border backdrop-blur-xl shadow-xl text-foreground rounded-xl p-6 relative">
             {/* Close X button */}
-            <button
-              onClick={() => setIsDialogOpen(false)}
-              className="absolute top-4 right-4 p-1 hover:bg-sidebar-accent rounded-lg transition-colors"
-            >
-              <X className="w-5 h-5 text-muted-foreground hover:text-foreground" />
-            </button>
+            {!isGenerating && (
+              <button
+                onClick={() => setIsDialogOpen(false)}
+                className="absolute top-4 right-4 p-1 hover:bg-sidebar-accent rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-muted-foreground hover:text-foreground" />
+              </button>
+            )}
 
             <div className="mb-4">
-              <h3 className="text-2xl font-semibold text-foreground">
-                Generate Script with AI
+              <h3 className="text-2xl font-semibold text-foreground text-center sm:text-left">
+                {isGenerating ? "Generating Script..." : "Generate Script with AI"}
               </h3>
             </div>
 
-            <div className="space-y-6 mt-4">
-              {/* Duration Select */}
-              <div className="space-y-2">
-                <label className="text-foreground text-sm font-medium mb-2 block">
-                  Video Duration
-                </label>
-                <Select
-                  value={aiDuration}
-                  onValueChange={(value) => setAiDuration(value)}
+            {isGenerating ? (
+              <div className="py-8 flex flex-col items-center justify-center space-y-6 animate-in fade-in zoom-in duration-300">
+                <div className="relative w-20 h-20">
+                  <div className="absolute inset-0 rounded-full border-4 border-brand-primary/20"></div>
+                  <div className="absolute inset-0 rounded-full border-4 border-t-brand-primary animate-spin"></div>
+                  <Sparkles className="absolute inset-0 m-auto w-8 h-8 text-brand-primary animate-pulse" />
+                </div>
+                <LoadingMessages />
+              </div>
+            ) : (
+              <div className="space-y-6 mt-4">
+                {/* Duration Select */}
+                <div className="space-y-2">
+                  <label className="text-foreground text-sm font-medium mb-2 block">
+                    Video Duration
+                  </label>
+                  <Select
+                    value={aiDuration}
+                    onValueChange={(value) => setAiDuration(value)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select duration" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px] overflow-y-auto">
+                      <SelectItem value="0-15s">Short (0-15s)</SelectItem>
+                      {maxDuration > 15 && (
+                        <SelectItem value="15-30s">Short (15–30s)</SelectItem>
+                      )}
+                      {maxDuration >= 30 && (
+                        <SelectItem value="30-60s">Medium (30–60s)</SelectItem>
+                      )}
+                      {maxDuration >= 60 && (
+                        <SelectItem value="60-90s">Long (60–90s)</SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Prompt Input */}
+                <div className="space-y-2">
+                  <label className="text-foreground text-sm font-medium">
+                    Your Prompt
+                  </label>
+                  <textarea
+                    className="w-full bg-sidebar border border-border text-foreground rounded-lg min-h-[120px] p-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none resize-none"
+                    value={aiPrompt}
+                    onChange={(e) => setAiPrompt(e.target.value)}
+                    placeholder="Describe the video you want. Ex: 'AI avatar explaining benefits of a skincare product'"
+                  />
+                </div>
+
+                {/* Generate Button */}
+                <button
+                  onClick={handleGenerateScript}
+                  disabled={isGenerating}
+                  className="w-full bg-brand-primary hover:bg-brand-primary/90 text-white shadow-lg rounded-lg px-6 py-3 font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select duration" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[300px] overflow-y-auto">
-                    <SelectItem value="0-15s">Short (0-15s)</SelectItem>
-                    {maxDuration > 15 && (
-                      <SelectItem value="15-30s">Short (15–30s)</SelectItem>
-                    )}
-                    {maxDuration >= 30 && (
-                      <SelectItem value="30-60s">Medium (30–60s)</SelectItem>
-                    )}
-                    {maxDuration >= 60 && (
-                      <SelectItem value="60-90s">Long (60–90s)</SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
+                  Generate Script
+                </button>
               </div>
-
-              {/* Prompt Input */}
-              <div className="space-y-2">
-                <label className="text-foreground text-sm font-medium">
-                  Your Prompt
-                </label>
-                <textarea
-                  className="w-full bg-sidebar border border-border text-foreground rounded-lg min-h-[120px] p-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none resize-none"
-                  value={aiPrompt}
-                  onChange={(e) => setAiPrompt(e.target.value)}
-                  placeholder="Describe the video you want. Ex: 'AI avatar explaining benefits of a skincare product'"
-                />
-              </div>
-
-              {/* Generate Button */}
-              <button
-                onClick={handleGenerateScript}
-                disabled={isGenerating}
-                className="w-full bg-brand-primary hover:bg-brand-primary/90 text-white shadow-lg rounded-lg px-6 py-3 font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  "Generate Script"
-                )}
-              </button>
-            </div>
+            )}
           </div>
         </div>
       )}

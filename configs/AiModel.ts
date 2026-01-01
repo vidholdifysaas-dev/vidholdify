@@ -68,7 +68,7 @@ export async function createChatSession(initialPrompt: string | null = null) {
                 const errorWithStatus = error as ErrorWithStatus;
                 const errorStatus = errorWithStatus?.status;
                 const errorDetails = errorWithStatus?.errorDetails || errorWithStatus?.response?.text?.();
-                
+
                 console.error(`Gemini API Error (attempt ${retryCount + 1}):`, {
                     message: errorMessage,
                     status: errorStatus,
@@ -106,7 +106,7 @@ export async function createChatSession(initialPrompt: string | null = null) {
     } catch (error: unknown) {
         let errorMessage: string;
         const message = error instanceof Error ? error.message : String(error);
-        
+
         if (message.includes("timeout")) {
             errorMessage = "Request took too long to complete. Please try again.";
         } else if (message.includes("429")) {

@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { useVideoCreator } from "../../context/VideoCreatorContext";
 import { useCredits } from "@/app/context/CreditContext";
 
+import LoadingMessages from "./LoadingMessages";
+
 export default function VideoResult() {
   const { workflowData, setWorkflowData, resetWorkflow, goToStep } = useVideoCreator();
   const { refreshCredits } = useCredits();
@@ -138,6 +140,8 @@ export default function VideoResult() {
     goToStep(3);
   };
 
+
+
   // Loading View
   if (status === "loading") {
     return (
@@ -177,7 +181,6 @@ export default function VideoResult() {
           </div>
         </div>
 
-
         {/* Title & Description */}
         <div className="text-center space-y-3">
           <h3 className="text-xl font-semibold text-foreground flex items-center justify-center gap-2">
@@ -188,6 +191,8 @@ export default function VideoResult() {
             AI is creating your UGC video. This may take a few minutes.
           </p>
         </div>
+
+        <LoadingMessages />
       </div>
     );
   }

@@ -1,7 +1,7 @@
 export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth,clerkClient } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { TopviewTasks, TopviewVideo, Users } from "@/configs/schema";
 import { eq } from "drizzle-orm";
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       ttsText: scriptInput,
       voiceId,
       captionStyleId,
-      mode = "pro",
+      mode = "avatar4Fast",
       videoLengthType = 2,
       productName,
     } = body;

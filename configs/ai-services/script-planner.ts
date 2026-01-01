@@ -1,24 +1,5 @@
-/**
- * Script Planner - Gemini AI
- *
- * Generates video scripts and scene breakdowns using Gemini AI.
- * DYNAMIC scene count based on target duration:
- * - 15s → 2-3 scenes
- * - 30s → 4-5 scenes
- * - 45s → 5-6 scenes
- *
- * Key features:
- * - Consistent avatar/character throughout all scenes
- * - Natural script flow for seamless final video
- * - Precise duration targeting with Veo-compatible scene lengths
- */
-
 import { GoogleGenAI } from "@google/genai";
 import type { VideoGenerationPlan, ScenePlan, VideoLength } from "../schema";
-
-// ============================================
-// CONFIGURATION
-// ============================================
 
 if (!process.env.GEMINI_API_KEY) {
     throw new Error("GEMINI_API_KEY environment variable is not set");
@@ -30,14 +11,7 @@ const ai = new GoogleGenAI({
 
 const MODEL_NAME = "gemini-2.5-flash";
 
-// ============================================
-// SCENE CONFIGURATION BY DURATION
-// ============================================
 
-/**
- * Get optimal scene breakdown for target duration
- * Veo supports 4, 6, or 8 second scenes only
- */
 export function getSceneConfig(targetLength: VideoLength): {
     sceneCount: number;
     sceneDurations: number[];
@@ -45,8 +19,6 @@ export function getSceneConfig(targetLength: VideoLength): {
 } {
     switch (targetLength) {
         case "15":
-            // 15s = 8 + 7 (generate 8, trim to 7) = 2 scenes
-            // Or 6 + 6 + 3 (generate 6+6+4, trim) = 3 scenes
             return {
                 sceneCount: 2,
                 sceneDurations: [8, 8], // Will trim to ~15s total
@@ -101,7 +73,7 @@ SCENE DURATION RULES:
 - Target durations for each scene: [${sceneConfig.sceneDurations.join(", ")}] seconds
 - The sum should be close to the target video length
 
-OUTPUT FORMAT (STRICT JSON):
+OUTPUT FORMAT (STRICT JSON, NO MARKDOWN, NO CODE BLOCKS):
 {
   "fullScript": "The complete narration script as one continuous, natural-sounding text that flows seamlessly...",
   "scenes": [
@@ -140,21 +112,18 @@ SCRIPT FLOW GUIDELINES:
 
 interface ScriptPlannerInput {
     productName: string;
-    // productDescription removed
     targetLength: VideoLength;
     platform?: string;
     tone?: string;
     avatarDescription?: string;
     backgroundDescription?: string;
-    userScript?: string; // Optional user provided script
+    userScript?: string;
 }
 
 /**
  * Generate a video script and scene plan using Gemini AI
  * Returns dynamic scene count based on target duration
- *
- * @param input - Product details and video configuration
- * @returns Video generation plan with script and scene breakdown
+ * Retries up to 3 times on JSON parse error
  */
 export async function generateScriptPlan(
     input: ScriptPlannerInput
@@ -170,7 +139,8 @@ export async function generateScriptPlan(
     } = input;
 
     const sceneConfig = getSceneConfig(targetLength);
-
+    const maxRetries = 3;
+    let lastError: Error | null = null;
     console.log(`[ScriptPlanner] Generating ${sceneConfig.sceneCount}-scene script for ${targetLength}s video`);
 
     let userPrompt = "";
@@ -230,65 +200,80 @@ Requirements:
 Generate the complete script and ${sceneConfig.sceneCount} scene breakdown now.`;
     }
 
-
-    try {
-        const result = await ai.models.generateContent({
-            model: MODEL_NAME,
-            config: {
-                temperature: 0.7, // Slightly lower for more consistency
-                maxOutputTokens: 4096,
-                responseMimeType: "application/json",
-                systemInstruction: getScriptPlannerSystemPrompt(sceneConfig),
-            },
-            contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-        });
-
-        // Extract text response
-        let responseText = result.text || "";
-
-        if (!responseText) {
-            throw new Error("Empty response from Gemini");
-        }
-
-        // Clean up the JSON response (remove control characters, fix common issues)
-        responseText = responseText
-            .replace(/[\x00-\x1F\x7F]/g, ' ') // Remove control characters
-            .replace(/\n/g, ' ')              // Replace newlines with spaces
-            .replace(/\r/g, '')               // Remove carriage returns
-            .replace(/\t/g, ' ')              // Replace tabs with spaces
-            .replace(/\s+/g, ' ')             // Collapse multiple spaces
-            .trim();
-
-        // Try to extract JSON if wrapped in markdown code blocks
-        const jsonMatch = responseText.match(/```json\s*([\s\S]*?)```/) ||
-            responseText.match(/```\s*([\s\S]*?)```/);
-        if (jsonMatch) {
-            responseText = jsonMatch[1].trim();
-        }
-
-        console.log(`[ScriptPlanner] Parsing response (${responseText.length} chars)`);
-
-        // Parse the JSON response
-        let plan: VideoGenerationPlan;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
-            plan = JSON.parse(responseText);
-        } catch (parseError) {
-            console.error("[ScriptPlanner] JSON parse error. Raw response:", responseText.substring(0, 500));
-            throw new Error(`Invalid JSON from Gemini: ${parseError instanceof Error ? parseError.message : 'Unknown parse error'}`);
+            console.log(`[ScriptPlanner] Attempt ${attempt}/${maxRetries}`);
+
+            const result = await ai.models.generateContent({
+                model: MODEL_NAME,
+                config: {
+                    temperature: 0.7,
+                    maxOutputTokens: 4096,
+                    responseMimeType: "application/json",
+                    systemInstruction: getScriptPlannerSystemPrompt(sceneConfig),
+                },
+                contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+            });
+
+            // Extract text response
+            let responseText = result.text || "";
+
+            if (!responseText) {
+                if (attempt === maxRetries) throw new Error("Empty response from Gemini");
+                console.warn("[ScriptPlanner] Empty response, retrying...");
+                continue;
+            }
+
+            // Clean up the JSON response
+            responseText = responseText
+                .replace(/[\x00-\x1F\x7F]/g, ' ')
+                .replace(/\n/g, ' ')
+                .replace(/\r/g, '')
+                .replace(/\t/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+
+            const jsonMatch = responseText.match(/```json\s*([\s\S]*?)```/) || responseText.match(/```\s*([\s\S]*?)```/);
+            if (jsonMatch) {
+                responseText = jsonMatch[1].trim();
+            }
+
+            console.log(`[ScriptPlanner] Parsing response (${responseText.length} chars)`);
+
+            // Parse the JSON response
+            let plan: VideoGenerationPlan;
+            try {
+                plan = JSON.parse(responseText);
+            } catch (parseError) {
+                console.error("[ScriptPlanner] JSON parse error. Raw response:", responseText.substring(0, 500));
+                if (attempt === maxRetries) throw new Error(`Invalid JSON from Gemini: ${parseError instanceof Error ? parseError.message : 'Unknown parse error'}`);
+
+                // If parse fails, we retry loop
+                console.warn(`[ScriptPlanner] JSON parse failed on attempt ${attempt}, retrying...`);
+                continue;
+            }
+
+            // Validate and fix the plan
+            const validatedPlan = validateAndFixScriptPlan(plan, parseInt(targetLength), sceneConfig);
+
+            console.log(`[ScriptPlanner] Generated ${validatedPlan.scenes.length} scenes, total ${validatedPlan.totalDuration}s`);
+
+            return validatedPlan;
+
+        } catch (error) {
+            console.error(`[ScriptPlanner] Error on attempt ${attempt}:`, error);
+            lastError = error instanceof Error ? error : new Error(String(error));
+
+            if (attempt === maxRetries) break;
+
+            // Wait briefly before retry
+            await new Promise(resolve => setTimeout(resolve, 1000));
         }
-
-        // Validate and fix the plan
-        const validatedPlan = validateAndFixScriptPlan(plan, parseInt(targetLength), sceneConfig);
-
-        console.log(`[ScriptPlanner] Generated ${validatedPlan.scenes.length} scenes, total ${validatedPlan.totalDuration}s`);
-
-        return validatedPlan;
-    } catch (error) {
-        console.error("Script planner error:", error);
-        throw new Error(
-            `Failed to generate script plan: ${error instanceof Error ? error.message : "Unknown error"}`
-        );
     }
+
+    throw new Error(
+        `Failed to generate script plan after ${maxRetries} attempts: ${lastError?.message || "Unknown error"}`
+    );
 }
 
 /**
