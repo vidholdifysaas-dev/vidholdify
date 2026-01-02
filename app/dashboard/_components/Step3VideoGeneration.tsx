@@ -497,7 +497,10 @@ export default function Step3VideoGeneration() {
                   <SelectValue placeholder="Select length" />
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px] overflow-y-auto">
-                  <SelectItem value="15-30s">Short (15–30s)</SelectItem>
+                  <SelectItem value="0-15s">Short (0-15s)</SelectItem>
+                  {maxDuration >= 30 && (
+                    <SelectItem value="15-30s">Short (15–30s)</SelectItem>
+                  )}
                   {maxDuration >= 60 && (
                     <SelectItem value="30-60s">Medium (30–60s)</SelectItem>
                   )}
@@ -658,13 +661,13 @@ export default function Step3VideoGeneration() {
                     </SelectTrigger>
                     <SelectContent className="max-h-[300px] overflow-y-auto">
                       <SelectItem value="0-15s">Short (0-15s)</SelectItem>
-                      {maxDuration > 15 && (
+                      {maxDuration >= 30 && (
                         <SelectItem value="15-30s">Short (15–30s)</SelectItem>
                       )}
-                      {maxDuration >= 30 && (
+                      {maxDuration >= 60 && (
                         <SelectItem value="30-60s">Medium (30–60s)</SelectItem>
                       )}
-                      {maxDuration >= 60 && (
+                      {maxDuration >= 90 && (
                         <SelectItem value="60-90s">Long (60–90s)</SelectItem>
                       )}
                     </SelectContent>
