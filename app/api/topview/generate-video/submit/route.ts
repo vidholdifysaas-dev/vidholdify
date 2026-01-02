@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
       scriptLength: body.script?.length || 0,
       voiceId: body.voiceId,
       mode: body.mode,
-      captionStyleId: body.captionStyleId,
+      captionId: body.captionId,
     });
 
     const {
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
       scriptMode = "text",
       ttsText: scriptInput,
       voiceId,
-      captionStyleId,
+      captionId,
       mode = "avatar4Fast",
       videoLengthType = 2,
       productName,
@@ -165,7 +165,7 @@ export async function POST(req: NextRequest) {
         scriptMode,
         ttsText: ttsText,
         voiceId,
-        captionId: captionStyleId,
+        captionId: captionId,
         videoLengthType,
       },
     };
@@ -232,7 +232,7 @@ export async function POST(req: NextRequest) {
         videoTaskId: result.taskId,
         script: ttsText,
         voiceId,
-        captionStyleId,
+        captionStyleId: captionId,
         mode,
         currentStep: 3,
         updatedAt: new Date(),

@@ -89,7 +89,7 @@ export default function Step3VideoGeneration() {
   const voiceId = workflowData.voiceId || "";
   const captionStyleId = workflowData.captionStyleId || "";
   const videoLength = workflowData.videoLength || "15-30s";
-  const mode = "avatar4fast";
+  const mode = "avatar4Fast";
 
   /* ------------------------------------------ */
   /*       FETCH PLAN LIMITS                    */
