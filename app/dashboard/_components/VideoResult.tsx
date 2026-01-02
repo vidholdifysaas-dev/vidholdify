@@ -22,7 +22,7 @@ export default function VideoResult() {
   const videoRecordId = workflowData.videoRecordId;
 
   const pollForVideoCompletion = useCallback(async (taskIdToPoll: string) => {
-    const maxAttempts = 200; // 10 minutes max
+    const maxAttempts = 400; // 10 minutes max
     let attempts = 0;
 
     // Fake progress animation
@@ -60,7 +60,7 @@ export default function VideoResult() {
           // Still processing
           if (attempts < maxAttempts) {
             attempts++;
-            setTimeout(poll, 3000);
+            setTimeout(poll, 5000);
           } else {
             clearInterval(progressInterval);
             toast.error("Video generation timed out. Please try again.");
@@ -71,7 +71,7 @@ export default function VideoResult() {
         // Continue polling on network error unless max attempts reached
         if (attempts < maxAttempts) {
           attempts++;
-          setTimeout(poll, 3000);
+          setTimeout(poll, 5000);
         } else {
           clearInterval(progressInterval);
           toast.error("Failed to check video status due to network error.");
