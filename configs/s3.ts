@@ -212,47 +212,6 @@ export async function uploadImageFromUrl(
     return s3Key;
 }
 
-/**
- * Stream a file from a URL directly to S3 without buffering in memory
- * @param url - Remote URL to download from
- * @param key - S3 key to upload to
- * @param contentType - Optional content type (autodetected if null)
- */
-export async function streamUrlToS3(
-    url: string,
-    key: string,
-    contentType: string = "video/mp4"
-): Promise<string> {
-    const response = await fetch(url);
-    if (!response.ok || !response.body) {
-        throw new Error(`Failed to fetch stream from ${url}`);
-    }
-
-    // Convert Web Stream to Node Stream for AWS SDK (if needed) or pass directly
-    // AWS SDK v3 supports web streams in Node 18+
-
-    // We need to determine content length if possible for progress, but usually not needed for simple upload
-    // using Upload from lib-storage is best for streams, but PutObject works for known size or small files
-    // For unknown size streams, Upload is recommended.
-    // However, here we will use PutObject with the body stream.
-
-    // Note: response.body is a ReadableStream (Web API). 
-    // AWS SDK v3 PutObjectCommand accepts Readable | ReadableStream | Blob | string | Uint8Array | Buffer.
-
-    const command = new PutObjectCommand({
-        Bucket: getBucketName(),
-        Key: key,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        Body: response.body as any, // Cast to any to avoid TS mismatch between Web/Node streams
-        ContentType: contentType,
-        ACL: "public-read",
-    });
-
-    await getS3Client().send(command);
-
-    return `https://${getBucketName()}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
-}
-
 // ============================================
 // DOWNLOAD FUNCTIONS
 // ============================================

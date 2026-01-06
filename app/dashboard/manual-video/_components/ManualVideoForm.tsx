@@ -63,8 +63,7 @@ import LoadingMessages from "../../_components/LoadingMessages";
 const VIDEO_LENGTHS = [
     { id: "15", name: "15 seconds", description: "Quick hook", scenes: 2 },
     { id: "30", name: "30 seconds", description: "Standard UGC", scenes: 4 },
-    { id: "45", name: "45 seconds", description: "Detailed showcase", scenes: 6 },
-    { id: "60", name: "60 seconds", description: "Full Story", scenes: 8 },
+    { id: "45", name: "45 seconds", description: "Detailed showcase", scenes: 5 },
 ];
 
 const ASPECT_RATIOS = [
@@ -790,7 +789,7 @@ export default function ManualVideoForm({
                 "/api/topview/generate-script",
                 {
                     prompt: `${aiScriptPrompt.trim()}. Product name: ${productName || "this product"}.`,
-                    duration: `${duration}s`,
+                    duration: `${Math.floor(duration * 0.7)}-${duration}s`,
                     language: "English",
                     scenes: sceneCount,
                 },
@@ -1479,8 +1478,7 @@ export default function ManualVideoForm({
                 <Step3Result jobId={jobId} onReset={handleRegenerateImage} onRetry={handleGenerateVideo} />
             )}
 
-            {/* Debug navigation */}
-            <div className="pt-6 mt-6 border-t border-dashed border-border/50 flex justify-center gap-2 opacity-50 hover:opacity-100 transition-opacity">
+            {/* <div className="pt-6 mt-6 border-t border-dashed border-border/50 flex justify-center gap-2 opacity-50 hover:opacity-100 transition-opacity">
                 <span className="text-xs text-muted-foreground self-center mr-2">Debug:</span>
                 {[1, 2, 3].map(s => (
                     <QuickNavButton
@@ -1490,7 +1488,7 @@ export default function ManualVideoForm({
                         currentStep={currentStep}
                     />
                 ))}
-            </div>
+            </div> */}
 
         </div>
     );
@@ -1499,19 +1497,19 @@ export default function ManualVideoForm({
 // ============================================
 // QUICK NAV BUTTON (TESTING)
 // ============================================
-function QuickNavButton({ stepNumber, setStep, currentStep }: { stepNumber: 1 | 2 | 3; setStep: (s: number) => void; currentStep: number }) {
-    return (
-        <button
-            onClick={() => setStep(stepNumber)}
-            className={`px-3 py-1 text-xs rounded border transition-all ${currentStep === stepNumber
-                ? "bg-brand-primary text-white border-brand-primary"
-                : "bg-sidebar border-border text-muted-foreground hover:bg-sidebar-accent"
-                }`}
-        >
-            Step {stepNumber}
-        </button>
-    );
-}
+// function QuickNavButton({ stepNumber, setStep, currentStep }: { stepNumber: 1 | 2 | 3; setStep: (s: number) => void; currentStep: number }) {
+//     return (
+//         <button
+//             onClick={() => setStep(stepNumber)}
+//             className={`px-3 py-1 text-xs rounded border transition-all ${currentStep === stepNumber
+//                 ? "bg-brand-primary text-white border-brand-primary"
+//                 : "bg-sidebar border-border text-muted-foreground hover:bg-sidebar-accent"
+//                 }`}
+//         >
+//             Step {stepNumber}
+//         </button>
+//     );
+// }
 
 // ============================================
 // STEP 3 RESULT COMPONENT
