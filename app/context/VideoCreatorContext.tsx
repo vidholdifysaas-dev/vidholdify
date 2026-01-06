@@ -15,15 +15,20 @@ interface WorkflowData {
   // Step 1: URL Scraper state persistence
   productUrl?: string;
   scrapedImages?: Array<{
-    fileId: string;
+    fileId?: string;         // Optional - TopView fileId (present for TopView, empty for scrape.do initially)
     fileName: string;
     fileUrl: string;
+    originalUrl?: string;    // Original URL for scrape.do images (needs upload to TopView)
+    source?: "scrapedo" | "topview"; // Track source for lazy upload
   }>;
   selectedScrapedImage?: {
-    fileId: string;
+    fileId?: string;
     fileName: string;
     fileUrl: string;
+    originalUrl?: string;
+    source?: "scrapedo" | "topview";
   } | null;
+
 
   // Step 2: Avatar/Template Selection
   selectedImageId?: string;

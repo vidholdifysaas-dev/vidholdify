@@ -9,10 +9,13 @@ import { toast } from "sonner";
 type TabType = "url" | "upload";
 
 interface ScrapedImage {
-  fileId: string;
+  fileId?: string;          // TopView fileId (present for TopView scraper, empty for scrape.do initially)
   fileName: string;
   fileUrl: string;
+  originalUrl?: string;     // Original URL for scrape.do images (needs upload to TopView)
+  source?: "scrapedo" | "topview"; // Track source for lazy upload
 }
+
 
 // Image card component with loading state
 function ImageCard({ image, isSelected, isProcessing, onClick }: {
@@ -83,11 +86,7 @@ export default function Step1ProductUpload() {
   const [productName, setProductName] = useState("");
   const [fetchingUrl, setFetchingUrl] = useState(false);
   const [scrapedImages, setScrapedImages] = useState<ScrapedImage[]>([]);
-  const [selectedScrapedImage, setSelectedScrapedImage] = useState<{
-    fileId: string;
-    fileName: string;
-    fileUrl: string;
-  } | null>(null);
+  const [selectedScrapedImage, setSelectedScrapedImage] = useState<ScrapedImage | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
 
   // Check if we already have completed data and restore previous state
@@ -124,8 +123,8 @@ export default function Step1ProductUpload() {
     setError(null);
 
     try {
-      // Submit scraper task
-      const submitResponse = await fetch("/api/topview/scraper/submit", {
+      // Use the unified scraper endpoint (tries scrape.do first, then TopView)
+      const submitResponse = await fetch("/api/topview/scraper/unified", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ productLink: productUrl }),
@@ -134,13 +133,33 @@ export default function Step1ProductUpload() {
       const submitData = await submitResponse.json();
 
       if (!submitResponse.ok) {
-        throw new Error(submitData.error || "Failed to submit scraper task");
+        throw new Error(submitData.error || "Failed to scrape product");
       }
 
-      const taskId = submitData.taskId;
+      // Check if we got instant results (scrape.do) or need to poll (TopView)
+      if (submitData.status === "success" && submitData.productImages?.length > 0) {
+        // Instant results from scrape.do
+        setFetchingUrl(false);
+        setScrapedImages(submitData.productImages);
+        toast.success(`Found ${submitData.productImages.length} product images!`);
 
-      // Poll for scraper results
-      await pollScraperTask(taskId);
+        // Save to workflow context
+        setWorkflowData({
+          productUrl,
+          scrapedImages: submitData.productImages,
+          productName: submitData.productName || undefined,
+        });
+
+        // Auto-fill product name if available
+        if (submitData.productName && !productName) {
+          setProductName(submitData.productName);
+        }
+      } else if (submitData.taskId) {
+        // Need to poll TopView for results
+        await pollScraperTask(submitData.taskId);
+      } else {
+        throw new Error("No valid response from scraper");
+      }
     } catch (error) {
       setFetchingUrl(false);
       const errorMessage = error instanceof Error ? error.message : "Failed to fetch product data";
@@ -148,6 +167,7 @@ export default function Step1ProductUpload() {
       toast.error(errorMessage);
     }
   };
+
 
   const pollScraperTask = async (taskId: string) => {
     const maxAttempts = 30;
@@ -217,11 +237,43 @@ export default function Step1ProductUpload() {
     setError(null);
 
     try {
-      // Submit background removal with the scraped image fileId
+      let fileIdToUse = selectedScrapedImage.fileId;
+
+      // If this is a scrape.do image without fileId, upload it to TopView first
+      if (!fileIdToUse && (selectedScrapedImage.source === "scrapedo" || selectedScrapedImage.originalUrl)) {
+        const imageUrl = selectedScrapedImage.originalUrl || selectedScrapedImage.fileUrl;
+        console.log("📤 Uploading scrape.do image to TopView...");
+
+        const uploadResponse = await fetch("/api/topview/upload/from-url", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ imageUrl }),
+        });
+
+        const uploadData = await uploadResponse.json();
+
+        if (!uploadResponse.ok) {
+          throw new Error(uploadData.error || "Failed to prepare image");
+        }
+
+        fileIdToUse = uploadData.fileId;
+        console.log("✅ Image uploaded to TopView, fileId:", fileIdToUse);
+
+        // Update the selected image with the new fileId
+        const updatedImage = { ...selectedScrapedImage, fileId: fileIdToUse };
+        setSelectedScrapedImage(updatedImage);
+        setWorkflowData({ selectedScrapedImage: updatedImage });
+      }
+
+      if (!fileIdToUse) {
+        throw new Error("No valid file ID available");
+      }
+
+      // Submit background removal with the TopView fileId
       const response = await fetch("/api/topview/remove-background/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productImageFileId: selectedScrapedImage.fileId }),
+        body: JSON.stringify({ productImageFileId: fileIdToUse }),
       });
 
       const data = await response.json();
@@ -238,6 +290,7 @@ export default function Step1ProductUpload() {
       toast.error(errorMessage);
     }
   };
+
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
@@ -441,11 +494,11 @@ export default function Step1ProductUpload() {
                 Select a product image:
               </p>
               <div className="grid grid-cols-2 md:grid-cols-6 lg:grid-cols-8 gap-3">
-                {scrapedImages.map((image) => (
+                {scrapedImages.map((image, index) => (
                   <ImageCard
-                    key={image.fileId}
+                    key={image.fileId || `scraped-${index}`}
                     image={image}
-                    isSelected={selectedScrapedImage?.fileId === image.fileId}
+                    isSelected={selectedScrapedImage?.fileUrl === image.fileUrl}
                     isProcessing={false} // Removed processing overlay from individual cards
                     onClick={() => !processing && handleSelectScrapedImage(image)}
                   />

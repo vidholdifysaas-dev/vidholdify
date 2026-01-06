@@ -179,6 +179,39 @@ export async function uploadFinalVideo(
     return uploadToS3(key, videoBuffer, "video/mp4");
 }
 
+/**
+ * Upload an image from a remote URL to S3
+ * Downloads the image first, then uploads to S3
+ * @param imageUrl - Remote URL of the image to download
+ * @param s3Key - S3 key (path) to store the image
+ * @returns S3 key of the uploaded file
+ */
+export async function uploadImageFromUrl(
+    imageUrl: string,
+    s3Key: string
+): Promise<string> {
+    // Download the image from the remote URL
+    const response = await fetch(imageUrl, {
+        headers: {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "image/*,*/*;q=0.8",
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to download image from ${imageUrl}: ${response.status}`);
+    }
+
+    const contentType = response.headers.get("content-type") || "image/jpeg";
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // Upload to S3
+    await uploadToS3(s3Key, buffer, contentType, true);
+
+    return s3Key;
+}
+
 // ============================================
 // DOWNLOAD FUNCTIONS
 // ============================================
