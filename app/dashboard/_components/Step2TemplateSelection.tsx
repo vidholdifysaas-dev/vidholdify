@@ -698,7 +698,7 @@ export default function Step2TemplateSelection() {
             ) : results ? (
               "Configure Video"
             ) : (
-              processing ? "Processing..." : "Generate Images"
+              processing ? "Processing..." : "Generate Images (1 Credit)"
             )}
           </button>
         </div>
