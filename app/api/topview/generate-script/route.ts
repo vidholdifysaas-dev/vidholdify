@@ -25,12 +25,13 @@ export async function POST(req: Request) {
       console.warn("Failed to parse duration:", duration);
     }
 
-    // Calculate word count based on 2.8 words/sec rule (slightly faster pace for energy)
-    // 15s -> ~42 words
-    // 30s -> ~84 words
-    // 45s -> ~126 words
-    const maxWords = Math.floor(maxSeconds * 2.8);
-    const minWords = Math.floor(maxWords * 0.6); // Allow some range
+    // Calculate word count based on 2.3 words/sec rule (natural speaking pace)
+    // 15s -> ~35 words
+    // 30s -> ~69 words
+    // 45s -> ~104 words
+    // 60s -> ~126 words
+    const maxWords = Math.floor(maxSeconds * 2.3);
+    const minWords = Math.floor(maxWords * 0.7); // Allow some range
 
     wordCountRange = `${minWords}-${maxWords} words`;
     targetSeconds = `${maxSeconds} seconds`;

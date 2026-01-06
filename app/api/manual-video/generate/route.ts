@@ -8,7 +8,8 @@
  * 2. Generate script & dynamic scene plan (Gemini)
  *    - 15s → 2 scenes
  *    - 30s → 4 scenes
- *    - 45s → 5 scenes
+ *    - 45s → 6 scenes
+ *    - 60s → 8 scenes
  * 3. Generate scene videos (Replicate Veo-3-fast)
  *    - SAME reference image for ALL scenes
  *    - Consistent avatar, background, lighting

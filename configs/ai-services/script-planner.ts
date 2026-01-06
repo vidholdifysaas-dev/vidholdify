@@ -32,11 +32,18 @@ export function getSceneConfig(targetLength: VideoLength): {
                 description: "Hook + Problem + Solution + CTA",
             };
         case "45":
-            // 45s = 8 + 8 + 8 + 8 + 8 + 5 = 5-6 scenes
+            // 45s = 6 scenes (8+8+8+8+6+6 = 44s)
             return {
-                sceneCount: 5,
-                sceneDurations: [8, 8, 8, 8, 8], // ~40s, can add one more or extend
-                description: "Hook + Problem + Solution Demo + Benefits + CTA",
+                sceneCount: 6,
+                sceneDurations: [8, 8, 8, 8, 6, 6],
+                description: "Hook + Problem + Solution + Analysis + Benefits + CTA",
+            };
+        case "60":
+            // 60s = 8 scenes ~60s
+            return {
+                sceneCount: 8,
+                sceneDurations: [8, 8, 8, 8, 8, 8, 6, 6],
+                description: "Hook + Problem + Story/Experience + Solution + Demo + Features + Benefits + CTA",
             };
         default:
             return {
@@ -97,8 +104,10 @@ The person is [emotion/expression] while [action]."
 
 MOTION DESCRIPTION GUIDELINES:
 - Keep movements SUBTLE and natural
-- Good: "talking to camera", "slight head nod", "holding product", "gentle gesturing"
-- BAD: "walking around", "jumping", "complex movements", "changing positions"
+- Good: "talking to camera", "slight head nod", "holding product", "gentle gesturing", "pointing"
+- BAD (FORBIDDEN): "eating", "drinking", "chewing", "walking around", "jumping", "complex movements", "changing positions", "applying product to face"
+- NEVER depict the avatar consuming food or drink.
+- NEVER depict the avatar putting things in their mouth.
 
 SCRIPT FLOW GUIDELINES:
 - Scene transitions should feel natural (no abrupt topic changes)
@@ -264,7 +273,17 @@ Generate the complete script and ${sceneConfig.sceneCount} scene breakdown now.`
             console.error(`[ScriptPlanner] Error on attempt ${attempt}:`, error);
             lastError = error instanceof Error ? error : new Error(String(error));
 
-            if (attempt === maxRetries) break;
+            if (attempt === maxRetries) {
+                console.warn("[ScriptPlanner] All AI attempts failed. Executing PANIC FALLBACK.");
+                try {
+                    const fallbackPlan = createFallbackPlan(input, sceneConfig);
+                    return validateAndFixScriptPlan(fallbackPlan, parseInt(targetLength), sceneConfig);
+                } catch (fallbackError) {
+                    // If even fallback fails, then throw original error
+                    console.error("[ScriptPlanner] Fallback also failed:", fallbackError);
+                    break;
+                }
+            }
 
             // Wait briefly before retry
             await new Promise(resolve => setTimeout(resolve, 1000));
@@ -315,17 +334,20 @@ function validateAndFixScriptPlan(
 
 
 
+    // Adjust durations to match exact target
+    const adjustedScenes = adjustSceneDurations(fixedScenes, targetLength);
+
     // Calculate actual duration
-    const actualTotal = fixedScenes.reduce((sum, s) => sum + s.duration, 0);
+    const actualTotal = adjustedScenes.reduce((sum, s) => sum + s.duration, 0);
 
     // Allow some flexibility
-    if (Math.abs(actualTotal - targetLength) > 10) {
-        console.warn(`Duration mismatch: planned ${actualTotal}s, target ${targetLength}s. Adjusting...`);
+    if (Math.abs(actualTotal - targetLength) > 5) {
+        console.warn(`[ScriptPlanner] Duration mismatch warning: planned ${actualTotal}s, target ${targetLength}s.`);
     }
 
     return {
         fullScript: plan.fullScript,
-        scenes: fixedScenes,
+        scenes: adjustedScenes,
         totalDuration: actualTotal,
     };
 }
@@ -346,11 +368,116 @@ export function adjustSceneDurations(
     // Clone scenes to avoid mutation
     const adjustedScenes = scenes.map((s) => ({ ...s }));
 
-    console.log(`Scene adjustment needed: ${difference}s difference`);
+    console.log(`[ScriptPlanner] Adjusting scenes to match target ${targetLength}s (Current: ${currentTotal}s)`);
 
-    // If we need more time, extend longest scenes
-    // If we need less time, we'll trim in FFmpeg
+    // Helper to find index of a scene that matches condition
+    const findSceneIndex = (durations: number[], predicate: (d: number) => boolean) => {
+        // Try to distribute changes from the middle/later scenes first to keep hooks (first scene) intact if possible
+        // But for simplicity, we search from end to start
+        for (let i = durations.length - 1; i >= 0; i--) {
+            if (predicate(durations[i])) return i;
+        }
+        return -1;
+    };
+
+    let attempt = 0;
+    while (attempt < 10) {
+        const currentSum = adjustedScenes.reduce((sum, s) => sum + s.duration, 0);
+        const diff = targetLength - currentSum;
+
+        if (Math.abs(diff) <= 1) break; // Close enough
+
+        if (diff > 0) {
+            // Need MORE time: Promote 4->6 or 6->8
+            // Prefer promoting 6->8 first (longer scenes are okay), then 4->6
+            let idx = findSceneIndex(adjustedScenes.map(s => s.duration), d => d === 6);
+            if (idx === -1) idx = findSceneIndex(adjustedScenes.map(s => s.duration), d => d === 4);
+
+            if (idx !== -1) {
+                adjustedScenes[idx].duration += 2;
+                console.log(`[ScriptPlanner] Extended scene ${idx + 1} to ${adjustedScenes[idx].duration}s`);
+            } else {
+                // No scenes can be extended (all are 8s)
+                // Nothing more we can do without adding scenes
+                console.warn("[ScriptPlanner] Cannot extend scenes further (all maxed at 8s)");
+                break;
+            }
+        } else {
+            // Need LESS time: Demote 8->6 or 6->4
+            // Prefer demoting 8->6 first, then 6->4
+            let idx = findSceneIndex(adjustedScenes.map(s => s.duration), d => d === 8);
+            if (idx === -1) idx = findSceneIndex(adjustedScenes.map(s => s.duration), d => d === 6);
+
+            if (idx !== -1) {
+                adjustedScenes[idx].duration -= 2;
+                console.log(`[ScriptPlanner] Shortened scene ${idx + 1} to ${adjustedScenes[idx].duration}s`);
+            } else {
+                // No scenes can be shortened (all are 4s)
+                console.warn("[ScriptPlanner] Cannot shorten scenes further (all min at 4s)");
+                break;
+            }
+        }
+        attempt++;
+    }
+
     return adjustedScenes;
+}
+
+/**
+ * Fallback generator when AI fails
+ * Manually splits script into roughly equal parts
+ */
+function createFallbackPlan(
+    input: ScriptPlannerInput,
+    sceneConfig: ReturnType<typeof getSceneConfig>
+): VideoGenerationPlan {
+    const { userScript, productName, avatarDescription, backgroundDescription } = input;
+
+    // Use user script or generate a generic one
+    const script = userScript?.trim() ||
+        `I just discovered ${productName} and it's amazing. You have to try it. It completely changed my routine. The results are incredible. I highly recommend it to everyone.`;
+
+    // Split into N chunks
+    // Simple logic: split by sentences, then group into N chunks
+    const sentences = script.split(/(?<=[.!?])\s+/);
+    const scenes: ScenePlan[] = [];
+    const count = sceneConfig.sceneCount;
+
+    // If not enough sentences, split by words
+    const chunks: string[] = [];
+    if (sentences.length < count) {
+        const words = script.split(' ');
+        const chunkSize = Math.ceil(words.length / count);
+        for (let i = 0; i < count; i++) {
+            chunks.push(words.slice(i * chunkSize, (i + 1) * chunkSize).join(' '));
+        }
+    } else {
+        // Distribute sentences
+        const sentPerScene = Math.ceil(sentences.length / count);
+        for (let i = 0; i < count; i++) {
+            chunks.push(sentences.slice(i * sentPerScene, (i + 1) * sentPerScene).join(' '));
+        }
+    }
+
+    // Assign to scenes
+    for (let i = 0; i < count; i++) {
+        // Fill empty chunks if any
+        const text = chunks[i] || `Scene ${i + 1} narration about ${productName}`;
+
+        scenes.push({
+            sceneIndex: i,
+            duration: sceneConfig.sceneDurations[i] || 4,
+            script: text,
+            visualPrompt: `UGC style video: ${avatarDescription || "Person"} in ${backgroundDescription || "room"}, talking about ${productName}. Scene ${i + 1}.`,
+            motionDescription: "Natural talking motion",
+        });
+    }
+
+    return {
+        fullScript: script,
+        scenes,
+        totalDuration: scenes.reduce((s, x) => s + x.duration, 0)
+    };
 }
 
 export type { ScriptPlannerInput };
