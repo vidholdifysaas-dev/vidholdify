@@ -442,20 +442,16 @@ export async function POST(request: NextRequest) {
         // ========================================
         // STEP 4: Upload Scene Videos to S3
         // ========================================
-        console.log("[API] Step 4: Uploading scene videos to S3...");
+        console.log("[API] Step 4: Uploading scene videos to S3 (PARALLEL)...");
 
-        const s3Clips: Array<{
-            s3Key: string;
-            sceneIndex: number;
-            duration: number;
-        }> = [];
-
-        for (const scene of veoResult.scenes) {
-            console.log(`[API] Uploading scene ${scene.sceneIndex + 1}/${veoResult.scenes.length}`);
+        // Upload ALL scenes in PARALLEL for faster processing
+        const uploadPromises = veoResult.scenes.map(async (scene) => {
+            console.log(`[API] Starting upload for scene ${scene.sceneIndex + 1}/${veoResult.scenes.length}`);
 
             // Download video from Replicate using axios
             const videoResponse = await axios.get(scene.videoUrl, {
                 responseType: "arraybuffer",
+                timeout: 120000, // 2 minute timeout per download
             });
 
             const videoBuffer = Buffer.from(videoResponse.data);
@@ -487,19 +483,22 @@ export async function POST(request: NextRequest) {
                     .where(eq(scenes.id, sceneRecord.id));
             }
 
-            s3Clips.push({
+            return {
                 s3Key,
                 sceneIndex: scene.sceneIndex,
                 duration: scene.duration,
-            });
-        }
+            };
+        });
+
+        // Wait for ALL uploads to complete in parallel
+        const s3Clips = await Promise.all(uploadPromises);
 
         await db
             .update(videoJobs)
             .set({ status: "SCENES_READY", updatedAt: new Date() })
             .where(eq(videoJobs.id, jobId));
 
-        console.log(`[API] All ${s3Clips.length} scenes uploaded to S3`);
+        console.log(`[API] All ${s3Clips.length} scenes uploaded to S3 (PARALLEL COMPLETE)`);
 
         // ========================================
         // STEP 5: Invoke Lambda for FFmpeg Merge

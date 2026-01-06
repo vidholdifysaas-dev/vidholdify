@@ -1438,7 +1438,7 @@ export default function ManualVideoForm({
                             {/* Prompt Input */}
                             <div className="space-y-2">
                                 <label className="text-foreground text-sm font-medium">
-                                    What should the AI talk about?
+                                    What should the Avatar talk about?
                                 </label>
                                 <textarea
                                     className="w-full bg-sidebar border border-border text-foreground rounded-lg min-h-[120px] p-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none resize-none"

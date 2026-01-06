@@ -139,7 +139,7 @@ export async function generateScriptPlan(
     } = input;
 
     const sceneConfig = getSceneConfig(targetLength);
-    const maxRetries = 3;
+    const maxRetries = 5;
     let lastError: Error | null = null;
     console.log(`[ScriptPlanner] Generating ${sceneConfig.sceneCount}-scene script for ${targetLength}s video`);
 
