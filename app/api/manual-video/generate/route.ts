@@ -33,7 +33,7 @@ import {
     pollUntilComplete,
     isConfigured as isNanoBananaConfigured,
 } from "@/configs/ai-services/nano-banana";
-import { uploadToS3, getS3Paths, getSignedUrlFromS3Url } from "@/configs/s3";
+import { uploadToS3, getS3Paths, getSignedUrlFromS3Url, streamUrlToS3 } from "@/configs/s3";
 import {
     generateAllScenes,
     isReplicateConfigured,
@@ -448,18 +448,13 @@ export async function POST(request: NextRequest) {
         const uploadPromises = veoResult.scenes.map(async (scene) => {
             console.log(`[API] Starting upload for scene ${scene.sceneIndex + 1}/${veoResult.scenes.length}`);
 
-            // Download video from Replicate using axios
-            const videoResponse = await axios.get(scene.videoUrl, {
-                responseType: "arraybuffer",
-                timeout: 120000, // 2 minute timeout per download
-            });
-
-            const videoBuffer = Buffer.from(videoResponse.data);
             const s3Key = getSceneS3Key(jobId, scene.sceneIndex);
 
-            // Upload to S3
-            const s3Url = await uploadToS3(s3Key, videoBuffer, "video/mp4");
-            console.log(`[API] Scene ${scene.sceneIndex + 1} uploaded: ${s3Key}`);
+            // Stream directly from Replicate URL to S3 (Optimized)
+            // This avoids loading the entire video into memory and pipes the stream directly
+            const s3Url = await streamUrlToS3(scene.videoUrl, s3Key, "video/mp4");
+
+            console.log(`[API] Scene ${scene.sceneIndex + 1} streamed to S3: ${s3Key}`);
 
             // Update scene record
             const [sceneRecord] = await db
