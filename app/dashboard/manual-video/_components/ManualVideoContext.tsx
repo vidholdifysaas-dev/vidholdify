@@ -89,7 +89,7 @@ const initialFormState: ManualVideoFormState = {
     productImage: null,
     productImagePreview: null,
     productImageS3Url: null,
-    productHoldDescription: "naturally holding the product, showing it to camera",
+    productHoldDescription: "holding the product securely in hand at chest level, fingers naturally wrapped around it, presenting it to the camera",
 
     backgroundDescription: "clean, well-lit home setting, natural lighting",
 

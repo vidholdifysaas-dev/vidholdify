@@ -44,7 +44,7 @@ export function buildImagePrompt(params: {
     const {
         productName,
         avatarDescription = "a friendly, relatable person in their 20s-30s with a natural, authentic look",
-        productHoldingDescription = "holding the product naturally, showing it to the camera",
+        productHoldingDescription = "holding the product naturally in their hand, presenting it to the camera",
         backgroundDescription = "a clean, real home environment with natural daytime lighting",
         platform = "TikTok",
         hasAvatarImage = false,
@@ -53,54 +53,118 @@ export function buildImagePrompt(params: {
         aspectRatio = "9:16",
     } = params;
 
-    if (hasAvatarImage && hasProductImage) {
-        return `Generate a high-quality, realistic UGC-style photo form the given avatar and product image in input.
+    // Common negative prompt for all scenarios - stronger for hand quality
+    const negativePrompt = "(poorly drawn hands:2.0), (missing fingers:2.0), (extra fingers:2.0), (malformed hands:2.0), (deformed hands:1.8), (fused fingers:1.8), (too many fingers:1.8), (bad anatomy:1.5), (floating product:1.8), (disconnected hands:2.0), (product not in hand:1.8), (blurry hands:1.5), (cropped hands:1.5)";
 
-Requirements:
-- Do NOT modify the avatar’s face, background, lighting, or clothing.
-- Keep the avatar exactly the same as in the reference image.
-- Use the exact product from the product reference image — same shape, label, logo, and color.
-- Photo should look realistic and natural, like a smartphone selfie
-- The person should be holding the product naturally and facing the camera with a friendly smile.
-- HAND QUALITY: Detailed hands and fingers, holding the product firmly but naturally. No malformed hands.
-- Aspect ratio: ${aspectRatio}`;
+    if (hasAvatarImage && hasProductImage) {
+        return `Create a professional UGC-style product showcase photo combining the avatar and product from the input images.
+
+CRITICAL REQUIREMENTS:
+- PRESERVE the avatar's exact face, expression, hair, clothing, and body from the reference image
+- PRESERVE the exact product appearance from the product reference — same shape, label, logo, colors, and branding
+- The avatar must be HOLDING the product in their hand with a natural, secure grip
+
+HAND AND PRODUCT PLACEMENT (VERY IMPORTANT):
+- Show both hands clearly with anatomically correct fingers (5 fingers per hand, proper joints)
+- One hand should be gripping the product firmly with fingers wrapped around it naturally
+- Product should be positioned at chest/shoulder level, tilted slightly toward camera for visibility
+- Hand must be connected to the arm naturally, no floating or disconnected hands
+- Fingers should show natural wrapping motion around the product with visible knuckles
+
+POSE AND EXPRESSION:
+- Person facing camera with friendly, genuine smile
+- Eyes looking directly at camera
+- Natural, relaxed body posture like taking a casual selfie
+- Product prominently displayed but not blocking face
+
+QUALITY:
+- Professional smartphone photo quality
+- Natural indoor/outdoor lighting
+- Sharp focus on both face and product
+- Aspect ratio: ${aspectRatio}
+
+Negative prompt: ${negativePrompt}`;
     }
 
     if (hasAvatarImage && !hasProductImage) {
-        return `Generate a high-quality, realistic UGC-style photo for a ${platform} ad.
+        return `Create a professional UGC-style product showcase photo using the avatar from the reference image.
 
-The avatar from the reference image is ${productHoldingDescription}.
+CRITICAL REQUIREMENTS:
+- PRESERVE the avatar's exact appearance: same face, hairstyle, skin tone, clothing, and style
+- Generate the person ${productHoldingDescription}
+- Create a realistic "${productName}" product that the person is actively holding
 
-REQUIREMENTS:
-- The person must look EXACTLY like the avatar reference image (same face, hair, clothing)
-- The person is holding a product called "${productName}"
-- HANDS: Explicitly show detailed, natural hands holding the product securely. Fingers must be distinct and well-formed.
-- The person is looking directly at the camera with a natural, friendly smile
-- The product "${productName}" must be clearly visible and readable
-- Photo should look realistic and natural, like a smartphone selfie
+HAND AND PRODUCT PLACEMENT (MOST IMPORTANT):
+- Generate anatomically perfect hands with exactly 5 fingers each, proper proportions and joints
+- The hand holding the product must show:
+  * Clear thumb on one side, four fingers wrapping on the other side
+  * Natural finger bend and grip pressure
+  * Product securely held (not floating or loosely touching)
+  * Visible palm or back of hand depending on angle
+- Position the product at chest to shoulder height, angled toward camera
+- The arm must be naturally connected to the body and hand
+- Show the full hand with wrist visible for natural anatomy
+
+PRODUCT DETAILS:
+- Product "${productName}" should look realistic with clear packaging/branding
+- Product size should be appropriate for hand size
+- Product should be the main focus alongside the person's face
+
+POSE AND COMPOSITION:
+- Person looking at camera with authentic, engaging expression
+- Natural body posture, relaxed shoulders
+- Product prominently displayed in the frame
 - Aspect ratio: ${aspectRatio}
 - Background: ${keepAvatarBackground ? "Keep the original background from the avatar image" : backgroundDescription}
 
-This image will be used for UGC ad creation, so make it look authentic and engaging. Negative prompt: (poorly drawn hands, missing fingers, extra fingers, malformed hands:1.5)`;
+STYLE:
+- High-quality smartphone selfie aesthetic
+- Natural, soft lighting
+- Sharp, professional focus
+- Authentic UGC content creator vibe
+
+Negative prompt: ${negativePrompt}`;
     }
 
-    return `Generate a high-quality, realistic UGC-style photo for a ${platform} ad.
+    return `Create a professional UGC-style product showcase photo for a ${platform} advertisement.
 
-PERSON: ${avatarDescription}
-ACTION: ${productHoldingDescription}, holding the product properly with detailed hands
-PRODUCT: "${productName}"
+PERSON DESCRIPTION:
+${avatarDescription}
 
-REQUIREMENTS:
-- The person is looking directly at the camera with a natural, friendly smile
-- The product "${productName}" must be clearly visible and readable on the packaging
-- HAND QUALITY: Detailed fingers, natural grip, no floating product.
-- Photo should look realistic and natural, like a smartphone selfie
-- The image should feel authentic and spontaneous, not staged
+ACTION:
+${productHoldingDescription}, actively presenting the product to the camera
+
+PRODUCT:
+"${productName}" - clearly visible with readable branding/label
+
+HAND AND PRODUCT PLACEMENT (CRITICAL):
+- Show anatomically correct hands with exactly 5 fingers each
+- Natural finger positioning with proper joints and proportions
+- Hand must be gripping the product firmly but naturally:
+  * Thumb on one side, fingers wrapped on the other
+  * Visible knuckles and natural finger bend
+  * Product resting securely in palm or grip
+- Product positioned at chest/shoulder level, angled toward camera
+- Full arm visible from shoulder to hand for natural anatomy
+- No floating products, hands must be physically holding the item
+
+COMPOSITION:
+- Person centered in frame, facing camera directly
+- Friendly, genuine smile with eyes on camera
+- Natural, relaxed posture (not stiff or staged)
+- Product prominently displayed without blocking face
 - Aspect ratio: ${aspectRatio}
 - Background: ${backgroundDescription}
-- Natural lighting, no harsh studio lights
 
-This image will be used for UGC ad creation, so make it look authentic and engaging. Negative prompt: (poorly drawn hands, missing fingers, extra fingers, malformed hands:1.5)`;
+QUALITY AND LIGHTING:
+- High-resolution smartphone selfie quality
+- Natural lighting (daylight or soft indoor lights)
+- Sharp focus on face and product
+- Authentic, spontaneous UGC aesthetic
+
+This image is for paid advertising - must look professional yet relatable.
+
+Negative prompt: ${negativePrompt}`;
 }
 
 
