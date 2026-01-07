@@ -1499,7 +1499,7 @@ export default function ManualVideoForm({
             )}
 
             {/* Debug navigation */}
-            <div className="pt-6 mt-6 border-t border-dashed border-border/50 flex justify-center gap-2 opacity-50 hover:opacity-100 transition-opacity">
+            {/* <div className="pt-6 mt-6 border-t border-dashed border-border/50 flex justify-center gap-2 opacity-50 hover:opacity-100 transition-opacity">
                 <span className="text-xs text-muted-foreground self-center mr-2">Debug:</span>
                 {[1, 2, 3].map(s => (
                     <QuickNavButton
@@ -1509,7 +1509,7 @@ export default function ManualVideoForm({
                         currentStep={currentStep}
                     />
                 ))}
-            </div>
+            </div> */}
 
         </div>
     );
