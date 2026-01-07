@@ -105,12 +105,51 @@ export async function GET(request: NextRequest) {
         // Get base progress from status
         const baseProgress = STATUS_PROGRESS[job.status] || STATUS_PROGRESS.CREATED;
 
+        // Check required imports
+        const { objectExists } = await import("@/configs/s3");
+
+        // ... (existing code)
+
         // Adjust progress based on scene generation
         const progress = { ...baseProgress };
         if (job.status === "SCENES_GENERATING" && totalScenes > 0) {
             const sceneProgress = (completedScenes / totalScenes) * 55; // 30% to 85% range
             progress.percentage = Math.round(30 + sceneProgress);
             progress.step = `Generating scenes (${completedScenes}/${totalScenes})...`;
+        }
+
+        // AUTO-COMPLETION CHECK:
+        // If status is STITCHING, check if the file actually faces in S3.
+        // This allows us to remove the Lambda callback and rely on polling.
+        if (job.status === "STITCHING") {
+            const outputKey = getFinalVideoS3Key(job.id);
+            const isFinished = await objectExists(outputKey);
+
+            if (isFinished) {
+                console.log(`[API] Job ${jobId} found in S3 but status was STITCHING. Marking as DONE.`);
+
+                // Construct the final URL (standard S3 URL format)
+                const region = process.env.AWS_REGION || "us-east-1";
+                const bucket = process.env.AWS_S3_BUCKET_NAME;
+                const finalVideoUrl = `https://${bucket}.s3.${region}.amazonaws.com/${outputKey}`;
+
+                // Update DB
+                await db
+                    .update(videoJobs)
+                    .set({
+                        status: "DONE",
+                        finalVideoUrl,
+                        completedAt: new Date(),
+                        updatedAt: new Date(),
+                    })
+                    .where(eq(videoJobs.id, jobId));
+
+                // Update local job object for the response
+                job.status = "DONE";
+                job.finalVideoUrl = finalVideoUrl;
+                progress.step = "Complete!";
+                progress.percentage = 100;
+            }
         }
 
         // Generate signed URLs if available
