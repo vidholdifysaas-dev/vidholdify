@@ -1,5 +1,6 @@
 import Header from "./_components/Header";
 import HeroSection from "./_components/HeroSection";
+import AvatarMarqueeSection from "./_components/AvatarMarqueeSection";
 import AnySizeSection from "./_components/AnySizeSection";
 import FeaturesSection from "./_components/FeaturesSection";
 import UseCasesSection from "./_components/UseCasesSection";
@@ -30,6 +31,7 @@ export default function Home() {
         <Header />
 
         <HeroSection />
+        <AvatarMarqueeSection />
         <AnySizeSection />
         <FeaturesSection />
         <UseCasesSection />

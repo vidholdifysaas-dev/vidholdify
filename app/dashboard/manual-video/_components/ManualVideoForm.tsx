@@ -610,7 +610,6 @@ export default function ManualVideoForm({
             return;
         }
 
-        const toastId = toast.loading("Starting image generation...");
         console.log("[ManualFlow] Starting Step 1: Image Generation");
 
         setLoading(true);
@@ -630,7 +629,6 @@ export default function ManualVideoForm({
         try {
             // Parallel uploads for better performance
             console.log("[ManualFlow] Uploading assets...");
-            toast.loading("Uploading assets...", { id: toastId });
 
             const [uploadedAvatarUrl, uploadedProductUrl] = await Promise.all([
                 avatarImage ? uploadImage(avatarImage, "avatar") : Promise.resolve(undefined),
@@ -650,7 +648,6 @@ export default function ManualVideoForm({
             }
 
             console.log("[ManualFlow] Creating job & generating reference...");
-            toast.loading("Generating reference image...", { id: toastId });
 
             // Create job and generate reference image
             const response = await axios.post("/api/manual-video/create", {
@@ -681,12 +678,11 @@ export default function ManualVideoForm({
                     setGeneratedImageUrl(response.data.referenceImageUrl);
                     setLoadingStep("done");
                     setCurrentStep(2);
-                    toast.success("Reference image ready!", { id: toastId });
+                    toast.success("Reference image ready!");
                     // Refresh sidebar credits
                     refreshCredits();
                 } else {
                     console.log("[ManualFlow] Polling for image...");
-                    toast.loading("Processing image...", { id: toastId });
                     // Wait for image generation
                     await pollForImage(response.data.jobId);
                     progressRef.current = 100;
@@ -695,7 +691,7 @@ export default function ManualVideoForm({
                     // Refresh sidebar credits after polling completes
                     refreshCredits();
                     console.log("[ManualFlow] Image polling complete");
-                    toast.success("Reference image ready!", { id: toastId });
+                    toast.success("Reference image ready!");
                 }
             } else {
                 clearInterval(progressInterval);
@@ -704,7 +700,7 @@ export default function ManualVideoForm({
         } catch (err) {
             clearInterval(progressInterval);
             console.error("[ManualFlow] Generate image error:", err);
-            toast.error(err instanceof Error ? err.message : "Failed to generate image", { id: toastId });
+            toast.error(err instanceof Error ? err.message : "Failed to generate image");
         } finally {
             setLoading(false);
             setLoadingStep("idle");
@@ -754,7 +750,6 @@ export default function ManualVideoForm({
             return;
         }
 
-        const toastId = toast.loading("Initializing video pipeline...");
         console.log(`[ManualFlow] Initializing video generation for Job: ${jobId}`);
 
         // Move to Step 3 IMMEDIATELY so loading shows inline (not in modal)
@@ -777,12 +772,12 @@ export default function ManualVideoForm({
             }
 
             console.log(`[ManualFlow] Pipeline started successfully. Status: ${response.data.status}`);
-            toast.success("Video generation started! Sit tight.", { id: toastId });
+            toast.success("Video generation started! Sit tight.");
 
             // Step3Result component will handle polling and show progress
         } catch (err) {
             console.error("[ManualFlow] Generate video error:", err);
-            toast.error(err instanceof Error ? err.message : "Failed to generate video", { id: toastId });
+            toast.error(err instanceof Error ? err.message : "Failed to generate video");
             // Go back to Step 2 on error
             setCurrentStep(2);
         }
@@ -827,7 +822,7 @@ export default function ManualVideoForm({
                 setUserScript(generatedScript);
                 setShowScriptModal(false);
                 setAiScriptPrompt("");
-                toast.success(`Script generated with ${sceneCount} scenes!`);
+                toast.success(`Script generated!`);
             } else {
                 toast.error("Empty script received");
             }

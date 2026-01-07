@@ -1,32 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import { listS3Folder, getSignedPlaybackUrl } from "@/configs/s3";
-import { auth } from "@clerk/nextjs/server";
 
 export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
     try {
-        // Public endpoint - no auth required for simple read
-        // const { userId } = await auth();
-
-
         const searchParams = req.nextUrl.searchParams;
         const page = parseInt(searchParams.get("page") || "1");
-        const limit = parseInt(searchParams.get("limit") || "24");
+        const limit = parseInt(searchParams.get("limit") || "50");
+        const folder = searchParams.get("folder") || "prebuilt"; // 'prebuilt' or 'topview'
         const offset = (page - 1) * limit;
 
-        // 1. List all objects in the avatars/prebuilt folder
-        // Note: For < 1000 items, one call is enough. If > 1000, we'd need multiple calls or continuation tokens.
-        const prefix = "avatars/prebuilt/";
+        // Determine prefix based on folder param
+        const prefix = `avatars/${folder}/`;
+
+        // 1. List all objects in the S3 folder
         const allKeys = await listS3Folder(prefix);
 
         // 2. Paginate keys
         const paginatedKeys = allKeys.slice(offset, offset + limit);
 
-        // 3. Generate signed URLs for only the requested page
+        // 3. Generate signed URLs
         const results = await Promise.allSettled(
             paginatedKeys.map(async (key) => {
-                const url = await getSignedPlaybackUrl(key, 3600); // Valid for 1 hour
+                const url = await getSignedPlaybackUrl(key, 3600); // 1 hour
                 return {
                     key,
                     url,
@@ -39,8 +36,6 @@ export async function GET(req: NextRequest) {
             .filter((result): result is PromiseFulfilledResult<{ key: string; url: string; fileName: string }> => result.status === "fulfilled")
             .map((result) => result.value);
 
-        console.log(`Page ${page}: Fetched ${avatars.length} avatars (Total available: ${allKeys.length})`);
-
         return NextResponse.json({
             avatars,
             pagination: {
@@ -51,11 +46,11 @@ export async function GET(req: NextRequest) {
             }
         }, {
             headers: {
-                "Cache-Control": "no-store, max-age=0",
+                "Cache-Control": "public, max-age=60", // Cache for 1 min
             }
         });
     } catch (error) {
-        console.error("Failed to fetch prebuilt avatars:", error);
+        console.error("Failed to fetch avatars list:", error);
         return NextResponse.json(
             { error: "Failed to fetch avatars" },
             { status: 500 }

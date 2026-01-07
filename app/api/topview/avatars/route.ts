@@ -32,10 +32,9 @@ interface Avatar {
 
 export async function GET(request: Request) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    // Public endpoint for landing page demo
+    // const { userId } = await auth();
+
 
     console.log("🎭 Fetching TopView Avatar List with filters...");
 
