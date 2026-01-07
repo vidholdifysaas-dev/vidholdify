@@ -56,6 +56,76 @@ export function isReplicateConfigured(): boolean {
     return !!process.env.REPLICATE_API_KEY;
 }
 
+// ============================================
+// RETRY CONFIGURATION
+// ============================================
+const MAX_RETRIES = 3;
+const RETRY_DELAY_BASE_MS = 2000; // 2 seconds base delay
+const RETRY_DELAY_MULTIPLIER = 2; // Exponential backoff
+
+/**
+ * Check if error is retryable (not a permanent failure)
+ */
+function isRetryableError(error: string): boolean {
+    const nonRetryableErrors = [
+        'insufficient funds',
+        'insufficient balance',
+        'billing',
+        'payment required',
+        'unauthorized',
+        'invalid api key',
+        'api key not configured',
+    ];
+
+    const lowerError = error.toLowerCase();
+    return !nonRetryableErrors.some(e => lowerError.includes(e));
+}
+
+/**
+ * Generate a single scene with automatic retry on failure
+ */
+async function generateVeoSceneWithRetry(
+    request: VeoSceneRequest,
+    maxRetries: number = MAX_RETRIES
+): Promise<VeoSceneResult> {
+    let lastError = '';
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        console.log(`[Veo] Scene ${request.sceneIndex + 1} - Attempt ${attempt}/${maxRetries}`);
+
+        const result = await generateVeoScene(request);
+
+        if (result.success) {
+            if (attempt > 1) {
+                console.log(`[Veo] Scene ${request.sceneIndex + 1} succeeded on retry ${attempt}`);
+            }
+            return result;
+        }
+
+        lastError = result.error || 'Unknown error';
+
+        // Check if error is retryable
+        if (!isRetryableError(lastError)) {
+            console.error(`[Veo] Scene ${request.sceneIndex + 1} - Non-retryable error: ${lastError}`);
+            return result; // Return immediately, don't retry
+        }
+
+        // If not the last attempt, wait before retrying
+        if (attempt < maxRetries) {
+            const delayMs = RETRY_DELAY_BASE_MS * Math.pow(RETRY_DELAY_MULTIPLIER, attempt - 1);
+            console.log(`[Veo] Scene ${request.sceneIndex + 1} failed, retrying in ${delayMs}ms...`);
+            console.log(`[Veo] Error: ${lastError}`);
+            await sleep(delayMs);
+        }
+    }
+
+    console.error(`[Veo] Scene ${request.sceneIndex + 1} failed after ${maxRetries} attempts: ${lastError}`);
+    return {
+        success: false,
+        error: `Failed after ${maxRetries} attempts: ${lastError}`,
+    };
+}
+
 /**
  * Generate a single scene video using Replicate Veo-3-fast
  * 
@@ -178,7 +248,14 @@ export async function generateVeoScene(
         // Extract error message from axios error
         let errorMessage = "Veo generation failed";
         if (axios.isAxiosError(error)) {
-            errorMessage = error.response?.data?.detail || error.response?.data?.error || error.message;
+            // Handle specific HTTP status codes
+            if (error.response?.status === 402) {
+                errorMessage = "Insufficient funds/credits on Replicate. Please upgrade your account.";
+            } else if (error.response?.status === 401) {
+                errorMessage = "Unauthorized (Invalid API Key). Check your REPLICATE_API_KEY.";
+            } else {
+                errorMessage = error.response?.data?.detail || error.response?.data?.error || error.message;
+            }
         } else if (error instanceof Error) {
             errorMessage = error.message;
         }
@@ -380,7 +457,8 @@ export async function generateAllScenes(
     const generationPromises = scenes.map(async (scene) => {
         console.log(`[Veo] --- Starting Scene ${scene.sceneIndex + 1}/${scenes.length} (parallel) ---`);
 
-        const result = await generateVeoScene({
+        // USE THE RETRY WRAPPER HERE
+        const result = await generateVeoSceneWithRetry({
             referenceImageUrl, // SAME image for ALL scenes
             script: scene.script,
             visualPrompt: scene.visualPrompt,
@@ -394,6 +472,8 @@ export async function generateAllScenes(
             aspectRatio: options?.aspectRatio,
             resolution: options?.resolution,
         });
+
+
 
         // Notify progress when this specific scene completes
         await onProgress?.(scene.sceneIndex, "completed");

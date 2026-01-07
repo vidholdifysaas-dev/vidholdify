@@ -112,11 +112,11 @@ export async function POST(request: NextRequest) {
             })
             .returning();
 
-        console.log(`[API] Created video job: ${jobId}`);
+        console.log(`[VideoJob] [${jobId}] Created video job (Step 1)`);
 
         // If generateImageOnly is true, generate the reference image now
         if (body.generateImageOnly) {
-            console.log(`[API] Generating reference image for job: ${jobId}`);
+            console.log(`[VideoJob] [${jobId}] Generating reference image for job`);
 
             // Credit Check
             if (!userEmail) {
@@ -181,7 +181,7 @@ export async function POST(request: NextRequest) {
                 if (signedAvatarUrl && signedAvatarUrl.includes("amazonaws.com")) {
                     try {
                         signedAvatarUrl = await getSignedUrlFromS3Url(signedAvatarUrl, 1800); // 30 mins access
-                        console.log(`[API] Signed avatar URL for Replicate`);
+                        console.log(`[VideoJob] [${jobId}] Signed avatar URL for Replicate`);
                     } catch (e) {
                         console.warn("[API] Failed to sign avatar URL (might be public or external):", e);
                     }
@@ -190,7 +190,7 @@ export async function POST(request: NextRequest) {
                 if (signedProductUrl && signedProductUrl.includes("amazonaws.com")) {
                     try {
                         signedProductUrl = await getSignedUrlFromS3Url(signedProductUrl, 1800); // 30 mins access
-                        console.log(`[API] Signed product URL for Replicate`);
+                        console.log(`[VideoJob] [${jobId}] Signed product URL for Replicate`);
                     } catch (e) {
                         console.warn("[API] Failed to sign product URL (might be public or external):", e);
                     }
@@ -248,7 +248,7 @@ export async function POST(request: NextRequest) {
 
                         // Upload to S3 (without public access)
                         await uploadToS3(s3Key, imageBuffer, "image/jpeg", false);
-                        console.log(`[API] Reference image uploaded to S3: ${s3Key}`);
+                        console.log(`[VideoJob] [${jobId}] Reference image uploaded to S3: ${s3Key}`);
 
                         // Generate a signed URL for display (valid for 7 days)
                         const signedUrl = await getSignedPlaybackUrl(s3Key, 604800);
@@ -268,7 +268,7 @@ export async function POST(request: NextRequest) {
                     })
                     .where(eq(videoJobs.id, jobId));
 
-                console.log(`[API] Reference image ready for job: ${jobId}`);
+                console.log(`[VideoJob] [${jobId}] Reference image ready`);
 
                 // Deduct 1 Credit for successful image generation
                 try {
@@ -280,7 +280,7 @@ export async function POST(request: NextRequest) {
                             carryover_veo: deduction.carryover_veo,
                         })
                         .where(eq(Users.email, userEmail));
-                    console.log(`[API] Deducted 1 VEO credit for image generation. Remaining used: ${deduction.credits_used_veo}`);
+                    console.log(`[VideoJob] [${jobId}] Deducted 1 VEO credit for image generation. Remaining used: ${deduction.credits_used_veo}`);
                 } catch (creditError) {
                     console.error("[API] Failed to deduct credits after success:", creditError);
                     // We don't fail the request, but we log the error. In production, this might need manual reconciliation.
@@ -293,7 +293,7 @@ export async function POST(request: NextRequest) {
                     message: "Reference image generated successfully",
                 });
             } catch (imageError) {
-                console.error(`[API] Image generation failed for job ${jobId}:`, imageError);
+                console.error(`[VideoJob] [${jobId}] Image generation failed:`, imageError);
 
                 await db
                     .update(videoJobs)

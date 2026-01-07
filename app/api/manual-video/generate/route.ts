@@ -26,7 +26,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { db } from "@/configs/db";
-import { videoJobs, scenes, VideoLength, generatedVideos, Users } from "@/configs/schema";
+import { videoJobs, scenes, VideoLength, Users } from "@/configs/schema";
 import { eq, and } from "drizzle-orm";
 import { generateScriptPlan, getSceneConfig } from "@/configs/ai-services/script-planner";
 import {
@@ -41,7 +41,7 @@ import {
 } from "@/configs/ai-services/replicate-veo";
 import axios from "axios";
 import {
-    invokeMergerLambda,
+    invokeMergerLambdaAsync,
     getSceneS3Key,
     getFinalVideoS3Key,
     isLambdaMergerConfigured,
@@ -79,6 +79,7 @@ function getVeoAspectRatio(imageAspectRatio: string | null): "16:9" | "9:16" {
 }
 
 export async function POST(request: NextRequest) {
+    let currentJobId = "unknown";
     try {
         // Authenticate user
         const { userId } = await auth();
@@ -91,6 +92,9 @@ export async function POST(request: NextRequest) {
 
         const body = await request.json();
         const { jobId, userScript } = body;
+        currentJobId = jobId || "unknown";
+
+        console.log(`[VideoJob] [${currentJobId}] Request received`);
 
         if (!jobId) {
             return NextResponse.json(
@@ -106,6 +110,7 @@ export async function POST(request: NextRequest) {
             .where(and(eq(videoJobs.id, jobId), eq(videoJobs.userId, userId)));
 
         if (!job) {
+            console.warn(`[VideoJob] [${currentJobId}] Job not found or access denied`);
             return NextResponse.json(
                 { success: false, error: "Job not found" },
                 { status: 404 }
@@ -126,7 +131,7 @@ export async function POST(request: NextRequest) {
         // Update targetLength if provided (in case user changed it after Step 1)
         if (body.targetLength && ["15", "30", "45", "60"].includes(body.targetLength)) {
             if (job.targetLength !== body.targetLength) {
-                console.log(`[API] Updating job targetLength: ${job.targetLength} -> ${body.targetLength}`);
+                console.log(`[VideoJob] [${currentJobId}] Updating targetLength: ${job.targetLength} -> ${body.targetLength}`);
 
                 await db
                     .update(videoJobs)
@@ -138,13 +143,11 @@ export async function POST(request: NextRequest) {
             }
         }
 
-
-
         // Validate job can be started (allow more statuses for resume/retry capability)
         // "FAILED" is included to allow users to retry after an error
         const validStatuses = ["CREATED", "PLANNED", "GENERATING_IMAGE", "PLANNING", "IMAGE_READY", "SCRIPT_READY", "SCENES_GENERATING", "FAILED"];
         if (!validStatuses.includes(job.status)) {
-            console.log(`[API] Job ${jobId} has status: ${job.status} - cannot process`);
+            console.warn(`[VideoJob] [${currentJobId}] Invalid job status: ${job.status}`);
             return NextResponse.json(
                 {
                     success: false,
@@ -154,10 +157,11 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        console.log(`[API] Job ${jobId} found with status: ${job.status}`);
+        console.log(`[VideoJob] [${currentJobId}] Status confirmed: ${job.status}. Starting processing...`);
 
         // Check required services
         if (!isReplicateConfigured()) {
+            console.error(`[VideoJob] [${currentJobId}] Replicate API key missing`);
             return NextResponse.json(
                 { success: false, error: "REPLICATE_API_KEY not configured" },
                 { status: 500 }
@@ -165,6 +169,7 @@ export async function POST(request: NextRequest) {
         }
 
         if (!isLambdaMergerConfigured()) {
+            console.error(`[VideoJob] [${currentJobId}] Lambda merger not configured`);
             return NextResponse.json(
                 { success: false, error: "Lambda merger not configured" },
                 { status: 500 }
@@ -173,10 +178,7 @@ export async function POST(request: NextRequest) {
 
         // Get scene configuration for this duration
         const sceneConfig = getSceneConfig(job.targetLength as VideoLength);
-        console.log(`[API] ========================================`);
-        console.log(`[API] Starting video generation for job: ${jobId}`);
-        console.log(`[API] Duration: ${job.targetLength}s → ${sceneConfig.sceneCount} scenes`);
-        console.log(`[API] ========================================`);
+        console.log(`[VideoJob] [${currentJobId}] Plan: ${job.targetLength}s -> ${sceneConfig.sceneCount} scenes`);
 
         // ========================================
         // CREDIT CHECK: Verify user has enough VEO3 credits
@@ -218,6 +220,7 @@ export async function POST(request: NextRequest) {
         const maxDurationVeo = planConfig.maxDuration_veo;
 
         if (targetDuration > maxDurationVeo) {
+            console.warn(`[VideoJob] [${currentJobId}] Plan limit exceeded: Requested ${targetDuration}s, Max ${maxDurationVeo}s`);
             return NextResponse.json(
                 {
                     success: false,
@@ -232,6 +235,7 @@ export async function POST(request: NextRequest) {
         // Check VEO3 credits
         const availableCredits = getAvailableVeoCredits(user);
         if (availableCredits.available < creditsRequired) {
+            console.warn(`[VideoJob] [${currentJobId}] Insufficient credits: Has ${availableCredits.available}, Needed ${creditsRequired}`);
             return NextResponse.json(
                 {
                     success: false,
@@ -243,7 +247,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        console.log(`[API] Credit check passed: ${creditsRequired} credits required, ${availableCredits.available} available`);
+        console.log(`[VideoJob] [${currentJobId}] Credit check passed: ${availableCredits.available} available`);
 
         // ========================================
         // STEP 1: Generate Reference Image (if needed)
@@ -251,7 +255,7 @@ export async function POST(request: NextRequest) {
         let referenceImageUrl = job.referenceImageUrl;
 
         if (!referenceImageUrl && job.imagePrompt) {
-            console.log("[API] Step 1: Generating reference image...");
+            console.log(`[VideoJob] [${currentJobId}] Step 1: Generating reference image...`);
 
             await db
                 .update(videoJobs)
@@ -285,6 +289,7 @@ export async function POST(request: NextRequest) {
                     })
                     .where(eq(videoJobs.id, jobId));
 
+                console.log(`[VideoJob] [${currentJobId}] Polling image task: ${imageResult.taskId}`);
                 const finalStatus = await pollUntilComplete(imageResult.taskId);
 
                 if (finalStatus.status !== "completed" || !finalStatus.imageUrl) {
@@ -301,15 +306,16 @@ export async function POST(request: NextRequest) {
             // Upload to our S3
             if (referenceImageUrl) {
                 try {
+                    console.log(`[VideoJob] [${currentJobId}] Optimizing image for S3...`);
                     const imageResponse = await axios.get(referenceImageUrl, {
                         responseType: "arraybuffer",
                     });
                     const imageBuffer = Buffer.from(imageResponse.data);
                     const s3Key = `${getS3Paths(jobId).reference}/reference.png`;
                     referenceImageUrl = await uploadToS3(s3Key, imageBuffer, "image/png");
-                    console.log(`[API] Reference image uploaded to S3`);
+                    console.log(`[VideoJob] [${currentJobId}] Reference image saved to S3`);
                 } catch (uploadError) {
-                    console.warn("[API] Failed to re-upload image to S3, using original URL", uploadError);
+                    console.warn(`[VideoJob] [${currentJobId}] Failed to upload image to S3, using original URL`, uploadError);
                 }
             }
 
@@ -327,24 +333,23 @@ export async function POST(request: NextRequest) {
             throw new Error("Reference image URL is required");
         }
 
-        console.log(`[API] Using reference image: ${referenceImageUrl}`);
+        console.log(`[VideoJob] [${currentJobId}] Using reference image: ${referenceImageUrl}`);
 
         // Ensure the reference image URL is accessible to Veo (Sign if S3)
         let accessibleReferenceUrl = referenceImageUrl;
         if (referenceImageUrl && referenceImageUrl.includes("amazonaws.com") && !referenceImageUrl.includes("?")) {
             try {
                 accessibleReferenceUrl = await getSignedUrlFromS3Url(referenceImageUrl, 3600); // 1 hour access
-                console.log(`[API] Signed reference image for Veo access`);
+                console.log(`[VideoJob] [${currentJobId}] Reference image signed for external access`);
             } catch (signError) {
-                console.warn("[API] Failed to sign reference URL, trying original:", signError);
+                console.warn(`[VideoJob] [${currentJobId}] Failed to sign S3 URL, attempting with original`, signError);
             }
         }
 
         // ========================================
         // STEP 2: Generate Script and Scene Plan
         // ========================================
-        console.log("[API] Step 2: Generating script and scene plan...");
-        console.log(`[API] Target: ${job.targetLength}s video with ${sceneConfig.sceneCount} scenes`);
+        console.log(`[VideoJob] [${currentJobId}] Step 2: Generating script (Gemini)...`);
 
         const plan = await generateScriptPlan({
             productName: job.productName,
@@ -356,7 +361,7 @@ export async function POST(request: NextRequest) {
             userScript: job.userScript || undefined,
         });
 
-        console.log(`[API] Generated plan: ${plan.scenes.length} scenes, ${plan.totalDuration}s total`);
+        console.log(`[VideoJob] [${currentJobId}] Script planned: ${plan.scenes.length} scenes`);
 
         // Create scene records
         const sceneRecords = plan.scenes.map((scene) => ({
@@ -384,8 +389,7 @@ export async function POST(request: NextRequest) {
         // ========================================
         // STEP 3: Generate ALL Scene Videos with Veo
         // ========================================
-        console.log("[API] Step 3: Generating scene videos with Veo...");
-        console.log(`[API] SAME reference image for all ${plan.scenes.length} scenes (consistency)`);
+        console.log(`[VideoJob] [${currentJobId}] Step 3: Generating scenes (Replicate Veo)...`);
 
         await db
             .update(videoJobs)
@@ -424,6 +428,7 @@ export async function POST(request: NextRequest) {
                         })
                         .where(eq(scenes.id, sceneRecord.id));
                 }
+                console.log(`[VideoJob] [${currentJobId}] Scene ${sceneIndex + 1} status: ${status}`);
             },
             {
                 // Pass consistency and video format options
@@ -438,74 +443,52 @@ export async function POST(request: NextRequest) {
             throw new Error(`Veo generation failed: ${veoResult.error}`);
         }
 
-        console.log(`[API] All ${veoResult.scenes.length} scenes generated`);
+        console.log(`[VideoJob] [${currentJobId}] Step 3 Complete: All scenes generated successfully`);
 
         // ========================================
-        // STEP 4: Upload Scene Videos to S3
+        // STEP 4: Prepare scenes for merging (Skip S3 Upload)
         // ========================================
-        console.log("[API] Step 4: Uploading scene videos to S3 (PARALLEL)...");
+        console.log(`[VideoJob] [${currentJobId}] Step 4: Preparing for merge (Direct URL pass-through)`);
 
-        // Upload ALL scenes in PARALLEL for faster processing
-        const uploadPromises = veoResult.scenes.map(async (scene) => {
-            console.log(`[API] Starting upload for scene ${scene.sceneIndex + 1}/${veoResult.scenes.length}`);
+        const videoClips: Array<{
+            url: string; // Changed from s3Key to url
+            s3Key?: string; // Optional if we skip upload
+            sceneIndex: number;
+            duration: number;
+        }> = [];
 
-            // Download video from Replicate using axios
-            const videoResponse = await axios.get(scene.videoUrl, {
-                responseType: "arraybuffer",
-                timeout: 120000, // 2 minute timeout per download
-            });
+        // Just update the DB with the Replicate URLs (already done in Step 3 callback, but good to ensure)
+        for (const scene of veoResult.scenes) {
+            // We use the direct Replicate URL to avoid 504 Gateway Timeouts on Vercel
+            // caused by downloading/uploading large video files.
 
-            const videoBuffer = Buffer.from(videoResponse.data);
-            const s3Key = getSceneS3Key(jobId, scene.sceneIndex);
-
-            // Upload to S3
-            const s3Url = await uploadToS3(s3Key, videoBuffer, "video/mp4");
-            console.log(`[API] Scene ${scene.sceneIndex + 1} uploaded: ${s3Key}`);
-
-            // Update scene record
-            const [sceneRecord] = await db
-                .select()
-                .from(scenes)
-                .where(
-                    and(
-                        eq(scenes.videoJobId, jobId),
-                        eq(scenes.sceneIndex, scene.sceneIndex)
-                    )
-                );
-
-            if (sceneRecord) {
-                await db
-                    .update(scenes)
-                    .set({
-                        rawVideoUrl: s3Url,
-                        veoStatus: "completed",
-                        updatedAt: new Date(),
-                    })
-                    .where(eq(scenes.id, sceneRecord.id));
-            }
-
-            return {
-                s3Key,
+            videoClips.push({
+                url: scene.videoUrl,
+                s3Key: getSceneS3Key(jobId, scene.sceneIndex), // We still generate the key for reference/future
                 sceneIndex: scene.sceneIndex,
                 duration: scene.duration,
-            };
-        });
+            });
 
-        // Wait for ALL uploads to complete in parallel
-        const s3Clips = await Promise.all(uploadPromises);
+            // Update scene record to ensure rawVideoUrl is set
+            await db
+                .update(scenes)
+                .set({
+                    rawVideoUrl: scene.videoUrl, // Use generic URL column
+                    veoStatus: "completed",
+                    updatedAt: new Date(),
+                })
+                .where(and(eq(scenes.videoJobId, jobId), eq(scenes.sceneIndex, scene.sceneIndex)));
+        }
 
         await db
             .update(videoJobs)
             .set({ status: "SCENES_READY", updatedAt: new Date() })
             .where(eq(videoJobs.id, jobId));
 
-        console.log(`[API] All ${s3Clips.length} scenes uploaded to S3 (PARALLEL COMPLETE)`);
-
         // ========================================
-        // STEP 5: Invoke Lambda for FFmpeg Merge
+        // STEP 5: Invoke Lambda for FFmpeg Merge (ASYNC to avoid timeout)
         // ========================================
-        console.log("[API] Step 5: Invoking Lambda for FFmpeg merge...");
-        console.log(`[API] Merging ${s3Clips.length} scenes with crossfades`);
+        console.log(`[VideoJob] [${currentJobId}] Step 5: Invoking Lambda Merger (Async)`);
 
         await db
             .update(videoJobs)
@@ -514,50 +497,30 @@ export async function POST(request: NextRequest) {
 
         const outputKey = getFinalVideoS3Key(jobId);
 
-        const mergeResult = await invokeMergerLambda({
+        // Use ASYNC invocation to avoid Vercel timeout
+        // The Lambda will update the database when done (via webhook or direct DB update)
+        const mergeResult = await invokeMergerLambdaAsync({
             jobId,
-            clips: s3Clips.sort((a, b) => a.sceneIndex - b.sceneIndex),
+            clips: videoClips.map(c => ({
+                s3Key: c.s3Key || c.url, // Fallback to URL if key missing
+                url: c.url, // Pass the direct URL
+                sceneIndex: c.sceneIndex,
+                duration: c.duration,
+                isUrl: true, // Signal to Lambda that this is a URL, not a key
+            })),
             outputKey,
-            crossfadeDuration: 0, // Hard cut for seamless "jump cut" style (no ghosting)
+            crossfadeDuration: 0,
         });
 
-        if (!mergeResult.success || !mergeResult.finalVideoUrl) {
-            throw new Error(`Lambda merge failed: ${mergeResult.error}`);
+        if (!mergeResult.success) {
+            throw new Error(`Lambda async invocation failed: ${mergeResult.error}`);
         }
 
-        console.log(`[API] Final video merged: ${mergeResult.finalVideoUrl}`);
+        console.log(`[VideoJob] [${currentJobId}] Lambda successfully invoked. RequestId: ${mergeResult.requestId}`);
+
 
         // ========================================
-        // STEP 6: Complete Job
-        // ========================================
-        const finalDuration = mergeResult.totalDuration || veoResult.totalDuration || plan.totalDuration;
-
-        await db
-            .update(videoJobs)
-            .set({
-                status: "DONE",
-                finalVideoUrl: mergeResult.finalVideoUrl,
-                totalDuration: Math.round(finalDuration),
-                completedAt: new Date(),
-                updatedAt: new Date(),
-            })
-            .where(eq(videoJobs.id, jobId));
-
-        // Also add to the generated_videos table for clean record keeping
-        await db.insert(generatedVideos).values({
-            userId,
-            userEmail: job.userEmail,
-            videoJobId: jobId,
-            productName: job.productName,
-            // productDescription removed
-            videoUrl: mergeResult.finalVideoUrl,
-            thumbnailUrl: job.referenceImageUrl, // Use the reference image as thumbnail
-            duration: Math.round(finalDuration),
-            aspectRatio: job.aspectRatio || "9:16",
-        });
-
-        // ========================================
-        // DEDUCT VEO3 CREDITS
+        // DEDUCT VEO3 CREDITS (Deduct now since scenes are generated)
         // ========================================
         try {
             const deductedCredits = deductVeoCredits(user, creditsRequired);
@@ -571,35 +534,33 @@ export async function POST(request: NextRequest) {
                 })
                 .where(eq(Users.email, userEmail));
 
-            console.log(`[API] 💳 Deducted ${creditsRequired} VEO3 credits from user: ${userEmail}`);
+            console.log(`[VideoJob] [${currentJobId}] 💳 Deducted ${creditsRequired} VEO3 credits`);
         } catch (creditError: unknown) {
             const err = creditError as Error;
-            console.error(`[API] ❌ Failed to deduct VEO3 credits:`, err.message);
-            // Continue anyway since video was generated successfully
+            console.error(`[VideoJob] [${currentJobId}] ❌ Credit deduction failed:`, err.message);
+            // Continue anyway since scenes were generated successfully
         }
 
-        console.log(`[API] ========================================`);
-        console.log(`[API] Job ${jobId} COMPLETED SUCCESSFULLY`);
-        console.log(`[API] Final video: ${mergeResult.finalVideoUrl}`);
-        console.log(`[API] Duration: ~${Math.round(finalDuration)}s`);
-        console.log(`[API] ========================================`);
+        console.log(`[VideoJob] [${currentJobId}] Pipeline processing handed off to Lambda`);
 
+        // Return immediately - Lambda will complete the job asynchronously
+        // Frontend should poll the status endpoint to detect when STITCHING -> DONE
         return NextResponse.json({
             success: true,
-            message: "Video generated successfully",
-            finalVideoUrl: mergeResult.finalVideoUrl,
+            message: "Video scenes generated. Final merge in progress...",
+            status: "STITCHING",
+            jobId,
             plan: {
                 fullScript: plan.fullScript,
                 sceneCount: plan.scenes.length,
-                totalDuration: Math.round(finalDuration),
+                totalDuration: plan.totalDuration,
             },
         });
     } catch (error) {
-        console.error("[API] Generate video error:", error);
+        console.error(`[VideoJob] [${currentJobId}] CRITICAL ERROR:`, error);
 
         // Mark job as failed
-        const body = await request.clone().json().catch(() => ({}));
-        if (body.jobId) {
+        if (currentJobId && currentJobId !== "unknown") {
             try {
                 await db
                     .update(videoJobs)
@@ -609,9 +570,10 @@ export async function POST(request: NextRequest) {
                             error instanceof Error ? error.message : "Unknown error",
                         updatedAt: new Date(),
                     })
-                    .where(eq(videoJobs.id, body.jobId));
+                    .where(eq(videoJobs.id, currentJobId));
+                console.log(`[VideoJob] [${currentJobId}] Marked job as FAILED in DB`);
             } catch (dbError) {
-                console.error("[API] Failed to update job status:", dbError);
+                console.error("[VideoJob] Failed to update job status:", dbError);
             }
         }
 

@@ -25,6 +25,8 @@ export interface MergeRequest {
         s3Key: string;
         sceneIndex: number;
         duration: number;
+        url?: string; // Optional direct URL support
+        isUrl?: boolean; // Flag to indicate using generic URL download
     }>;
     outputKey: string;
     crossfadeDuration?: number;
@@ -191,13 +193,29 @@ export async function invokeMergerLambdaAsync(
     try {
         const client = getLambdaClient();
 
+        // Build callback URL dynamically
+        const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL;
+        const callbackUrl = baseUrl ? `${baseUrl.startsWith('http') ? baseUrl : `https://${baseUrl}`}/api/manual-video/merge-callback` : undefined;
+        const callbackSecret = process.env.LAMBDA_CALLBACK_SECRET;
+
+        if (!callbackUrl) {
+            console.warn("[Lambda] No callback URL configured - Lambda won't notify on completion");
+        }
+        if (!callbackSecret) {
+            console.warn("[Lambda] No callback secret configured - Lambda callbacks will fail auth");
+        }
+
         const payload = {
             jobId: request.jobId,
             clips: request.clips,
             outputKey: request.outputKey,
             crossfadeDuration: 0,
             bucket: process.env.AWS_S3_BUCKET_NAME,
+            callbackUrl,
+            callbackSecret,
         };
+
+        console.log(`[Lambda] Payload:`, JSON.stringify({ ...payload, callbackSecret: '***' }, null, 2));
 
         const command = new InvokeCommand({
             FunctionName: functionName,

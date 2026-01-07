@@ -610,6 +610,9 @@ export default function ManualVideoForm({
             return;
         }
 
+        const toastId = toast.loading("Starting image generation...");
+        console.log("[ManualFlow] Starting Step 1: Image Generation");
+
         setLoading(true);
         setLoadingStep("generating");
         progressRef.current = 0;
@@ -626,6 +629,9 @@ export default function ManualVideoForm({
 
         try {
             // Parallel uploads for better performance
+            console.log("[ManualFlow] Uploading assets...");
+            toast.loading("Uploading assets...", { id: toastId });
+
             const [uploadedAvatarUrl, uploadedProductUrl] = await Promise.all([
                 avatarImage ? uploadImage(avatarImage, "avatar") : Promise.resolve(undefined),
                 productImage ? uploadImage(productImage, "product") : Promise.resolve(undefined)
@@ -642,6 +648,9 @@ export default function ManualVideoForm({
             } else if (avatarMode === "describe") {
                 finalAvatarDescription = avatarDescription;
             }
+
+            console.log("[ManualFlow] Creating job & generating reference...");
+            toast.loading("Generating reference image...", { id: toastId });
 
             // Create job and generate reference image
             const response = await axios.post("/api/manual-video/create", {
@@ -660,9 +669,11 @@ export default function ManualVideoForm({
 
             if (response.data.success) {
                 setJobId(response.data.jobId);
+                console.log(`[ManualFlow] Job Created: ${response.data.jobId}`);
 
                 // Poll for reference image
                 if (response.data.referenceImageUrl) {
+                    console.log("[ManualFlow] Reference image returned immediately");
                     // Complete! Set to 100%
                     progressRef.current = 100;
                     setLoadingPercentage(100);
@@ -670,9 +681,12 @@ export default function ManualVideoForm({
                     setGeneratedImageUrl(response.data.referenceImageUrl);
                     setLoadingStep("done");
                     setCurrentStep(2);
+                    toast.success("Reference image ready!", { id: toastId });
                     // Refresh sidebar credits
                     refreshCredits();
                 } else {
+                    console.log("[ManualFlow] Polling for image...");
+                    toast.loading("Processing image...", { id: toastId });
                     // Wait for image generation
                     await pollForImage(response.data.jobId);
                     progressRef.current = 100;
@@ -680,6 +694,8 @@ export default function ManualVideoForm({
                     clearInterval(progressInterval);
                     // Refresh sidebar credits after polling completes
                     refreshCredits();
+                    console.log("[ManualFlow] Image polling complete");
+                    toast.success("Reference image ready!", { id: toastId });
                 }
             } else {
                 clearInterval(progressInterval);
@@ -687,8 +703,8 @@ export default function ManualVideoForm({
             }
         } catch (err) {
             clearInterval(progressInterval);
-            console.error("Generate image error:", err);
-            toast.error(err instanceof Error ? err.message : "Failed to generate image");
+            console.error("[ManualFlow] Generate image error:", err);
+            toast.error(err instanceof Error ? err.message : "Failed to generate image", { id: toastId });
         } finally {
             setLoading(false);
             setLoadingStep("idle");
@@ -738,12 +754,16 @@ export default function ManualVideoForm({
             return;
         }
 
+        const toastId = toast.loading("Initializing video pipeline...");
+        console.log(`[ManualFlow] Initializing video generation for Job: ${jobId}`);
+
         // Move to Step 3 IMMEDIATELY so loading shows inline (not in modal)
         setCurrentStep(3);
         onJobCreated(jobId);
 
         try {
             // Start the video generation pipeline
+            console.log("[ManualFlow] Sending generate request...");
             const response = await axios.post("/api/manual-video/generate", {
                 jobId,
                 backgroundDescription,
@@ -755,10 +775,14 @@ export default function ManualVideoForm({
             if (!response.data.success) {
                 throw new Error(response.data.error || "Failed to start video generation");
             }
+
+            console.log(`[ManualFlow] Pipeline started successfully. Status: ${response.data.status}`);
+            toast.success("Video generation started! Sit tight.", { id: toastId });
+
             // Step3Result component will handle polling and show progress
         } catch (err) {
-            console.error("Generate video error:", err);
-            toast.error(err instanceof Error ? err.message : "Failed to generate video");
+            console.error("[ManualFlow] Generate video error:", err);
+            toast.error(err instanceof Error ? err.message : "Failed to generate video", { id: toastId });
             // Go back to Step 2 on error
             setCurrentStep(2);
         }
@@ -1545,7 +1569,10 @@ function Step3Result({ jobId, onReset, onRetry }: { jobId: string | null; onRese
                 const response = await axios.get(`/api/manual-video/status?jobId=${jobId}`);
                 const job = response.data.job;
 
+                console.log(`[ManualFlow] Poll Status: ${job.status}`);
+
                 if (job.status === "DONE" && job.finalVideoUrl) {
+                    console.log("[ManualFlow] Job DONE! URL:", job.finalVideoUrl);
                     setVideoUrl(job.finalVideoUrl);
                     setStatus("done");
                     setProgress(100);
@@ -1555,6 +1582,7 @@ function Step3Result({ jobId, onReset, onRetry }: { jobId: string | null; onRese
                     // Refresh sidebar credits via context
                     refreshCredits();
                 } else if (job.status === "FAILED") {
+                    console.error("[ManualFlow] Job FAILED:", job.errorMessage);
                     setStatus("failed");
                     clearInterval(progressInterval);
                     clearInterval(pollInterval);
@@ -1563,7 +1591,7 @@ function Step3Result({ jobId, onReset, onRetry }: { jobId: string | null; onRese
                 }
                 // else: Still processing, continue polling
             } catch (err) {
-                console.error("Poll status error:", err);
+                console.error("[ManualFlow] Poll status error:", err);
             }
         };
 
