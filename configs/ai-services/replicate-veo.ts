@@ -444,48 +444,64 @@ export async function generateAllScenes(
     }
 ): Promise<GenerateAllScenesResult> {
     console.log(`[Veo] ========================================`);
-    console.log(`[Veo] Starting PARALLEL generation of ${scenes.length} scenes`);
+    console.log(`[Veo] Starting STAGGERED PARALLEL generation of ${scenes.length} scenes`);
     console.log(`[Veo] Reference image (SAME for all): ${referenceImageUrl}`);
     console.log(`[Veo] ========================================`);
 
     // Mark all scenes as "generating" immediately
-    await Promise.allSettled(
+    await Promise.all(
         scenes.map((scene) => onProgress?.(scene.sceneIndex, "generating"))
     );
 
-    // Generate all scenes in PARALLEL using Promise.all
-    const generationPromises = scenes.map(async (scene) => {
-        console.log(`[Veo] --- Starting Scene ${scene.sceneIndex + 1}/${scenes.length} (parallel) ---`);
+    // Promise array for parallel execution
+    const generationPromises: Promise<{
+        scene: typeof scenes[0];
+        result: import("./replicate-veo").VeoSceneResult;
+    }>[] = [];
 
-        // USE THE RETRY WRAPPER HERE
-        const result = await generateVeoSceneWithRetry({
-            referenceImageUrl, // SAME image for ALL scenes
-            script: scene.script,
-            visualPrompt: scene.visualPrompt,
-            motionDescription: scene.motionDescription,
-            productName,
-            sceneIndex: scene.sceneIndex,
-            totalScenes: scenes.length,
-            duration: getVeoDuration(scene.plannedDuration),
-            avatarDescription: options?.avatarDescription,
-            backgroundDescription: options?.backgroundDescription,
-            aspectRatio: options?.aspectRatio,
-            resolution: options?.resolution,
-        });
+    // Start scenes ONE BY ONE with a delay (Staggered Start)
+    for (const scene of scenes) {
+        // Prevent "Request was throttled" by waiting between creation requests
+        // Increased to 5s to be extremely safe against rate limits
+        if (scene.sceneIndex > 0) {
+            console.log(`[Veo] Staggering start for scene ${scene.sceneIndex + 1} (5s delay)...`);
+            await sleep(5000);
+        }
 
+        console.log(`[Veo] --- Starting Scene ${scene.sceneIndex + 1}/${scenes.length} (staggered) ---`);
 
+        // Start the generation asynchronously (DO NOT await result here)
+        const promise = (async () => {
+            // USE THE RETRY WRAPPER HERE
+            const result = await generateVeoSceneWithRetry({
+                referenceImageUrl, // SAME image for ALL scenes
+                script: scene.script,
+                visualPrompt: scene.visualPrompt,
+                motionDescription: scene.motionDescription,
+                productName,
+                sceneIndex: scene.sceneIndex,
+                totalScenes: scenes.length,
+                duration: getVeoDuration(scene.plannedDuration),
+                avatarDescription: options?.avatarDescription,
+                backgroundDescription: options?.backgroundDescription,
+                aspectRatio: options?.aspectRatio,
+                resolution: options?.resolution,
+            });
 
-        // Notify progress when this specific scene completes
-        await onProgress?.(scene.sceneIndex, "completed");
-        console.log(`[Veo] Scene ${scene.sceneIndex + 1} ✓ (completed)`);
+            // Notify progress when this specific scene completes
+            await onProgress?.(scene.sceneIndex, "completed");
+            console.log(`[Veo] Scene ${scene.sceneIndex + 1} ✓ (completed)`);
 
-        return {
-            scene,
-            result,
-        };
-    });
+            return {
+                scene,
+                result,
+            };
+        })();
 
-    // Wait for ALL scenes to complete in parallel
+        generationPromises.push(promise);
+    }
+
+    // Wait for ALL scenes to complete (they are running in parallel)
     const allResults = await Promise.all(generationPromises);
 
     // Process results and check for failures
@@ -519,7 +535,7 @@ export async function generateAllScenes(
     }
 
     console.log(`[Veo] ========================================`);
-    console.log(`[Veo] All ${scenes.length} scenes generated successfully (PARALLEL)!`);
+    console.log(`[Veo] All ${scenes.length} scenes generated successfully (STAGGERED)!`);
     console.log(`[Veo] Total planned duration: ${totalDuration}s`);
     console.log(`[Veo] ========================================`);
 
