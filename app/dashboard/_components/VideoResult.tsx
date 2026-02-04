@@ -22,7 +22,7 @@ export default function VideoResult() {
   const videoRecordId = workflowData.videoRecordId;
 
   const pollForVideoCompletion = useCallback(async (taskIdToPoll: string) => {
-    const maxAttempts = 400; // 10 minutes max
+    const maxAttempts = 800; 
     let attempts = 0;
 
     // Fake progress animation
